@@ -23,6 +23,6 @@ client.interceptors.response.use(
 export const userApi = {
   getPublicTeacherProfile: async (subdomain: string) => {
     const response = await client.get(`/users/public/${subdomain}`);
-    return response.data;
+    return response.data.data;
   }
 };

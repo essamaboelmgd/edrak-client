@@ -13,6 +13,8 @@ interface TeacherSiteProps {
 }
 
 export default function TeacherSite({ config }: TeacherSiteProps) {
+  if (!config) return <div className="min-h-screen bg-white flex items-center justify-center">Loading Site...</div>;
+
   const { platformName, theme, primaryColor, secondaryColor } = config;
 
   // We reuse the preview components as full site wrappers for now
