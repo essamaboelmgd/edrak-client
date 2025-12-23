@@ -3,6 +3,7 @@ import { TeacherRegistrationData } from "../schema";
 import { cn } from "@/lib/utils";
 import { ModernThemePreview } from "@/features/themes/components/ModernThemePreview";
 import { ClassicThemePreview } from "@/features/themes/components/ClassicThemePreview";
+import { CreativeThemePreview } from "@/features/themes/components/CreativeThemePreview";
 
 const THEMES = [
   { id: "blue", color: "bg-blue-600" },
@@ -16,6 +17,8 @@ export const Step4SiteConfig = () => {
   const { register, watch, setValue, formState: { errors } } = useFormContext<TeacherRegistrationData>();
   
   const currentTheme = watch("themeColor");
+  const secondaryColor = watch("secondaryColor");
+  const templateId = watch("templateId");
   const subdomain = watch("subdomain");
 
   return (
@@ -46,62 +49,98 @@ export const Step4SiteConfig = () => {
         {errors.subdomain && <p className="text-sm text-red-500">{errors.subdomain.message}</p>}
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Theme Color</label>
-        <div className="flex gap-4">
-            {THEMES.map(theme => (
-                <button
-                    key={theme.id}
-                    type="button"
-                    onClick={() => setValue("themeColor", theme.id)}
-                    className={cn(
-                        "w-10 h-10 rounded-full border-2 transition-all",
-                        theme.color,
-                        currentTheme === theme.id ? "border-black ring-2 ring-offset-2 ring-blue-400 scale-110" : "border-transparent opacity-70 hover:opacity-100"
-                    )}
-                />
-            ))}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+            <label className="text-sm font-medium">Primary Color</label>
+            <div className="flex flex-wrap gap-2">
+                {THEMES.map(theme => (
+                    <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => setValue("themeColor", theme.id)}
+                        className={cn(
+                            "w-8 h-8 rounded-full border-2 transition-all",
+                            theme.color,
+                            currentTheme === theme.id ? "border-black ring-2 ring-offset-2 ring-blue-400 scale-110" : "border-transparent opacity-70 hover:opacity-100"
+                        )}
+                    />
+                ))}
+            </div>
         </div>
-        <p className="text-xs text-gray-500">Select the primary color for your landing page.</p>
+        <div className="space-y-2">
+            <label className="text-sm font-medium">Secondary Color (Optional)</label>
+            <div className="flex flex-wrap gap-2">
+                {THEMES.map(theme => (
+                    <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => setValue("secondaryColor", theme.id)}
+                        className={cn(
+                            "w-8 h-8 rounded-full border-2 transition-all",
+                            theme.color,
+                            secondaryColor === theme.id ? "border-black ring-2 ring-offset-2 ring-gray-400 scale-110" : "border-transparent opacity-70 hover:opacity-100"
+                        )}
+                    />
+                ))}
+            </div>
+        </div>
       </div>
+      {errors.themeColor && <p className="text-sm text-red-500">{errors.themeColor.message}</p>}
 
-      {/* Template Selection Placeholder */}
+      {/* Template Selection */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Choose Template</label>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
             <div 
-                className={cn("border-2 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition", watch("templateId") === "modern" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
+                className={cn("border-2 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition", templateId === "modern" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
                 onClick={() => setValue("templateId", "modern")}
             >
-                <div className="h-20 bg-gray-200 mb-2 rounded"></div>
-                <p className="font-semibold text-center">Modern</p>
+                <div className="h-16 bg-gray-200 mb-2 rounded"></div>
+                <p className="font-semibold text-center text-xs">Modern</p>
             </div>
             <div 
-                className={cn("border-2 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition", watch("templateId") === "classic" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
+                className={cn("border-2 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition", templateId === "classic" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
                 onClick={() => setValue("templateId", "classic")}
             >
-                <div className="h-20 bg-gray-200 mb-2 rounded"></div>
-                <p className="font-semibold text-center">Classic</p>
+                <div className="h-16 bg-gray-200 mb-2 rounded"></div>
+                <p className="font-semibold text-center text-xs">Classic</p>
+            </div>
+            <div 
+                className={cn("border-2 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition", templateId === "creative" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
+                onClick={() => setValue("templateId", "creative")}
+            >
+                <div className="h-16 bg-gray-200 mb-2 rounded border-black border"></div>
+                <p className="font-semibold text-center text-xs">Creative</p>
             </div>
         </div>
         <input type="hidden" {...register("templateId")} />
         {errors.templateId && <p className="text-sm text-red-500">{errors.templateId.message}</p>}
       </div>
+
       {/* Live Preview Section */}
       <div className="mt-8 border-t pt-6">
         <label className="text-sm font-medium mb-4 block">Live Preview</label>
         <div className="w-full aspect-video rounded-xl border shadow-lg overflow-hidden bg-gray-50 ring-1 ring-gray-900/5 items-center justify-center flex">
-            {watch("templateId") === "modern" ? (
+            {templateId === "modern" && (
                 <ModernThemePreview 
                     siteName={watch("siteName")} 
                     themeColor={currentTheme} 
                 />
-            ) : (
+            )}
+            {templateId === "classic" && (
                 <ClassicThemePreview 
                     siteName={watch("siteName")} 
                     themeColor={currentTheme} 
                 />
             )}
+             {templateId === "creative" && (
+                <CreativeThemePreview 
+                    siteName={watch("siteName")} 
+                    themeColor={currentTheme} 
+                    secondaryColor={secondaryColor}
+                />
+            )}
+            {!templateId && <p className="text-sm text-gray-500">Select a template to view preview</p>}
         </div>
       </div>
       

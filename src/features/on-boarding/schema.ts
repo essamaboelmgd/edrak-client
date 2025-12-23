@@ -26,6 +26,7 @@ export const teacherRegistrationSchema = z.object({
   subdomain: z.string().min(3, "Subdomain is required")
     .regex(/^[a-z0-9-]+$/, "Subdomain can only contain lowercase letters, numbers, and hyphens"),
   themeColor: z.enum(["blue", "purple", "green", "orange", "slate"]),
+  secondaryColor: z.enum(["blue", "purple", "green", "orange", "slate"]).optional(),
   templateId: z.string().min(1, "Please select a template"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
