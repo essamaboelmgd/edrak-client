@@ -7,27 +7,18 @@ interface ThemePreviewProps {
 }
 
 export const CreativeThemePreview = ({ siteName, themeColor, secondaryColor }: ThemePreviewProps) => {
-  const colorMap: Record<string, string> = {
-    blue: "bg-blue-500",
-    purple: "bg-purple-500",
-    green: "bg-green-500",
-    orange: "bg-orange-500",
-    slate: "bg-slate-500",
-  };
-
-  const bgPrimary = colorMap[themeColor] || "bg-blue-500";
-  // Default secondary to a different shade or color if not provided, or specific logic
-  const bgSecondary = secondaryColor ? colorMap[secondaryColor] : "bg-yellow-400";
+  const primaryStyle = { backgroundColor: themeColor || '#3b82f6' };
+  const secondaryStyle = { backgroundColor: secondaryColor || '#eab308' };
 
   return (
     <div className="w-full h-full bg-white rounded-lg shadow-sm border overflow-hidden flex flex-col font-mono relative">
-      <div className={cn("absolute top-0 right-0 w-32 h-32 rounded-bl-full opacity-20", bgPrimary)}></div>
-      <div className={cn("absolute bottom-0 left-0 w-24 h-24 rounded-tr-full opacity-20", bgSecondary)}></div>
+      <div className="absolute top-0 right-0 w-32 h-32 rounded-bl-full opacity-20" style={primaryStyle}></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 rounded-tr-full opacity-20" style={secondaryStyle}></div>
       
       {/* Header */}
       <header className="p-4 flex justify-between items-center z-10">
         <h2 className="text-xl font-black tracking-tighter">{siteName || "CREATIVE"}</h2>
-        <div className={cn("w-8 h-8 rounded-full border-2 border-black", bgSecondary)}></div>
+        <div className="w-8 h-8 rounded-full border-2 border-black" style={secondaryStyle}></div>
       </header>
       
       {/* Hero */}

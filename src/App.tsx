@@ -50,9 +50,44 @@ function AppRoutes() {
   }
 
   // Teacher Site (Public)
+  const [teacherConfig, setTeacherConfig] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        setLoading(true);
+        // We need to import userApi dynamically or move this logic to a separate component to avoid circular deps if any
+        const { userApi } = await import('@/api/client');
+        const data = await userApi.getPublicTeacherProfile(subdomain);
+        setTeacherConfig(data.teacher);
+      } catch (err) {
+        console.error("Failed to load teacher site:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, [subdomain]);
+
+  if (loading) return <Loading />;
+  
+  if (error) {
+     return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+            <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+            <p className="text-gray-600 mb-8">Academy not found or unavailable.</p>
+            <a href="/" className="text-blue-600 hover:underline">Return to Edrak</a>
+        </div>
+     );
+  }
+
   return (
     <Routes>
-        <Route path="/" element={<TeacherSite />} />
+        <Route path="/" element={<TeacherSite config={teacherConfig} />} />
         <Route path="/course/:id" element={<div>Course Detail</div>} />
         <Route path="*" element={<Navigate to="/" />} />
     </Routes>

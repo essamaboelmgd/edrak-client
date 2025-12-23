@@ -7,20 +7,12 @@ interface ThemePreviewProps {
 }
 
 export const ClassicThemePreview = ({ siteName, themeColor }: Omit<ThemePreviewProps, "subdomain">) => {
-  const colorMap: Record<string, string> = {
-    blue: "bg-blue-800",
-    purple: "bg-purple-800",
-    green: "bg-green-800",
-    orange: "bg-orange-800",
-    slate: "bg-slate-800",
-  };
-
-  const bgColor = colorMap[themeColor] || "bg-blue-800";
+  const primaryStyle = { backgroundColor: themeColor || '#1e40af' };
 
   return (
     <div className="w-full h-full bg-[#f8f9fa] rounded-lg shadow-sm border overflow-hidden flex flex-col font-serif">
       {/* Header */}
-      <header className={cn("p-4 text-white text-center", bgColor)}>
+      <header className="p-4 text-white text-center" style={primaryStyle}>
         <h2 className="text-lg font-bold uppercase tracking-widest">{siteName || "ACADEMY"}</h2>
         <p className="text-[0.6rem] opacity-80 uppercase tracking-wide">Since 2024</p>
       </header>
@@ -35,7 +27,7 @@ export const ClassicThemePreview = ({ siteName, themeColor }: Omit<ThemePreviewP
       {/* Content */}
       <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-3">
         <h1 className="text-lg text-gray-800 font-medium">Excellence in Education</h1>
-        <div className={cn("w-10 h-0.5", bgColor, "opacity-50")}></div>
+        <div className="w-10 h-0.5 opacity-50" style={primaryStyle}></div>
         <p className="text-[0.65rem] text-gray-500 max-w-[200px] leading-relaxed">
             Providing top-tier educational resources for dedicated students. Commit to your future today.
         </p>

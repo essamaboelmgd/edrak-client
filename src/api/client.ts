@@ -19,3 +19,10 @@ client.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const userApi = {
+  getPublicTeacherProfile: async (subdomain: string) => {
+    const response = await client.get(`/users/public/${subdomain}`);
+    return response.data;
+  }
+};
