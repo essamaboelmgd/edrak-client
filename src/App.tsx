@@ -12,44 +12,7 @@ const DashboardLayout = React.lazy(() => import('@/components/layout/DashboardLa
 // Loading Fallback
 const Loading = () => <div className="min-h-screen flex items-center justify-center">Loading...</div>
 
-function AppRoutes() {
-  const subdomain = useSubdomain();
-
-  // ROUTING LOGIC:
-  // 1. null or 'www' -> Platform Landing
-  // 2. 'app', 'student', 'teacher', 'admin' -> Main App Dashboard (Role based auth will handle inside)
-  // 3. anything else -> Teacher Site
-
-  if (!subdomain || subdomain === 'www') {
-    return (
-      <Routes>
-        <Route path="/" element={<PlatformHome />} />
-        <Route path="/join" element={<TeacherRegistrationWizard />} />
-        <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/signup" element={<div>Signup Page</div>} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    )
-  }
-
-  if (['app', 'student', 'teacher', 'admin'].includes(subdomain)) {
-     // Determine role from subdomain or auth context later.
-     // For now, mapping subdomain to role for demo.
-     const role = subdomain === 'admin' ? 'admin' : subdomain === 'student' ? 'student' : 'teacher';
-     
-     return (
-        <Routes>
-            <Route element={<DashboardLayout role={role as any} />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/courses" element={<div>Courses Page</div>} />
-                <Route path="/students" element={<div>Students Page</div>} />
-                <Route path="*" element={<Navigate to="/" />} />
-            </Route>
-        </Routes>
-     )
-  }
-
-  // Teacher Site (Public)
+const PublicTeacherSiteRoutes = ({ subdomain }: { subdomain: string }) => {
   const [teacherConfig, setTeacherConfig] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
@@ -91,7 +54,48 @@ function AppRoutes() {
         <Route path="/course/:id" element={<div>Course Detail</div>} />
         <Route path="*" element={<Navigate to="/" />} />
     </Routes>
-  )
+  );
+};
+
+function AppRoutes() {
+  const subdomain = useSubdomain();
+
+  // ROUTING LOGIC:
+  // 1. null or 'www' -> Platform Landing
+  // 2. 'app', 'student', 'teacher', 'admin' -> Main App Dashboard (Role based auth will handle inside)
+  // 3. anything else -> Teacher Site
+
+  if (!subdomain || subdomain === 'www') {
+    return (
+      <Routes>
+        <Route path="/" element={<PlatformHome />} />
+        <Route path="/join" element={<TeacherRegistrationWizard />} />
+        <Route path="/login" element={<div>Login Page</div>} />
+        <Route path="/signup" element={<div>Signup Page</div>} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    )
+  }
+
+  if (['app', 'student', 'teacher', 'admin'].includes(subdomain)) {
+     // Determine role from subdomain or auth context later.
+     // For now, mapping subdomain to role for demo.
+     const role = subdomain === 'admin' ? 'admin' : subdomain === 'student' ? 'student' : 'teacher';
+     
+     return (
+        <Routes>
+            <Route element={<DashboardLayout role={role as any} />}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/courses" element={<div>Courses Page</div>} />
+                <Route path="/students" element={<div>Students Page</div>} />
+                <Route path="*" element={<Navigate to="/" />} />
+            </Route>
+        </Routes>
+     )
+  }
+
+  // Teacher Site (Public)
+  return <PublicTeacherSiteRoutes subdomain={subdomain} />;
 }
 
 function App() {
