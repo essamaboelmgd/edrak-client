@@ -42,10 +42,10 @@ export const Step4SiteConfig = () => {
             placeholder="mr-ahmed"
             />
             <div className="bg-gray-100 text-gray-500 px-3 py-2 border border-l-0 rounded-r-md h-10 flex items-center text-sm">
-                .edrak.com
+                .edrak.cloud
             </div>
         </div>
-        {subdomain && <p className="text-xs text-muted-foreground mt-1">Your site will be at: <span className="font-mono font-medium text-blue-600">https://{subdomain}.edrak.com</span></p>}
+        {subdomain && <p className="text-xs text-muted-foreground mt-1">Your site will be at: <span className="font-mono font-medium text-blue-600">https://{subdomain}.edrak.cloud</span></p>}
         {errors.subdomain && <p className="text-sm text-red-500">{errors.subdomain.message}</p>}
       </div>
 

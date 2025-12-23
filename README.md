@@ -6,13 +6,13 @@ This is the frontend application for the Edrak platform, built with **React**, *
 
 This single repository serves 5 different interfaces based on the **Subdomain** accessed:
 
-| Subdomain       | Role                  | Description                                                             |
-| --------------- | --------------------- | ----------------------------------------------------------------------- |
-| `www` (or none) | **Platform Landing**  | The marketing site and teacher registration wizard.                     |
-| `app`           | **Teacher Dashboard** | Where teachers manage their courses, students, and site settings.       |
-| `student`       | **Student Dashboard** | Where students access their courses and materials.                      |
-| `admin`         | **Super Admin**       | Platform administration panel.                                          |
-| `*` (Any other) | **Teacher Site**      | The public website for a specific teacher (e.g., `mr-ahmed.edrak.com`). |
+| Subdomain       | Role                  | Description                                                               |
+| --------------- | --------------------- | ------------------------------------------------------------------------- |
+| `www` (or none) | **Platform Landing**  | The marketing site and teacher registration wizard.                       |
+| `app`           | **Teacher Dashboard** | Where teachers manage their courses, students, and site settings.         |
+| `student`       | **Student Dashboard** | Where students access their courses and materials.                        |
+| `admin`         | **Super Admin**       | Platform administration panel.                                            |
+| `*` (Any other) | **Teacher Site**      | The public website for a specific teacher (e.g., `mr-ahmed.edrak.cloud`). |
 
 ### Key Features
 
