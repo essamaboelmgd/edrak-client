@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# Edrak Client (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend application for the Edrak platform, built with **React**, **Vite**, **TypeScript**, and **Tailwind CSS**.
 
-Currently, two official plugins are available:
+## 🏗 Architecture: The "5-in-1" System
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This single repository serves 5 different interfaces based on the **Subdomain** accessed:
 
-## React Compiler
+| Subdomain       | Role                  | Description                                                             |
+| --------------- | --------------------- | ----------------------------------------------------------------------- |
+| `www` (or none) | **Platform Landing**  | The marketing site and teacher registration wizard.                     |
+| `app`           | **Teacher Dashboard** | Where teachers manage their courses, students, and site settings.       |
+| `student`       | **Student Dashboard** | Where students access their courses and materials.                      |
+| `admin`         | **Super Admin**       | Platform administration panel.                                          |
+| `*` (Any other) | **Teacher Site**      | The public website for a specific teacher (e.g., `mr-ahmed.edrak.com`). |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Key Features
 
-## Expanding the ESLint configuration
+- **Dynamic Routing**: `useSubdomain` hook detects the current domain and renders the appropriate layout.
+- **Role-Based Access Control (RBAC)**: `DashboardLayout` adapts its sidebar and header based on the user role.
+- **Teacher Registration Wizard**: A multi-step form (4 Steps) for creating a full teacher academy in minutes.
+- **Theme Engine**: Teachers can choose themes (Modern, Classic, etc.) and colors, which are applied dynamically.
+- **Strict Typing**: Full TypeScript coverage for robust development.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Node.js (v18+)
+- NPM
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+To run the local development server:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+> **Note on Subdomains**: To test subdomains locally, you must configure your `/etc/hosts` file to point `app.localhost`, `admin.localhost`, etc., to `127.0.0.1`.
+
+### Build
+
+To build for production:
+
+```bash
+npm run build
+```
+
+## 📂 Project Structure
+
+```
+src/
+├── api/             # Axios client and API services (Auth, etc.)
+├── components/      # Shared UI components
+│   ├── layout/      # DashboardLayout, Sidebar, Header
+│   └── ui/          # Reusable atoms (Buttons, Inputs)
+├── features/        # Feature-based modules
+│   ├── on-boarding/ # Teacher Registration Wizard
+│   └── themes/      # Theme components (Modern, Classic)
+├── hooks/           # Custom hooks (useSubdomain)
+├── pages/           # Page components
+│   ├── app/         # Dashboard pages
+│   ├── platform/    # Landing page
+│   └── sites/       # Teacher websites
+└── lib/             # Utilities (cn, validators)
+```
+
+## 🎨 Theme System
+
+The `TeacherSite` component dynamically renders content based on the user's configuration. New themes should be added to `src/features/themes/` and registered in the mapped types.
