@@ -1,23 +1,23 @@
-import * as React from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useSubdomain } from '@/hooks/useSubdomain'
 
 // Lazy load pages
-const PlatformHome = React.lazy(() => import('@/pages/platform/Home'))
-const Dashboard = React.lazy(() => import('@/pages/app/Dashboard'))
-const TeacherSite = React.lazy(() => import('@/pages/sites/TeacherSite'))
-const TeacherRegistrationWizard = React.lazy(() => import('@/features/on-boarding'))
-const DashboardLayout = React.lazy(() => import('@/components/layout/DashboardLayout'))
+const PlatformHome = lazy(() => import('@/pages/platform/Home'))
+const Dashboard = lazy(() => import('@/pages/app/Dashboard'))
+const TeacherSite = lazy(() => import('@/pages/sites/TeacherSite'))
+const TeacherRegistrationWizard = lazy(() => import('@/features/on-boarding'))
+const DashboardLayout = lazy(() => import('@/components/layout/DashboardLayout'))
 
 // Loading Fallback
 const Loading = () => <div className="min-h-screen flex items-center justify-center">Loading...</div>
 
 const PublicTeacherSiteRoutes = ({ subdomain }: { subdomain: string }) => {
-  const [teacherConfig, setTeacherConfig] = React.useState<any>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(false);
+  const [teacherConfig, setTeacherConfig] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchConfig = async () => {
       try {
         setLoading(true);
@@ -57,9 +57,7 @@ const PublicTeacherSiteRoutes = ({ subdomain }: { subdomain: string }) => {
   );
 };
 
-function AppRoutes() {
-  const subdomain = useSubdomain();
-
+function AppRoutes({ subdomain }: { subdomain: string | null }) {
   // ROUTING LOGIC:
   // 1. null or 'www' -> Platform Landing
   // 2. 'app', 'student', 'teacher', 'admin' -> Main App Dashboard (Role based auth will handle inside)
@@ -99,11 +97,13 @@ function AppRoutes() {
 }
 
 function App() {
+  const subdomain = useSubdomain();
+  
   return (
     <BrowserRouter>
-      <React.Suspense fallback={<Loading />}>
-        <AppRoutes />
-      </React.Suspense>
+      <Suspense fallback={<Loading />}>
+        <AppRoutes subdomain={subdomain} />
+      </Suspense>
     </BrowserRouter>
   )
 }
