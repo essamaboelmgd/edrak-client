@@ -1,6 +1,17 @@
 import { client } from './client';
 import { TeacherRegistrationData } from '@/features/on-boarding/schema';
 
+const mapColorToHex = (colorName: string) => {
+  const colors: Record<string, string> = {
+    blue: '#2563eb',
+    purple: '#9333ea',
+    green: '#16a34a',
+    orange: '#ea580c',
+    slate: '#475569'
+  };
+  return colors[colorName] || '#2563eb';
+};
+
 export const authApi = {
   registerTeacher: async (data: TeacherRegistrationData) => {
     // Map frontend data to backend payload
@@ -17,14 +28,12 @@ export const authApi = {
       specialization: data.specialization,
       yearsOfExperience: data.yearsOfExperience,
       bio: data.bio,
+      subdomain: data.subdomain,
       platformSettings: {
         platformName: data.siteName,
-        theme: data.templateId, // Using templateId as theme for now
-        primaryColor: data.themeColor === 'blue' ? '#2563eb' : 
-                      data.themeColor === 'purple' ? '#9333ea' : 
-                      data.themeColor === 'green' ? '#16a34a' : 
-                      data.themeColor === 'orange' ? '#ea580c' : '#475569',
-        secondaryColor: '#ffffff' // Default
+        theme: data.templateId, 
+        primaryColor: mapColorToHex(data.themeColor),
+        secondaryColor: data.secondaryColor ? mapColorToHex(data.secondaryColor) : '#ffffff'
       }
     };
 
