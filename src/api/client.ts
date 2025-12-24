@@ -11,6 +11,15 @@ export const client = axios.create({
   },
 });
 
+// Add interceptor to attach token
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Add interceptors for token management if needed later
 client.interceptors.response.use(
   (response) => response,

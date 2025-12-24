@@ -7,7 +7,10 @@ const PlatformHome = lazy(() => import('@/pages/platform/Home'))
 const Dashboard = lazy(() => import('@/pages/app/Dashboard'))
 const TeacherSite = lazy(() => import('@/pages/sites/TeacherSite'))
 const TeacherRegistrationWizard = lazy(() => import('@/features/on-boarding'))
-const DashboardLayout = lazy(() => import('@/components/layout/DashboardLayout'))
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage'))
+const SignupSelection = lazy(() => import('@/pages/auth/SignupSelection'))
+const StudentSignup = lazy(() => import('@/pages/auth/StudentSignup'))
+const DashboardLayout = lazy(() => import('@/layouts/DashboardLayout'))
 
 // Loading Fallback
 const Loading = () => <div className="min-h-screen flex items-center justify-center">Loading...</div>
@@ -68,8 +71,9 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
       <Routes>
         <Route path="/" element={<PlatformHome />} />
         <Route path="/join" element={<TeacherRegistrationWizard />} />
-        <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/signup" element={<div>Signup Page</div>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupSelection />} />
+        <Route path="/signup/student" element={<StudentSignup />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     )
@@ -78,13 +82,13 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
   if (['app', 'student', 'teacher', 'admin'].includes(subdomain)) {
      // Determine role from subdomain or auth context later.
      // For now, mapping subdomain to role for demo.
-     const role = subdomain === 'admin' ? 'admin' : subdomain === 'student' ? 'student' : 'teacher';
+     // const role = subdomain === 'admin' ? 'admin' : subdomain === 'student' ? 'student' : 'teacher';
      
      return (
         <Routes>
-            <Route element={<DashboardLayout role={role as any} />}>
+            <Route element={<DashboardLayout />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/courses" element={<div>Courses Page</div>} />
+                <Route path="/teachers" element={<div>Teachers Page</div>} />
                 <Route path="/students" element={<div>Students Page</div>} />
                 <Route path="*" element={<Navigate to="/" />} />
             </Route>

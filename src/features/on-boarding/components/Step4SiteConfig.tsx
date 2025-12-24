@@ -1,149 +1,100 @@
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { TeacherRegistrationData } from "../schema";
-import { cn } from "@/lib/utils";
-import { ModernThemePreview } from "@/features/themes/components/ModernThemePreview";
-import { ClassicThemePreview } from "@/features/themes/components/ClassicThemePreview";
-import { CreativeThemePreview } from "@/features/themes/components/CreativeThemePreview";
+import { Layout, Globe, Palette } from "lucide-react";
 
-const THEMES = [
-  { id: "blue", color: "bg-blue-600" },
-  { id: "purple", color: "bg-purple-600" },
-  { id: "green", color: "bg-green-600" },
-  { id: "orange", color: "bg-orange-600" },
-  { id: "slate", color: "bg-slate-600" },
-] as const;
+const themes = [
+    { id: 'default', name: 'الافتراضي', color: 'bg-gradient-to-r from-blue-500 to-indigo-600' },
+    { id: 'modern', name: 'عصري', color: 'bg-gradient-to-r from-purple-500 to-pink-600' },
+    { id: 'classic', name: 'كلاسيكي', color: 'bg-gradient-to-r from-slate-600 to-slate-800' },
+];
+
+const colors = [
+    { id: 'blue', value: '#2563eb' },
+    { id: 'purple', value: '#9333ea' },
+    { id: 'green', value: '#16a34a' },
+    { id: 'orange', value: '#ea580c' },
+    { id: 'slate', value: '#475569' },
+];
 
 export const Step4SiteConfig = () => {
-  const { register, watch, setValue, formState: { errors } } = useFormContext<TeacherRegistrationData>();
-  
-  const currentTheme = watch("themeColor");
-  const secondaryColor = watch("secondaryColor");
-  const templateId = watch("templateId");
-  const subdomain = watch("subdomain");
+  const { register, setValue, formState: { errors } } = useFormContext<TeacherRegistrationData>();
+  const selectedTheme = useWatch({ name: 'templateId' });
+  const selectedColor = useWatch({ name: 'themeColor' });
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Academy Name</label>
-        <input 
-          {...register("siteName")}
-          className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-          placeholder="New Generation Academy"
-        />
-        {errors.siteName && <p className="text-sm text-red-500">{errors.siteName.message}</p>}
-      </div>
+    <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
+      <h3 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">
+         إعدادات المنصة
+      </h3>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Subdomain URL</label>
-        <div className="flex items-center">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">اسم المنصة / الأكاديمية</label>
+           <div className="relative group">
+            <Layout className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600 transition-colors" size={18} />
             <input 
-            {...register("subdomain")}
-            className="flex h-10 w-full rounded-l-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:z-10"
-            placeholder="mr-ahmed"
+                {...register("siteName")}
+                 className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pr-10 pl-4 outline-none focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-all text-right"
+                placeholder="أكاديمية النجاح"
             />
-            <div className="bg-gray-100 text-gray-500 px-3 py-2 border border-l-0 rounded-r-md h-10 flex items-center text-sm">
-                .edrak.cloud
-            </div>
+          </div>
+          {errors.siteName && <p className="text-xs text-red-500">{errors.siteName.message}</p>}
         </div>
-        {subdomain && <p className="text-xs text-muted-foreground mt-1">Your site will be at: <span className="font-mono font-medium text-blue-600">https://{subdomain}.edrak.cloud</span></p>}
-        {errors.subdomain && <p className="text-sm text-red-500">{errors.subdomain.message}</p>}
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-            <label className="text-sm font-medium">Primary Color</label>
-            <div className="flex flex-wrap gap-2">
-                {THEMES.map(theme => (
-                    <button
+          <label className="text-sm font-medium text-gray-700">النطاق الفرعي (Subdomain)</label>
+          <div className="flex flex-row-reverse items-center gap-2">
+            <div className="relative group flex-1">
+                <Globe className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                <input 
+                    {...register("subdomain")}
+                     className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pr-10 pl-4 outline-none focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-all text-right"
+                    placeholder="al-najah"
+                />
+            </div>
+            <span className="text-gray-400 font-medium dir-ltr">.edrak.cloud</span>
+          </div>
+          {errors.subdomain && <p className="text-xs text-red-500">{errors.subdomain.message}</p>}
+        </div>
+
+        {/* Theme Selection */}
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Palette size={18} /> اختر شكل المنصة
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {themes.map((theme) => (
+                    <div 
                         key={theme.id}
-                        type="button"
-                        onClick={() => setValue("themeColor", theme.id)}
-                        className={cn(
-                            "w-8 h-8 rounded-full border-2 transition-all",
-                            theme.color,
-                            currentTheme === theme.id ? "border-black ring-2 ring-offset-2 ring-blue-400 scale-110" : "border-transparent opacity-70 hover:opacity-100"
-                        )}
-                    />
+                        onClick={() => setValue('templateId', theme.id)}
+                        className={`cursor-pointer rounded-xl border-2 overflow-hidden transition-all ${selectedTheme === theme.id ? 'border-purple-600 ring-4 ring-purple-100' : 'border-gray-100 hover:border-gray-300'}`}
+                    >
+                        <div className={`h-24 ${theme.color}`}></div>
+                        <div className="p-3 text-center font-bold text-gray-700">{theme.name}</div>
+                    </div>
                 ))}
             </div>
+            {errors.templateId && <p className="text-xs text-red-500">{errors.templateId.message}</p>}
         </div>
-        <div className="space-y-2">
-            <label className="text-sm font-medium">Secondary Color (Optional)</label>
-            <div className="flex flex-wrap gap-2">
-                {THEMES.map(theme => (
-                    <button
-                        key={theme.id}
-                        type="button"
-                        onClick={() => setValue("secondaryColor", theme.id)}
-                        className={cn(
-                            "w-8 h-8 rounded-full border-2 transition-all",
-                            theme.color,
-                            secondaryColor === theme.id ? "border-black ring-2 ring-offset-2 ring-gray-400 scale-110" : "border-transparent opacity-70 hover:opacity-100"
-                        )}
-                    />
+
+        {/* Color Selection */}
+        <div className="space-y-4">
+             <label className="text-sm font-medium text-gray-700">اللون الرئيسي</label>
+             <div className="flex flex-wrap gap-4 justify-end">
+                {colors.map((color) => (
+                    <div
+                        key={color.id}
+                        onClick={() => setValue('themeColor', color.id as any)}
+                        className={`w-10 h-10 rounded-full cursor-pointer flex items-center justify-center transition-all ${selectedColor === color.id ? 'ring-4 ring-offset-2 ring-purple-200 scale-110' : 'hover:scale-110'}`}
+                        style={{ backgroundColor: color.value }}
+                    >
+                        {selectedColor === color.id && <div className="w-4 h-4 bg-white rounded-full shadow-sm"></div>}
+                    </div>
                 ))}
-            </div>
+             </div>
+             {errors.themeColor && <p className="text-xs text-red-500">{errors.themeColor.message}</p>}
         </div>
       </div>
-      {errors.themeColor && <p className="text-sm text-red-500">{errors.themeColor.message}</p>}
-
-      {/* Template Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Choose Template</label>
-        <div className="grid grid-cols-3 gap-3">
-            <div 
-                className={cn("border-2 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition", templateId === "modern" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
-                onClick={() => setValue("templateId", "modern")}
-            >
-                <div className="h-16 bg-gray-200 mb-2 rounded"></div>
-                <p className="font-semibold text-center text-xs">Modern</p>
-            </div>
-            <div 
-                className={cn("border-2 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition", templateId === "classic" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
-                onClick={() => setValue("templateId", "classic")}
-            >
-                <div className="h-16 bg-gray-200 mb-2 rounded"></div>
-                <p className="font-semibold text-center text-xs">Classic</p>
-            </div>
-            <div 
-                className={cn("border-2 rounded-lg p-3 cursor-pointer hover:border-blue-500 transition", templateId === "creative" ? "border-blue-600 bg-blue-50" : "border-gray-200")}
-                onClick={() => setValue("templateId", "creative")}
-            >
-                <div className="h-16 bg-gray-200 mb-2 rounded border-black border"></div>
-                <p className="font-semibold text-center text-xs">Creative</p>
-            </div>
-        </div>
-        <input type="hidden" {...register("templateId")} />
-        {errors.templateId && <p className="text-sm text-red-500">{errors.templateId.message}</p>}
-      </div>
-
-      {/* Live Preview Section */}
-      <div className="mt-8 border-t pt-6">
-        <label className="text-sm font-medium mb-4 block">Live Preview</label>
-        <div className="w-full aspect-video rounded-xl border shadow-lg overflow-hidden bg-gray-50 ring-1 ring-gray-900/5 items-center justify-center flex">
-            {templateId === "modern" && (
-                <ModernThemePreview 
-                    siteName={watch("siteName")} 
-                    themeColor={currentTheme} 
-                />
-            )}
-            {templateId === "classic" && (
-                <ClassicThemePreview 
-                    siteName={watch("siteName")} 
-                    themeColor={currentTheme} 
-                />
-            )}
-             {templateId === "creative" && (
-                <CreativeThemePreview 
-                    siteName={watch("siteName")} 
-                    themeColor={currentTheme} 
-                    secondaryColor={secondaryColor}
-                />
-            )}
-            {!templateId && <p className="text-sm text-gray-500">Select a template to view preview</p>}
-        </div>
-      </div>
-      
     </div>
   );
 };
