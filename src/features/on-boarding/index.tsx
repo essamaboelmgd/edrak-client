@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { teacherRegistrationSchema, type TeacherRegistrationData } from "./schema";
-import { authApi } from "@/api/auth";
+import authService from "@/features/auth/authService";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Check, ArrowLeft, ArrowRight } from "lucide-react";
@@ -37,7 +37,30 @@ export default function TeacherRegistrationWizard() {
   const onSubmit = async (data: TeacherRegistrationData) => {
     setIsSubmitting(true);
     try {
-        await authApi.registerTeacher(data);
+        // Map frontend data to backend payload
+        const payload = {
+          firstName: data.firstName,
+          middleName: data.middleName,
+          lastName: data.lastName,
+          email: data.email,
+          password: data.password,
+          mobileNumber: data.phone,
+          whatsappNumber: data.phone, // Default to mobile
+          gender: data.gender as "male" | "female",
+          governorate: data.governorate,
+          specialization: data.specialization,
+          yearsOfExperience: data.yearsOfExperience,
+          bio: data.bio,
+          subdomain: data.subdomain,
+          platformSettings: {
+            platformName: data.siteName,
+            theme: data.templateId as "theme1" | "theme2" | "theme3",
+            primaryColor: mapColorToHex(data.themeColor),
+            secondaryColor: data.secondaryColor ? mapColorToHex(data.secondaryColor) : '#ffffff'
+          }
+        };
+
+        await authService.signupTeacher(payload);
         // Show success message or modal? For now alert and redirect
         // Ideally we should have a nice success page
         navigate("/login");
@@ -47,6 +70,17 @@ export default function TeacherRegistrationWizard() {
     } finally {
         setIsSubmitting(false);
     }
+  };
+
+  const mapColorToHex = (colorName: string) => {
+    const colors: Record<string, string> = {
+      blue: '#2563eb',
+      purple: '#9333ea',
+      green: '#16a34a',
+      orange: '#ea580c',
+      slate: '#475569'
+    };
+    return colors[colorName] || '#2563eb';
   };
 
   const nextStep = async () => {

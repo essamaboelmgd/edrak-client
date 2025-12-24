@@ -1,37 +1,22 @@
-import axios from 'axios';
+/**
+ * @deprecated This file is deprecated. Use the new service layer instead:
+ * - For axios instance: import { axiosInstance } from '@/lib/axios'
+ * - For auth operations: import authService from '@/features/auth/authService'
+ * - For user operations: import userService from '@/features/user/userService'
+ * 
+ * This file is kept temporarily for backward compatibility.
+ */
 
-// Base URL from environment or default to localhost
-// Postman says http://localhost:3000
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { axiosInstance } from '@/lib/axios';
+import userService from '@/features/user/userService';
 
-export const client = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Re-export for backward compatibility
+export const client = axiosInstance;
 
-// Add interceptor to attach token
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Add interceptors for token management if needed later
-client.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle global errors
-    return Promise.reject(error);
-  }
-);
-
+// Legacy API - use userService.getTeacherBySubdomain() instead
 export const userApi = {
   getPublicTeacherProfile: async (subdomain: string) => {
-    const response = await client.get(`/users/public/${subdomain}`);
-    return response.data.data;
+    const response = await userService.getTeacherBySubdomain(subdomain);
+    return response.data;
   }
 };

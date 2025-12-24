@@ -1,6 +1,8 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useSubdomain } from '@/hooks/useSubdomain'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { ProtectedRoute, PublicRoute } from '@/components/ProtectedRoute'
 
 // Lazy load pages
 const PlatformHome = lazy(() => import('@/pages/platform/Home'))
@@ -15,6 +17,15 @@ const DashboardLayout = lazy(() => import('@/layouts/DashboardLayout'))
 // Loading Fallback
 const Loading = () => <div className="min-h-screen flex items-center justify-center">Loading...</div>
 
+// Unauthorized Page
+const UnauthorizedPage = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <h1 className="text-4xl font-bold text-gray-800 mb-4">403</h1>
+    <p className="text-gray-600 mb-8">You don't have permission to access this page.</p>
+    <a href="/app" className="text-blue-600 hover:underline">Go to Dashboard</a>
+  </div>
+)
+
 const PublicTeacherSiteRoutes = ({ subdomain }: { subdomain: string }) => {
   const [teacherConfig, setTeacherConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -24,10 +35,9 @@ const PublicTeacherSiteRoutes = ({ subdomain }: { subdomain: string }) => {
     const fetchConfig = async () => {
       try {
         setLoading(true);
-        // We need to import userApi dynamically or move this logic to a separate component to avoid circular deps if any
-        const { userApi } = await import('@/api/client');
-        const data = await userApi.getPublicTeacherProfile(subdomain);
-        setTeacherConfig(data.teacher);
+        const { default: userService } = await import('@/features/user/userService');
+        const response = await userService.getTeacherBySubdomain(subdomain);
+        setTeacherConfig(response.data.teacher);
       } catch (err) {
         console.error("Failed to load teacher site:", err);
         setError(true);
@@ -40,22 +50,22 @@ const PublicTeacherSiteRoutes = ({ subdomain }: { subdomain: string }) => {
   }, [subdomain]);
 
   if (loading) return <Loading />;
-  
+
   if (error) {
-     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-            <p className="text-gray-600 mb-8">Academy not found or unavailable.</p>
-            <a href="/" className="text-blue-600 hover:underline">Return to Edrak</a>
-        </div>
-     );
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+        <p className="text-gray-600 mb-8">Academy not found or unavailable.</p>
+        <a href="/" className="text-blue-600 hover:underline">Return to Edrak</a>
+      </div>
+    );
   }
 
   return (
     <Routes>
-        <Route path="/" element={<TeacherSite config={teacherConfig} />} />
-        <Route path="/course/:id" element={<div>Course Detail</div>} />
-        <Route path="*" element={<Navigate to="/" />} />
+      <Route path="/" element={<TeacherSite config={teacherConfig} />} />
+      <Route path="/course/:id" element={<div>Course Detail</div>} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 };
@@ -70,17 +80,42 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
     return (
       <Routes>
         <Route path="/" element={<PlatformHome />} />
-        <Route path="/join" element={<TeacherRegistrationWizard />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupSelection />} />
-        <Route path="/signup/student" element={<StudentSignup />} />
-        
-        {/* Allow accessing Dashboard via /app route on main domain for testing/local dev */}
-        <Route path="/app" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="teachers" element={<div>Teachers Page</div>} />
-            <Route path="students" element={<div>Students Page</div>} />
+
+        {/* Public Routes - Cannot access when authenticated */}
+        <Route path="/join" element={
+          <PublicRoute>
+            <TeacherRegistrationWizard />
+          </PublicRoute>
+        } />
+        <Route path="/login" element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        } />
+        <Route path="/signup" element={
+          <PublicRoute>
+            <SignupSelection />
+          </PublicRoute>
+        } />
+        <Route path="/signup/student" element={
+          <PublicRoute>
+            <StudentSignup />
+          </PublicRoute>
+        } />
+
+        {/* Protected Routes - Require authentication */}
+        <Route path="/app" element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<Dashboard />} />
+          <Route path="teachers" element={<div>Teachers Page</div>} />
+          <Route path="students" element={<div>Students Page</div>} />
         </Route>
+
+        {/* Unauthorized page */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
@@ -88,20 +123,23 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
   }
 
   if (['app', 'student', 'teacher', 'admin'].includes(subdomain)) {
-     // Determine role from subdomain or auth context later.
-     // For now, mapping subdomain to role for demo.
-     // const role = subdomain === 'admin' ? 'admin' : subdomain === 'student' ? 'student' : 'teacher';
-     
-     return (
-        <Routes>
-            <Route element={<DashboardLayout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/teachers" element={<div>Teachers Page</div>} />
-                <Route path="/students" element={<div>Students Page</div>} />
-                <Route path="*" element={<Navigate to="/" />} />
-            </Route>
-        </Routes>
-     )
+    return (
+      <Routes>
+        <Route element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/teachers" element={<div>Teachers Page</div>} />
+          <Route path="/students" element={<div>Students Page</div>} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Route>
+
+        {/* Unauthorized page */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+      </Routes>
+    )
   }
 
   // Teacher Site (Public)
@@ -110,12 +148,14 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
 
 function App() {
   const subdomain = useSubdomain();
-  
+
   return (
     <BrowserRouter>
-      <Suspense fallback={<Loading />}>
-        <AppRoutes subdomain={subdomain} />
-      </Suspense>
+      <AuthProvider>
+        <Suspense fallback={<Loading />}>
+          <AppRoutes subdomain={subdomain} />
+        </Suspense>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
