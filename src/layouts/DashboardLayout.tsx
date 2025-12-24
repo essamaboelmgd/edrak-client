@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 
 export default function DashboardLayout() {
   return (
-    <div className="flex h-screen w-full bg-gray-50 overflow-hidden font-sans">
+    <div className="flex h-screen w-full bg-gray-50 overflow-hidden font-sans" dir="rtl">
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />

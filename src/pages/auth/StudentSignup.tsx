@@ -80,7 +80,7 @@ export default function StudentSignup() {
     setError('');
 
     try {
-      await client.post('/auth/student/signup', formData);
+      await client.post('/auth/signup/student', formData);
       navigate('/login'); // Redirect to login after success
     } catch (err: any) {
       console.error('Signup error:', err);

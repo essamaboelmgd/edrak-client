@@ -74,6 +74,14 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupSelection />} />
         <Route path="/signup/student" element={<StudentSignup />} />
+        
+        {/* Allow accessing Dashboard via /app route on main domain for testing/local dev */}
+        <Route path="/app" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="teachers" element={<div>Teachers Page</div>} />
+            <Route path="students" element={<div>Students Page</div>} />
+        </Route>
+
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     )
