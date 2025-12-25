@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { BookOpen, Search, PlayCircle, Star, Clock } from 'lucide-react';
+import { Search, PlayCircle, Star, Clock } from 'lucide-react';
 
 const availableCourses = [
   { id: 1, name: 'الرياضيات المتقدمة', teacher: 'أحمد محمد', rating: 4.8, students: 120, price: '500 ج.م', thumbnail: 'https://ui-avatars.com/api/?name=Math&background=3b82f6' },

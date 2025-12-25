@@ -3,7 +3,7 @@ import {
   Users,
   BookOpen,
   DollarSign,
-  TrendingUp,
+
   MoreVertical,
   Calendar,
   ArrowRight,
