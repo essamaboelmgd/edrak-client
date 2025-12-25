@@ -1,20 +1,23 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users,
   BookOpen,
   DollarSign,
-  TrendingUp,
   MoreVertical,
   Calendar,
   ArrowRight
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
+import coursesService from '@/features/courses/coursesService';
 
-const stats = [
+// Fallback/Initial stats
+const initialStats = [
   {
+    key: 'students',
     title: 'إجمالي الطلاب',
-    value: '1,234',
-    change: '+12%',
+    value: '0',
+    change: '0',
     isPositive: true,
     icon: Users,
     color: 'bg-blue-500',
@@ -22,9 +25,10 @@ const stats = [
     textColor: 'text-blue-600'
   },
   {
+    key: 'courses',
     title: 'الكورسات النشطة',
-    value: '24',
-    change: '+3',
+    value: '0',
+    change: '0',
     isPositive: true,
     icon: BookOpen,
     color: 'bg-purple-500',
@@ -32,25 +36,16 @@ const stats = [
     textColor: 'text-purple-600'
   },
   {
+    key: 'revenue',
     title: 'إجمالي الأرباح',
-    value: '45,200 ج.م',
-    change: '+18%',
+    value: '0 ج.م',
+    change: '0',
     isPositive: true,
     icon: DollarSign,
     color: 'bg-green-500',
     lightColor: 'bg-green-50',
     textColor: 'text-green-600'
-  },
-  {
-    title: 'النمو الشهري',
-    value: '8.5%',
-    change: '-2%',
-    isPositive: false,
-    icon: TrendingUp,
-    color: 'bg-orange-500',
-    lightColor: 'bg-orange-50',
-    textColor: 'text-orange-600'
-  },
+  }
 ];
 
 const recentActivity = [
@@ -62,6 +57,33 @@ const recentActivity = [
 
 export default function Dashboard() {
   const { user, role } = useAuth();
+  const [stats, setStats] = useState(initialStats);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (role === UserRole.TEACHER && user?._id) {
+        setLoading(true);
+        try {
+          const response = await coursesService.getTeacherStatistics(user._id);
+          const data = response.data.statistics;
+
+          setStats(prev => prev.map(stat => {
+            if (stat.key === 'students') return { ...stat, value: data.totalStudents.toString() };
+            if (stat.key === 'courses') return { ...stat, value: data.totalCourses.toString() };
+            if (stat.key === 'revenue') return { ...stat, value: `${data.totalRevenue} ج.م` };
+            return stat;
+          }));
+        } catch (error) {
+          console.error("Failed to fetch teacher stats", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchStats();
+  }, [user, role]);
 
   return (
     <div className="space-y-8" dir="rtl">
@@ -100,16 +122,26 @@ export default function Dashboard() {
             transition={{ delay: idx * 0.1 }}
             className="bg-white p-6 rounded-2xl shadow-xl shadow-gray-100 border border-white hover:border-purple-100 transition-all group"
           >
-            <div className="flex justify-between items-start mb-4">
-              <div className={`w-12 h-12 rounded-xl ${stat.lightColor} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <stat.icon size={22} className={stat.textColor} />
-              </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {stat.change}
-              </span>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium">{stat.title}</h3>
-            <p className="text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
+            {loading ? (
+                <div className="animate-pulse space-y-3">
+                    <div className="h-8 w-8 bg-gray-200 rounded-lg"></div>
+                    <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                    <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                </div>
+            ) : (
+                <>
+                    <div className="flex justify-between items-start mb-4">
+                    <div className={`w-12 h-12 rounded-xl ${stat.lightColor} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                        <stat.icon size={22} className={stat.textColor} />
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {stat.change}
+                    </span>
+                    </div>
+                    <h3 className="text-gray-500 text-sm font-medium">{stat.title}</h3>
+                    <p className="text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
+                </>
+            )}
           </motion.div>
         ))}
       </div>
