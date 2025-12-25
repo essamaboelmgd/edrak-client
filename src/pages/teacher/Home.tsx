@@ -81,10 +81,10 @@ export default function TeacherHome() {
           const data = response.data.statistics;
 
           setStats(prev => prev.map(stat => {
-            if (stat.key === 'students') return { ...stat, value: data.totalStudents.toString() };
-            if (stat.key === 'courses') return { ...stat, value: data.totalCourses.toString() };
-            if (stat.key === 'revenue') return { ...stat, value: `${data.totalRevenue} ج.م` };
-            if (stat.key === 'subscriptions') return { ...stat, value: data.totalSubscriptions.toString() };
+            if (stat.key === 'students') return { ...stat, value: (data.totalStudents || 0).toString() };
+            if (stat.key === 'courses') return { ...stat, value: (data.totalCourses || 0).toString() };
+            if (stat.key === 'revenue') return { ...stat, value: `${data.totalRevenue || 0} ج.م` };
+            if (stat.key === 'subscriptions') return { ...stat, value: (data.totalSubscriptions || 0).toString() };
             return stat;
           }));
         } catch (error) {
