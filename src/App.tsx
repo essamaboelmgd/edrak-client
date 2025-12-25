@@ -17,7 +17,9 @@ const DashboardLayout = lazy(() => import('@/layouts/DashboardLayout'))
 const AdminHome = lazy(() => import('@/pages/admin/Home'))
 const AdminCourses = lazy(() => import('@/pages/admin/Courses'))
 const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
-const TeacherCourses = lazy(() => import('@/pages/teacher/Courses'))
+// const TeacherCourses = lazy(() => import('@/pages/teacher/Courses'))
+const CourseSections = lazy(() => import('@/pages/teacher/courses/CourseSections'))
+const CoursesList = lazy(() => import('@/pages/teacher/courses/CoursesList'))
 const TeacherQuestionBank = lazy(() => import('@/pages/teacher/QuestionBank'))
 const StudentHome = lazy(() => import('@/pages/student/Home'))
 const StudentCourses = lazy(() => import('@/pages/student/Courses'))
@@ -156,7 +158,9 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           </ProtectedRoute>
         }>
           <Route index element={<TeacherHome />} />
-          <Route path="courses" element={<TeacherCourses />} />
+          <Route path="courses" element={<CourseSections />} />
+          <Route path="courses/sections/:sectionId" element={<CoursesList />} />
+          <Route path="courses/:courseId/builder" element={<div>Course Builder (TODO)</div>} />
           <Route path="lessons" element={<div>Teacher Lessons Page</div>} />
           <Route path="exams" element={<div>Teacher Exams Page</div>} />
           <Route path="question-bank" element={<TeacherQuestionBank />} />

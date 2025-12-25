@@ -2,7 +2,15 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResp
 import Cookies from 'js-cookie';
 
 // API base URL - configure based on environment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+export const API_ROOT_URL = API_BASE_URL.replace('/api/v1', '');
+
+export const getImageUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${API_ROOT_URL}${cleanPath}`;
+};
 
 // Cookie configuration
 export const TOKEN_COOKIE_NAME = 'edrak_auth_token';
