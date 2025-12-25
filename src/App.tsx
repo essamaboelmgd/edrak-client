@@ -1,18 +1,26 @@
 import { useState, useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useSubdomain } from '@/hooks/useSubdomain'
-import { AuthProvider } from '@/contexts/AuthContext'
+import { AuthProvider, useAuth, UserRole } from '@/contexts/AuthContext'
 import { ProtectedRoute, PublicRoute } from '@/components/ProtectedRoute'
 
 // Lazy load pages
 const PlatformHome = lazy(() => import('@/pages/platform/Home'))
-const Dashboard = lazy(() => import('@/pages/app/Dashboard'))
 const TeacherSite = lazy(() => import('@/pages/sites/TeacherSite'))
 const TeacherRegistrationWizard = lazy(() => import('@/features/on-boarding'))
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'))
 const SignupSelection = lazy(() => import('@/pages/auth/SignupSelection'))
 const StudentSignup = lazy(() => import('@/pages/auth/StudentSignup'))
 const DashboardLayout = lazy(() => import('@/layouts/DashboardLayout'))
+
+// Role-based pages
+const AdminHome = lazy(() => import('@/pages/admin/Home'))
+const AdminCourses = lazy(() => import('@/pages/admin/Courses'))
+const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
+const TeacherCourses = lazy(() => import('@/pages/teacher/Courses'))
+const TeacherQuestionBank = lazy(() => import('@/pages/teacher/QuestionBank'))
+const StudentHome = lazy(() => import('@/pages/student/Home'))
+const StudentCourses = lazy(() => import('@/pages/student/Courses'))
 
 // Loading Fallback
 const Loading = () => <div className="min-h-screen flex items-center justify-center">Loading...</div>
@@ -25,6 +33,30 @@ const UnauthorizedPage = () => (
     <a href="/app" className="text-blue-600 hover:underline">Go to Dashboard</a>
   </div>
 )
+
+// Role-based redirect component
+const RoleBasedRedirect = () => {
+  const { role, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (role === UserRole.ADMIN) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  if (role === UserRole.TEACHER) {
+    return <Navigate to="/teacher" replace />;
+  }
+
+  if (role === UserRole.STUDENT) {
+    return <Navigate to="/student" replace />;
+  }
+
+  // Fallback to login if no role
+  return <Navigate to="/login" replace />;
+}
 
 const PublicTeacherSiteRoutes = ({ subdomain }: { subdomain: string }) => {
   const [teacherConfig, setTeacherConfig] = useState<any>(null);
@@ -103,16 +135,56 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           </PublicRoute>
         } />
 
-        {/* Protected Routes - Require authentication */}
-        <Route path="/app" element={
-          <ProtectedRoute>
+        {/* Protected Routes - Role-based routing */}
+        {/* Admin Routes */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={[UserRole.ADMIN]}>
             <DashboardLayout />
           </ProtectedRoute>
         }>
-          <Route index element={<Dashboard />} />
-          <Route path="teachers" element={<div>Teachers Page</div>} />
-          <Route path="students" element={<div>Students Page</div>} />
+          <Route index element={<AdminHome />} />
+          <Route path="courses" element={<AdminCourses />} />
+          <Route path="teachers" element={<div>Admin Teachers Page</div>} />
+          <Route path="students" element={<div>Admin Students Page</div>} />
+          <Route path="settings" element={<div>Admin Settings Page</div>} />
         </Route>
+
+        {/* Teacher Routes */}
+        <Route path="/teacher" element={
+          <ProtectedRoute allowedRoles={[UserRole.TEACHER]}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<TeacherHome />} />
+          <Route path="courses" element={<TeacherCourses />} />
+          <Route path="lessons" element={<div>Teacher Lessons Page</div>} />
+          <Route path="exams" element={<div>Teacher Exams Page</div>} />
+          <Route path="question-bank" element={<TeacherQuestionBank />} />
+          <Route path="students" element={<div>Teacher Students Page</div>} />
+          <Route path="transactions" element={<div>Teacher Transactions Page</div>} />
+          <Route path="reports" element={<div>Teacher Reports Page</div>} />
+          <Route path="settings" element={<div>Teacher Settings Page</div>} />
+        </Route>
+
+        {/* Student Routes */}
+        <Route path="/student" element={
+          <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<StudentHome />} />
+          <Route path="courses" element={<StudentCourses />} />
+          <Route path="lessons" element={<div>Student Lessons Page</div>} />
+          <Route path="exams" element={<div>Student Exams Page</div>} />
+          <Route path="settings" element={<div>Student Settings Page</div>} />
+        </Route>
+
+        {/* Legacy /app route - redirects based on role */}
+        <Route path="/app" element={
+          <ProtectedRoute>
+            <RoleBasedRedirect />
+          </ProtectedRoute>
+        } />
 
         {/* Unauthorized page */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -125,16 +197,12 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
   if (['app', 'student', 'teacher', 'admin'].includes(subdomain)) {
     return (
       <Routes>
-        <Route element={
+        {/* Legacy route - redirects based on role */}
+        <Route path="/" element={
           <ProtectedRoute>
-            <DashboardLayout />
+            <RoleBasedRedirect />
           </ProtectedRoute>
-        }>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/teachers" element={<div>Teachers Page</div>} />
-          <Route path="/students" element={<div>Students Page</div>} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Route>
+        } />
 
         {/* Unauthorized page */}
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

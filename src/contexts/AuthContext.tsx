@@ -92,8 +92,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setUser(response.data.user);
                 setRole(response.data.user.role as UserRole);
 
-                // Navigate to dashboard
-                navigate('/app');
+                // Navigate based on role
+                const userRole = response.data.user.role as UserRole;
+                if (userRole === UserRole.ADMIN) {
+                    navigate('/admin');
+                } else if (userRole === UserRole.TEACHER) {
+                    navigate('/teacher');
+                } else if (userRole === UserRole.STUDENT) {
+                    navigate('/student');
+                } else {
+                    navigate('/app');
+                }
             }
         } catch (error: any) {
             console.error('Login failed:', error);

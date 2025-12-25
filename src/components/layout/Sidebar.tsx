@@ -1,66 +1,150 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Home, 
-  Users, 
-  BookOpen, 
-  FileText, 
-  Settings, 
-  ChevronLeft, 
+import {
+  Home,
+  Users,
+  BookOpen,
+  FileText,
+  Settings,
+  ChevronLeft,
   ChevronRight,
   BarChart2,
   Wallet,
-  Video,
   Layers,
-  LogOut
+  LogOut,
+  GraduationCap,
+  Shield,
+  Database
 } from 'lucide-react';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
 
 function classNames(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-// Menu Items Configuration (Arabic)
-const menuItems = [
-  {
-    title: 'نظرة عامة',
-    items: [
-      { name: 'الرئيسية', icon: Home, path: '/app', color: 'text-purple-500' },
-    ]
-  },
-  {
-    title: 'الإدارة',
-    items: [
-      { name: 'المدرسين', icon: Users, path: '/app/teachers', color: 'text-blue-500' },
-      { name: 'الطلاب', icon: Users, path: '/app/students', color: 'text-pink-500' },
-    ]
-  },
-  {
-    title: 'المحتوى',
-    items: [
-      { name: 'الكورسات', icon: Layers, path: '/app/courses', color: 'text-orange-500' },
-      { name: 'الحصص', icon: BookOpen, path: '/app/lessons', color: 'text-yellow-500' },
-      { name: 'الاختبارات', icon: FileText, path: '/app/exams', color: 'text-green-500' },
-      { name: 'المكتبة', icon: Video, path: '/app/library', color: 'text-red-500' },
-    ]
-  },
-  {
-    title: 'المالية',
-    items: [
-      { name: 'المعاملات', icon: Wallet, path: '/app/transactions', color: 'text-emerald-500' },
-      { name: 'التقارير', icon: BarChart2, path: '/app/reports', color: 'text-cyan-500' },
-    ]
-  },
-  {
-    title: 'النظام',
-    items: [
-      { name: 'الإعدادات', icon: Settings, path: '/app/settings', color: 'text-gray-500' },
-    ]
+// Menu Items Configuration based on role
+const getMenuItems = (role: UserRole | null) => {
+  const basePath = role === UserRole.ADMIN ? '/admin' : role === UserRole.TEACHER ? '/teacher' : role === UserRole.STUDENT ? '/student' : '/app';
+
+  if (role === UserRole.ADMIN) {
+    return [
+      {
+        title: 'نظرة عامة',
+        items: [
+          { name: 'الرئيسية', icon: Home, path: `${basePath}`, color: 'text-red-500' },
+        ]
+      },
+      {
+        title: 'الإدارة',
+        items: [
+          { name: 'المدرسين', icon: Users, path: `${basePath}/teachers`, color: 'text-blue-500' },
+          { name: 'الطلاب', icon: Users, path: `${basePath}/students`, color: 'text-pink-500' },
+        ]
+      },
+      {
+        title: 'المحتوى',
+        items: [
+          { name: 'الكورسات', icon: Layers, path: `${basePath}/courses`, color: 'text-orange-500' },
+        ]
+      },
+      {
+        title: 'النظام',
+        items: [
+          { name: 'الإعدادات', icon: Settings, path: `${basePath}/settings`, color: 'text-gray-500' },
+        ]
+      }
+    ];
   }
-];
+
+  if (role === UserRole.TEACHER) {
+    return [
+      {
+        title: 'نظرة عامة',
+        items: [
+          { name: 'الرئيسية', icon: Home, path: `${basePath}`, color: 'text-purple-500' },
+        ]
+      },
+      {
+        title: 'المحتوى',
+        items: [
+          { name: 'الكورسات', icon: Layers, path: `${basePath}/courses`, color: 'text-orange-500' },
+          { name: 'الحصص', icon: BookOpen, path: `${basePath}/lessons`, color: 'text-yellow-500' },
+          { name: 'الاختبارات', icon: FileText, path: `${basePath}/exams`, color: 'text-green-500' },
+          { name: 'بنك الأسئلة', icon: Database, path: `${basePath}/question-bank`, color: 'text-indigo-500' },
+        ]
+      },
+      {
+        title: 'الطلاب',
+        items: [
+          { name: 'طلابي', icon: Users, path: `${basePath}/students`, color: 'text-blue-500' },
+        ]
+      },
+      {
+        title: 'المالية',
+        items: [
+          { name: 'المعاملات', icon: Wallet, path: `${basePath}/transactions`, color: 'text-emerald-500' },
+          { name: 'التقارير', icon: BarChart2, path: `${basePath}/reports`, color: 'text-cyan-500' },
+        ]
+      },
+      {
+        title: 'النظام',
+        items: [
+          { name: 'الإعدادات', icon: Settings, path: `${basePath}/settings`, color: 'text-gray-500' },
+        ]
+      }
+    ];
+  }
+
+  if (role === UserRole.STUDENT) {
+    return [
+      {
+        title: 'نظرة عامة',
+        items: [
+          { name: 'الرئيسية', icon: Home, path: `${basePath}`, color: 'text-blue-500' },
+        ]
+      },
+      {
+        title: 'التعلم',
+        items: [
+          { name: 'الكورسات', icon: Layers, path: `${basePath}/courses`, color: 'text-orange-500' },
+          { name: 'الحصص', icon: BookOpen, path: `${basePath}/lessons`, color: 'text-yellow-500' },
+          { name: 'الاختبارات', icon: FileText, path: `${basePath}/exams`, color: 'text-green-500' },
+        ]
+      },
+      {
+        title: 'النظام',
+        items: [
+          { name: 'الإعدادات', icon: Settings, path: `${basePath}/settings`, color: 'text-gray-500' },
+        ]
+      }
+    ];
+  }
+
+  // Default menu (fallback)
+  return [
+    {
+      title: 'نظرة عامة',
+      items: [
+        { name: 'الرئيسية', icon: Home, path: '/app', color: 'text-purple-500' },
+      ]
+    }
+  ];
+};
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user, role, logout } = useAuth();
+  const menuItems = getMenuItems(role);
+
+  const getRoleDisplay = () => {
+    if (role === UserRole.ADMIN) return { name: 'المسؤول', icon: Shield, color: 'from-red-600 to-orange-600' };
+    if (role === UserRole.TEACHER) return { name: 'مدرس', icon: GraduationCap, color: 'from-purple-600 to-blue-600' };
+    if (role === UserRole.STUDENT) return { name: 'طالب', icon: Users, color: 'from-blue-600 to-purple-600' };
+    return { name: 'مستخدم', icon: Users, color: 'from-gray-600 to-gray-600' };
+  };
+
+  const roleDisplay = getRoleDisplay();
 
   return (
     <motion.aside
@@ -75,7 +159,7 @@ export default function Sidebar() {
       {/* Logo Section */}
       <div className="h-20 flex items-center justify-center border-b border-gray-100 px-6">
         <div className="flex items-center gap-3 w-full overflow-hidden justify-end">
-           <AnimatePresence>
+          <AnimatePresence>
             {!isCollapsed && (
               <motion.div
                 initial={{ opacity: 0, x: 10 }}
@@ -88,7 +172,7 @@ export default function Sidebar() {
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/20">
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleDisplay.color} flex items-center justify-center shrink-0 shadow-lg`}>
             <span className="text-white font-bold text-xl">E</span>
           </div>
         </div>
@@ -118,8 +202,8 @@ export default function Sidebar() {
                   to={item.path}
                   className={({ isActive }) => classNames(
                     "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative overflow-hidden",
-                    isActive 
-                      ? "bg-gray-50 text-gray-900 shadow-sm" 
+                    isActive
+                      ? "bg-gray-50 text-gray-900 shadow-sm"
                       : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                   )}
                 >
@@ -132,15 +216,15 @@ export default function Sidebar() {
                           className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-blue-500 rounded-l-full"
                         />
                       )}
-                      
-                      <item.icon 
-                        size={20} 
+
+                      <item.icon
+                        size={20}
                         className={classNames(
                           "shrink-0 transition-colors duration-300",
                           isActive ? item.color : "text-gray-400 group-hover:text-gray-600"
-                        )} 
+                        )}
                       />
-                      
+
                       {!isCollapsed && (
                         <span className="font-medium whitespace-nowrap">{item.name}</span>
                       )}
@@ -162,17 +246,20 @@ export default function Sidebar() {
 
       {/* User Profile / Footer */}
       <div className="p-4 border-t border-gray-100">
-        <button className={classNames(
-          "flex items-center gap-3 w-full p-2 rounded-xl hover:bg-gray-50 transition-colors group",
-          isCollapsed ? "justify-center" : ""
-        )}>
+        <button
+          onClick={logout}
+          className={classNames(
+            "flex items-center gap-3 w-full p-2 rounded-xl hover:bg-gray-50 transition-colors group",
+            isCollapsed ? "justify-center" : ""
+          )}
+        >
           <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
-             <img src="https://ui-avatars.com/api/?name=Admin+User&background=random" alt="User" />
+            <img src={`https://ui-avatars.com/api/?name=${user?.firstName || 'User'}&background=random`} alt="User" />
           </div>
           {!isCollapsed && (
             <div className="flex-1 text-right overflow-hidden">
-              <p className="text-sm font-semibold text-gray-700 truncate">المسؤول</p>
-              <p className="text-xs text-gray-400 truncate">admin@edrak.cloud</p>
+              <p className="text-sm font-semibold text-gray-700 truncate">{user?.firstName || 'مستخدم'}</p>
+              <p className="text-xs text-gray-400 truncate">{user?.email || ''}</p>
             </div>
           )}
           {!isCollapsed && <LogOut size={16} className="text-gray-400 group-hover:text-red-500 transition-colors rotate-180" />}
