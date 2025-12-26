@@ -29,6 +29,7 @@ export interface ICourseSection {
     totalCourses: number;
     totalStudents: number;
   };
+  educationalLevel?: any; // Shim for frontend form pre-fill
 }
 
 export interface ICourse {
@@ -131,6 +132,43 @@ const coursesService = {
 
   deleteCourse: async (id: string) => {
     const response = await client.delete(`/courses/${id}`);
+    return response.data;
+  },
+
+  // Lesson Sections
+  getLessonSections: async (courseId: string) => {
+    const response = await client.get(`/courses/${courseId}/lesson-sections`);
+    return response.data;
+  },
+
+  createLessonSection: async (data: any) => {
+    const response = await client.post('/courses/lesson-sections', data);
+    return response.data;
+  },
+
+  updateLessonSection: async (id: string, data: any) => {
+    const response = await client.put(`/courses/lesson-sections/${id}`, data);
+    return response.data;
+  },
+
+  deleteLessonSection: async (id: string) => {
+    const response = await client.delete(`/courses/lesson-sections/${id}`);
+    return response.data;
+  },
+
+  // Lessons
+  createLesson: async (courseId: string, data: any) => {
+    const response = await client.post(`/courses/${courseId}/lessons`, data);
+    return response.data;
+  },
+
+  updateLesson: async (id: string, data: any) => {
+    const response = await client.put(`/courses/lessons/${id}`, data);
+    return response.data;
+  },
+
+  deleteLesson: async (id: string) => {
+    const response = await client.delete(`/courses/lessons/${id}`);
     return response.data;
   }
 };

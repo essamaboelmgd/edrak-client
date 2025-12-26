@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { Bell, Search, Menu, LogOut, User, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -12,7 +16,10 @@ export default function Header() {
         
         {/* Right: Mobile Menu Trigger & Search (Visually Right in RTL) */}
         <div className="flex items-center gap-4 flex-1">
-          <button className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+          <button 
+            onClick={onMenuClick}
+            className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+          >
              <Menu size={20} />
           </button>
           

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
@@ -132,10 +132,23 @@ const getMenuItems = (role: UserRole | null) => {
   ];
 };
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { user, role, logout } = useAuth();
   const menuItems = getMenuItems(role);
+  const location = useLocation();
+
+  // Close sidebar on mobile when route changes
+  useEffect(() => {
+    if (window.innerWidth < 768 && onClose) {
+      onClose();
+    }
+  }, [location.pathname, onClose]);
 
   const getRoleDisplay = () => {
     if (role === UserRole.ADMIN) return { name: 'المسؤول', icon: Shield, color: 'from-red-600 to-orange-600' };
@@ -147,15 +160,39 @@ export default function Sidebar() {
   const roleDisplay = getRoleDisplay();
 
   return (
-    <motion.aside
-      initial={{ width: 280 }}
-      animate={{ width: isCollapsed ? 80 : 280 }}
-      transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-      className={classNames(
-        "relative h-screen bg-white/80 backdrop-blur-xl border-l border-gray-200/50 hidden md:flex flex-col z-50",
-        "shadow-[-4px_0_24px_-4px_rgba(0,0,0,0.05)]"
-      )}
-    >
+    <>
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/50 z-[60] md:hidden backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.aside
+        initial={false}
+        animate={{ 
+          width: isCollapsed ? 80 : 280
+        }}
+        // Reset transform on desktop to ensure it's always visible
+        style={{
+           transform: undefined 
+        }}
+        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+        className={classNames(
+          "fixed md:relative inset-y-0 right-0 z-[100] md:z-auto bg-white/80 backdrop-blur-xl border-l border-gray-200/50 flex flex-col transition-transform duration-300 ease-in-out",
+          "shadow-[-4px_0_24px_-4px_rgba(0,0,0,0.05)]",
+          // Mobile specific classes to handle slide-in from right (RTL)
+          "md:translate-x-0",
+          !isOpen ? "translate-x-full md:translate-x-0" : "translate-x-0", 
+          "h-screen"
+        )}
+      >
       {/* Logo Section */}
       <div className="h-20 flex items-center justify-center border-b border-gray-100 px-6">
         <div className="flex items-center gap-3 w-full overflow-hidden justify-end">
@@ -266,5 +303,6 @@ export default function Sidebar() {
         </button>
       </div>
     </motion.aside>
+    </>
   );
 }

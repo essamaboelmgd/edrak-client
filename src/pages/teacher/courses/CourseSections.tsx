@@ -102,37 +102,60 @@ export default function CourseSections() {
         </div>
 
         {loading ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[1, 2, 3].map(i => (
-                    <div key={i} className="h-48 bg-gray-100 rounded-2xl animate-pulse"></div>
+                    <div key={i} className="h-56 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-100"></div>
                 ))}
              </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sections.map((section) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {sections.map((section, index) => (
                     <motion.div
                         key={section._id}
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group relative"
+                        transition={{ delay: index * 0.1 }}
+                        className="group relative bg-white rounded-3xl p-1 border border-gray-100 shadow-sm hover:shadow-xl hover:border-purple-100 transition-all duration-300 cursor-pointer overflow-hidden"
                         onClick={() => navigate(`/teacher/courses/sections/${section._id}`)}
                     >
-                        <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 mb-4 group-hover:scale-110 transition-transform">
-                            <Folder size={24} />
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-800 mb-1">{section.nameArabic}</h3>
-                        <p className="text-sm text-gray-400 mb-4">{section.name}</p>
+                        {/* Decorative Background */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110" />
                         
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span>{section.stats?.totalCourses || 0} كورس</span>
-                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <span>{section.stats?.totalStudents || 0} طالب</span>
-                        </div>
+                        <div className="relative p-6 h-full flex flex-col">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-gray-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300 z-10">
+                                    <Folder size={28} strokeWidth={1.5} />
+                                </div>
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                     <button 
+                                        onClick={(e) => { e.stopPropagation(); /* Add edit/delete logic */ }}
+                                        className="p-2 hover:bg-white/80 rounded-xl text-gray-400 hover:text-purple-600 transition-colors backdrop-blur-sm"
+                                     >
+                                        <MoreVertical size={20} />
+                                     </button>
+                                </div>
+                            </div>
+                            
+                            <div className="mb-6 flex-1">
+                                <h3 className="text-xl font-bold text-gray-800 mb-2 leading-relaxed group-hover:text-purple-700 transition-colors">
+                                    {section.nameArabic}
+                                </h3>
+                                <p className="text-sm text-gray-400 font-medium font-english">
+                                    {section.name || 'Untitled Section'}
+                                </p>
+                            </div>
 
-                        <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                             <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
-                                <MoreVertical size={18} />
-                             </button>
+                            <div className="flex items-center justify-between text-sm bg-gray-50 rounded-2xl p-4 group-hover:bg-purple-50/50 transition-colors border border-transparent group-hover:border-purple-100">
+                                <div className="flex flex-col">
+                                    <span className="text-gray-400 text-xs mb-1">عدد الكورسات</span>
+                                    <span className="font-bold text-gray-800 text-lg">{section.stats?.totalCourses || 0}</span>
+                                </div>
+                                <div className="w-px h-8 bg-gray-200 group-hover:bg-purple-200 transition-colors" />
+                                <div className="flex flex-col items-end">
+                                    <span className="text-gray-400 text-xs mb-1">الطلاب المشتركين</span>
+                                    <span className="font-bold text-gray-800 text-lg">{section.stats?.totalStudents || 0}</span>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
                 ))}
@@ -164,7 +187,7 @@ export default function CourseSections() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 m-auto w-full max-w-lg h-fit bg-white rounded-3xl shadow-2xl z-50 p-8"
+                        className="fixed inset-0 m-auto w-[95%] max-w-lg h-fit bg-white rounded-3xl shadow-2xl z-50 p-8"
                     >
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-gray-800">إنشاء قسم جديد</h2>
