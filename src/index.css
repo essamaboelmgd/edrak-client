@@ -3,56 +3,45 @@
 @tailwind utilities;
 
 @layer base {
-  * {
+  html {
     font-family: "Tajawal", sans-serif;
-  }
-  
-  body {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 400;
   }
 }
 
-@layer utilities {
-  .tajawal-extralight {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 200;
-    font-style: normal;
-  }
+/* Utility classes for specific font weights */
+.tajawal-extralight { font-weight: 200; }
+.tajawal-light { font-weight: 300; }
+.tajawal-regular { font-weight: 400; }
+.tajawal-medium { font-weight: 500; }
+.tajawal-bold { font-weight: 700; }
+.tajawal-extrabold { font-weight: 800; }
+.tajawal-black { font-weight: 900; }
 
-  .tajawal-light {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 300;
-    font-style: normal;
-  }
+/* RTL Fixes for Chakra UI */
+[dir="rtl"] .chakra-input__right-element {
+  right: auto;
+  left: 0;
+}
 
-  .tajawal-regular {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 400;
-    font-style: normal;
-  }
+[dir="rtl"] .chakra-input__left-element {
+  left: auto;
+  right: 0;
+}
 
-  .tajawal-medium {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 500;
-    font-style: normal;
-  }
+[dir="rtl"] .chakra-select__icon-wrapper {
+  right: auto;
+  left: 0.5rem;
+}
 
-  .tajawal-bold {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 700;
-    font-style: normal;
-  }
+[dir="rtl"] .chakra-select {
+  padding-right: 1rem;
+  padding-left: 2rem;
+}
 
-  .tajawal-extrabold {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 800;
-    font-style: normal;
-  }
+[dir="rtl"] .chakra-input {
+  text-align: right;
+}
 
-  .tajawal-black {
-    font-family: "Tajawal", sans-serif;
-    font-weight: 900;
-    font-style: normal;
-  }
+[dir="rtl"] .chakra-number-input input {
+  text-align: right;
 }

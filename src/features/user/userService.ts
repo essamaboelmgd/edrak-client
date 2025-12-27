@@ -116,6 +116,94 @@ class UserService {
         );
         return response.data;
     }
+
+    /**
+     * Get teacher statistics (Teacher only)
+     */
+    async getTeacherStatistics(): Promise<ApiResponse<{
+        statistics: {
+            totalCourses: number;
+            totalCourseSections: number;
+            totalStudents: number;
+            totalSubscriptions: number;
+            totalRevenue: number;
+            totalLessons: number;
+            lastNewStudents: Array<{
+                _id: string;
+                fullName: string;
+                email: string;
+                subscribedAt: string;
+                subscriptionType: string;
+                amount: number;
+            }>;
+            revenueByMonth: Array<{
+                month: string;
+                revenue: number;
+                count: number;
+            }>;
+            revenueByDay: Array<{
+                day: string;
+                revenue: number;
+                count: number;
+            }>;
+            courses: Array<{
+                courseId: string;
+                courseName: string;
+                statistics: {
+                    totalSubscribers: number;
+                    totalLessons: number;
+                    totalLessonSections: number;
+                    totalExams: number;
+                    totalViews: number;
+                    totalHomeworks: number;
+                    totalRevenue: number;
+                };
+            }>;
+        };
+    }>> {
+        const response = await axiosInstance.get<ApiResponse<{
+            statistics: {
+                totalCourses: number;
+                totalCourseSections: number;
+                totalStudents: number;
+                totalSubscriptions: number;
+                totalRevenue: number;
+                totalLessons: number;
+                lastNewStudents: Array<{
+                    _id: string;
+                    fullName: string;
+                    email: string;
+                    subscribedAt: string;
+                    subscriptionType: string;
+                    amount: number;
+                }>;
+                revenueByMonth: Array<{
+                    month: string;
+                    revenue: number;
+                    count: number;
+                }>;
+                revenueByDay: Array<{
+                    day: string;
+                    revenue: number;
+                    count: number;
+                }>;
+                courses: Array<{
+                    courseId: string;
+                    courseName: string;
+                    statistics: {
+                        totalSubscribers: number;
+                        totalLessons: number;
+                        totalLessonSections: number;
+                        totalExams: number;
+                        totalViews: number;
+                        totalHomeworks: number;
+                        totalRevenue: number;
+                    };
+                }>;
+            };
+        }>>(`${this.BASE_PATH}/teacher/statistics`);
+        return response.data;
+    }
 }
 
 // Export singleton instance

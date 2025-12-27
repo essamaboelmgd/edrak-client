@@ -48,6 +48,63 @@ class CourseService {
     }
 
     /**
+     * Get courses and sections together
+     */
+    async getCoursesWithSections(query?: { page?: number; limit?: number; status?: string; educationalLevel?: string }): Promise<ApiResponse<{
+        courses: ICourse[];
+        sections: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>> {
+        const params = new URLSearchParams();
+        if (query?.page) params.append('page', query.page.toString());
+        if (query?.limit) params.append('limit', query.limit.toString());
+        if (query?.status) params.append('status', query.status);
+        if (query?.educationalLevel) params.append('educationalLevel', query.educationalLevel);
+
+        const response = await axiosInstance.get<ApiResponse<{
+            courses: ICourse[];
+            sections: any[];
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        }>>(
+            `${this.BASE_PATH}/with-sections?${params.toString()}`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get all course sections
+     */
+    async getCourseSections(query?: { page?: number; limit?: number; status?: string }): Promise<ApiResponse<{
+        sections: any[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>> {
+        const params = new URLSearchParams();
+        if (query?.page) params.append('page', query.page.toString());
+        if (query?.limit) params.append('limit', query.limit.toString());
+        if (query?.status) params.append('status', query.status);
+
+        const response = await axiosInstance.get<ApiResponse<{
+            sections: any[];
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        }>>(
+            `${this.BASE_PATH}/sections?${params.toString()}`
+        );
+        return response.data;
+    }
+
+    /**
      * Get lessons for a specific course
      */
     async getCourseLessons(courseId: string): Promise<ApiResponse<ILessonsListResponse>> {

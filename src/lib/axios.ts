@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResp
 import Cookies from 'js-cookie';
 
 // API base URL - configure based on environment
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9999/api/v1';
 export const API_ROOT_URL = API_BASE_URL.replace('/api/v1', '');
 
 export const getImageUrl = (path: string) => {

@@ -19,11 +19,21 @@ const AdminCourses = lazy(() => import('@/pages/admin/Courses'))
 const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
 // const TeacherCourses = lazy(() => import('@/pages/teacher/Courses'))
 const CourseSections = lazy(() => import('@/pages/teacher/courses/CourseSections'))
+const Courses = lazy(() => import('@/pages/teacher/courses/Courses'))
 const CoursesList = lazy(() => import('@/pages/teacher/courses/CoursesList'))
 const CourseBuilder = lazy(() => import('@/pages/teacher/courses/CourseBuilder'))
 // ...
 
 const TeacherQuestionBank = lazy(() => import('@/pages/teacher/QuestionBank'))
+const TeacherExams = lazy(() => import('@/pages/teacher/Exams'))
+const TeacherViewExam = lazy(() => import('@/pages/teacher/ViewExam'))
+const TeacherEditExam = lazy(() => import('@/pages/teacher/EditExam'))
+const MyStudents = lazy(() => import('@/pages/teacher/MyStudents'))
+const PlatformSubscriptions = lazy(() => import('@/pages/teacher/PlatformSubscriptions'))
+const StudentSubscriptions = lazy(() => import('@/pages/teacher/StudentSubscriptions'))
+const AdminExams = lazy(() => import('@/pages/admin/Exams'))
+const AdminViewExam = lazy(() => import('@/pages/teacher/ViewExam'))
+const AdminEditExam = lazy(() => import('@/pages/teacher/EditExam'))
 const StudentHome = lazy(() => import('@/pages/student/Home'))
 const StudentCourses = lazy(() => import('@/pages/student/Courses'))
 
@@ -149,6 +159,9 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
         }>
           <Route index element={<AdminHome />} />
           <Route path="courses" element={<AdminCourses />} />
+          <Route path="exams" element={<AdminExams />} />
+          <Route path="exams/:id" element={<AdminViewExam />} />
+          <Route path="exams/:id/edit" element={<AdminEditExam />} />
           <Route path="teachers" element={<div>Admin Teachers Page</div>} />
           <Route path="students" element={<div>Admin Students Page</div>} />
           <Route path="settings" element={<div>Admin Settings Page</div>} />
@@ -161,13 +174,18 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           </ProtectedRoute>
         }>
           <Route index element={<TeacherHome />} />
-          <Route path="courses" element={<CourseSections />} />
+          <Route path="courses" element={<Courses />} />
+          <Route path="courses/sections" element={<CourseSections />} />
           <Route path="courses/sections/:sectionId" element={<CoursesList />} />
           <Route path="courses/:courseId/builder" element={<CourseBuilder />} />
           <Route path="lessons" element={<div>Teacher Lessons Page</div>} />
-          <Route path="exams" element={<div>Teacher Exams Page</div>} />
+          <Route path="exams" element={<TeacherExams />} />
+          <Route path="exams/:id" element={<TeacherViewExam />} />
+          <Route path="exams/:id/edit" element={<TeacherEditExam />} />
           <Route path="question-bank" element={<TeacherQuestionBank />} />
-          <Route path="students" element={<div>Teacher Students Page</div>} />
+          <Route path="students" element={<MyStudents />} />
+          <Route path="student-subscriptions" element={<StudentSubscriptions />} />
+          <Route path="platform-subscriptions" element={<PlatformSubscriptions />} />
           <Route path="transactions" element={<div>Teacher Transactions Page</div>} />
           <Route path="reports" element={<div>Teacher Reports Page</div>} />
           <Route path="settings" element={<div>Teacher Settings Page</div>} />

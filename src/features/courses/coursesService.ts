@@ -1,13 +1,26 @@
 import { client } from '@/api/client';
 
+export interface ICourseStatistics {
+  courseId: string;
+  courseName: string;
+  statistics: {
+    totalSubscribers: number;
+    totalLessons: number;
+    totalLessonSections: number;
+    totalExams: number;
+    totalViews: number;
+    totalHomeworks: number;
+    totalRevenue: number;
+  };
+}
+
 export interface ITeacherStatistics {
   totalCourses: number;
   totalCourseSections: number;
   totalStudents: number;
-  totalSubscriptions: number;
   totalRevenue: number;
   totalLessons: number;
-  courses: any[];
+  courses: ICourseStatistics[];
 }
 
 export interface ITeacherStatisticsResponse {
