@@ -29,7 +29,7 @@ export default function CoursesList() {
     queryFn: () => courseService.getMyCourses({ limit: 100 }),
   });
 
-  const courses = data?.courses || [];
+  const courses = data?.data?.courses || [];
 
   return (
     <Stack spacing={6}>

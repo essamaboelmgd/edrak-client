@@ -45,7 +45,6 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
         watch,
         setValue,
         formState: { errors },
-        reset,
     } = useForm<QuestionFormData>({
         defaultValues: {
             question: question?.question || '',
@@ -63,7 +62,7 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
         },
     });
 
-    const { fields, append, remove, update } = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
         control,
         name: 'answers',
     });

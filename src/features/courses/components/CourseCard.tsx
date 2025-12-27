@@ -19,7 +19,7 @@ import { Icon } from "@iconify-icon/react";
 import { Link } from "react-router-dom";
 import { axiosInstance, getImageUrl } from "@/lib/axios";
 import { useToast } from "@chakra-ui/react";
-import { useQueryClient } from "@tanstack/react-query";
+
 import EditCourseModal from "./EditCourseModal";
 
 interface CourseCardProps {
@@ -29,7 +29,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ course, callback }: CourseCardProps) {
   const toast = useToast();
-  const queryClient = useQueryClient();
+
 
   const handleDelete = async () => {
     if (!confirm("هل أنت متأكد من حذف هذا الكورس؟")) return;

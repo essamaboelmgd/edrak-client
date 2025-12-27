@@ -25,7 +25,6 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { axiosInstance, getImageUrl } from "@/lib/axios";
-import { Icon } from "@iconify-icon/react";
 import EditLessonSectionModal from "./EditLessonSectionModal";
 
 interface Section {
@@ -34,6 +33,7 @@ interface Section {
   description?: string;
   course: string;
   order?: number;
+  image?: string;
 }
 
 interface CourseSectionsManagerProps {
@@ -46,7 +46,7 @@ interface SectionFormData {
   order: number;
 }
 
-export default function CourseSectionsManager({ onMoved }: CourseSectionsManagerProps) {
+export default function CourseSectionsManager({}: CourseSectionsManagerProps) {
   const { courseId } = useParams();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -202,7 +202,7 @@ export default function CourseSectionsManager({ onMoved }: CourseSectionsManager
                     {s.image && (
                       <Image
                         src={getImageUrl(s.image)}
-                        alt={s.name}
+                        alt={s.title}
                         rounded={6}
                         height={40}
                         width="100%"

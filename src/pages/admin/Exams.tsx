@@ -27,7 +27,6 @@ import {
   Wrap,
   WrapItem,
   Badge,
-  Avatar,
   IconButton,
   Menu,
   MenuButton,
@@ -36,7 +35,6 @@ import {
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import examService from '@/features/exams/examService';
-import courseService from '@/features/courses/courseService';
 import userService from '@/features/user/userService';
 import { IExamResponse } from '@/types/exam.types';
 import CreateExam from '@/features/exams/components/CreateExam';
@@ -52,7 +50,7 @@ export default function AdminExams() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [teachers, setTeachers] = useState<any[]>([]);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
+
 
   const fetchExams = async () => {
     try {

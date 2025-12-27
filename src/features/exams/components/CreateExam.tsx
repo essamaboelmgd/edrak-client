@@ -28,7 +28,6 @@ import {
   NumberDecrementStepper,
   Checkbox,
   HStack,
-  VStack,
   Box,
   Badge,
   IconButton,
@@ -41,7 +40,7 @@ import { Icon } from '@iconify-icon/react';
 import examService from '@/features/exams/examService';
 import courseService from '@/features/courses/courseService';
 import { axiosInstance, getImageUrl } from '@/lib/axios';
-import { ICreateExamRequest, IGenerateExamRequest, IQuestionBankResponse, IAnswer } from '@/types/exam.types';
+import { ICreateExamRequest, IQuestionBankResponse, IAnswer } from '@/types/exam.types';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import userService from '@/features/user/userService';
 
@@ -55,7 +54,7 @@ type CreationMethod = 'new' | 'bank' | 'pdf' | 'true_false';
 
 export default function CreateExam({ onSuccess, trigger, examId }: CreateExamProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { role, user } = useAuth();
+  const { role } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);

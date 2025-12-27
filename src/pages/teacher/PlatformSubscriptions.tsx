@@ -8,7 +8,7 @@ import {
   Skeleton,
   Stack,
   Stat,
-  StatGroup,
+
   StatLabel,
   StatNumber,
   Table,

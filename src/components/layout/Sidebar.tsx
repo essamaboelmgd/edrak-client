@@ -7,7 +7,6 @@ import {
     DrawerContent,
     Flex,
     HStack,
-    Image,
     List,
     ListItem,
     Stack,

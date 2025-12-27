@@ -27,7 +27,6 @@ import {
   Wrap,
   WrapItem,
   Badge,
-  Avatar,
   IconButton,
   Menu,
   MenuButton,
@@ -39,11 +38,10 @@ import examService from '@/features/exams/examService';
 import courseService from '@/features/courses/courseService';
 import { IExamResponse } from '@/types/exam.types';
 import CreateExam from '@/features/exams/components/CreateExam';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function TeacherExams() {
   const [searchParams, setSearchParams] = useSearchParams({ page: '1' });
-  const { user } = useAuth();
+
   const toast = useToast();
   
   const [exams, setExams] = useState<IExamResponse[]>([]);
@@ -53,7 +51,7 @@ export default function TeacherExams() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [courses, setCourses] = useState<any[]>([]);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
+
 
   const fetchExams = async () => {
     try {

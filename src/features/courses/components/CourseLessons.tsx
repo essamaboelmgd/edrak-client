@@ -1,14 +1,9 @@
 import {
   Box,
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
   Center,
   Grid,
   GridItem,
   Heading,
-  HStack,
   Input,
   InputGroup,
   InputRightElement,
@@ -16,10 +11,9 @@ import {
   Text,
   Wrap,
   WrapItem,
-  useToast,
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
-import { KeyboardEvent, useState, useEffect } from "react";
+import { KeyboardEvent } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "@/lib/axios";
@@ -33,10 +27,10 @@ export default function CourseLessons() {
   const [params, setParams] = useSearchParams({
     course: courseId || "",
   });
-  const toast = useToast();
+
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['courseLessons', courseId, params.get('search')],
     queryFn: async () => {
       const response = await axiosInstance.get(`/courses/${courseId}/lessons`, {

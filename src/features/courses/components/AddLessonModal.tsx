@@ -33,7 +33,9 @@ interface AddLessonModalProps {
 
 interface Section {
   _id: string;
-  name: string;
+  title?: string;
+  name?: string;
+  nameArabic?: string;
 }
 
 interface LessonFormData {

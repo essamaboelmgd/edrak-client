@@ -8,7 +8,6 @@ import {
   HStack,
   Stack,
   Text,
-  useDisclosure,
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +17,7 @@ import AddCourseSectionModal from "@/features/courses/components/AddCourseSectio
 
 export default function CourseSections() {
   const queryClient = useQueryClient();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
 
   const { data, isLoading } = useQuery({
     queryKey: ['courseSections'],

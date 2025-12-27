@@ -25,15 +25,14 @@ import {
   useToast,
   Wrap,
   WrapItem,
-  useDisclosure,
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
-import { KeyboardEvent, useState } from "react";
+import { KeyboardEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import SimpleCreateExam from "@/features/exams/components/SimpleCreateExam";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import examService from "@/features/exams/examService";
-import courseService from "@/features/courses/courseService";
+import courseService, { ICourse } from "@/features/courses/courseService";
 import ConfirmationAlert from "@/components/ui/ConfirmationAlert";
 
 export default function NewExams() {
@@ -42,7 +41,7 @@ export default function NewExams() {
   });
   const toast = useToast();
   const queryClient = useQueryClient();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['exams', params.toString()],
@@ -122,7 +121,7 @@ export default function NewExams() {
               bg="white"
               placeholder="الكورسات"
             >
-              {coursesData?.courses?.map((course) => (
+              {coursesData?.data?.courses?.map((course: ICourse) => (
                 <option key={course._id} value={course._id}>
                   {course.title}
                 </option>
