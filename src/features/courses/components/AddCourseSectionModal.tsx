@@ -176,21 +176,13 @@ export default function AddCourseSectionModal({ callback, editing }: AddCourseSe
       }
 
       if (editing) {
-        await axiosInstance.put(`/courses/sections/${editing._id}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await axiosInstance.put(`/courses/sections/${editing._id}`, formData);
         toast({
           status: "success",
           description: "تم تحديث القسم بنجاح",
         });
       } else {
-        await axiosInstance.post("/courses/sections", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        await axiosInstance.post("/courses/sections", formData);
         toast({
           status: "success",
           description: "تم إضافة القسم بنجاح",

@@ -43,6 +43,12 @@ class ApiClient {
                 if (token && config.headers) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
+                
+                // If data is FormData, remove Content-Type header to let axios set it automatically with boundary
+                if (config.data instanceof FormData && config.headers) {
+                    delete config.headers['Content-Type'];
+                }
+                
                 return config;
             },
             (error: AxiosError) => {

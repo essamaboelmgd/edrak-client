@@ -16,6 +16,8 @@ const DashboardLayout = lazy(() => import('@/layouts/DashboardLayout'))
 // Role-based pages
 const AdminHome = lazy(() => import('@/pages/admin/Home'))
 const AdminCourses = lazy(() => import('@/pages/admin/Courses'))
+const AdminTeachers = lazy(() => import('@/pages/admin/Teachers'))
+const AdminStudents = lazy(() => import('@/pages/admin/Students'))
 const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
 // const TeacherCourses = lazy(() => import('@/pages/teacher/Courses'))
 const CourseSections = lazy(() => import('@/pages/teacher/courses/CourseSections'))
@@ -159,11 +161,11 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
         }>
           <Route index element={<AdminHome />} />
           <Route path="courses" element={<AdminCourses />} />
+          <Route path="teachers" element={<AdminTeachers />} />
+          <Route path="students" element={<AdminStudents />} />
           <Route path="exams" element={<AdminExams />} />
           <Route path="exams/:id" element={<AdminViewExam />} />
           <Route path="exams/:id/edit" element={<AdminEditExam />} />
-          <Route path="teachers" element={<div>Admin Teachers Page</div>} />
-          <Route path="students" element={<div>Admin Students Page</div>} />
           <Route path="settings" element={<div>Admin Settings Page</div>} />
         </Route>
 
