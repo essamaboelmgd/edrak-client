@@ -164,10 +164,10 @@ export default function TeacherExams() {
           <WrapItem>
             <Select
               bg="white"
-              value={searchParams.get('course') || ''}
+              value={searchParams.get('course') || 'all'}
               onChange={(e) => {
                 setSearchParams(prev => {
-                  if (e.target.value) {
+                  if (e.target.value && e.target.value !== 'all') {
                     prev.set('course', e.target.value);
                   } else {
                     prev.delete('course');
@@ -178,6 +178,7 @@ export default function TeacherExams() {
               }}
               placeholder="الكورسات"
             >
+              <option value="all">جميع الكورسات</option>
               {courses.map((course) => (
                 <option key={course._id} value={course._id}>
                   {course.title}

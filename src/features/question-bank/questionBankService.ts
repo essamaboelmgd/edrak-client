@@ -112,9 +112,12 @@ class QuestionBankService {
   /**
    * Get question bank statistics
    */
-  async getQuestionStatistics(): Promise<ApiResponse<{ statistics: IQuestionBankStatistics }>> {
+  async getQuestionStatistics(teacherId?: string): Promise<ApiResponse<{ statistics: IQuestionBankStatistics }>> {
+    const params = new URLSearchParams();
+    if (teacherId) params.append('teacher', teacherId);
+    
     const response = await axiosInstance.get<ApiResponse<{ statistics: IQuestionBankStatistics }>>(
-      `${this.BASE_PATH}/statistics`
+      `${this.BASE_PATH}/statistics${params.toString() ? `?${params.toString()}` : ''}`
     );
     return response.data;
   }

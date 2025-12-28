@@ -17,6 +17,7 @@ export interface ICreateQuestionBankRequest {
   correctAnswer?: string;
   explanation?: string;
   difficulty: Difficulty;
+  teacher?: string; // For admin to assign question to teacher
   course?: string;
   lesson?: string;
   isGeneral?: boolean;

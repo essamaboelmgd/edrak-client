@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Users, Mail, Phone, MapPin, MoreVertical, Edit, Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { Users, Mail, Phone, MoreVertical, Edit, Eye, CheckCircle2, XCircle } from 'lucide-react';
 import { IStudentAdmin } from '../services/studentsService';
 import {
   Table,
@@ -62,7 +62,13 @@ export default function StudentsTable({ students, onViewDetails, onEdit, loading
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: idx * 0.05 }}
-              _hover={{ bg: 'gray.50' }}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f9fafb';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               <Td>
                 <HStack spacing={3}>

@@ -36,6 +36,7 @@ const StudentSubscriptions = lazy(() => import('@/pages/teacher/StudentSubscript
 const AdminExams = lazy(() => import('@/pages/admin/Exams'))
 const AdminViewExam = lazy(() => import('@/pages/teacher/ViewExam'))
 const AdminEditExam = lazy(() => import('@/pages/teacher/EditExam'))
+const AdminQuestionBank = lazy(() => import('@/pages/admin/QuestionBank'))
 const StudentHome = lazy(() => import('@/pages/student/Home'))
 const StudentCourses = lazy(() => import('@/pages/student/Courses'))
 
@@ -161,6 +162,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
         }>
           <Route index element={<AdminHome />} />
           <Route path="courses" element={<AdminCourses />} />
+          <Route path="question-bank" element={<AdminQuestionBank />} />
           <Route path="teachers" element={<AdminTeachers />} />
           <Route path="students" element={<AdminStudents />} />
           <Route path="exams" element={<AdminExams />} />

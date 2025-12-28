@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Users, Search, Filter, Plus, Grid, List } from 'lucide-react';
+import { Search, Plus, Grid, List } from 'lucide-react';
 import { useToast } from '@chakra-ui/react';
 import { teachersService, ITeacherAdmin } from '@/features/admin/services/teachersService';
 import TeachersTable from '@/features/admin/components/TeachersTable';
@@ -122,6 +121,40 @@ export default function AdminTeachers() {
       toast({
         status: 'error',
         description: error.response?.data?.message || 'حدث خطأ أثناء حذف المدرس',
+      });
+    }
+  };
+
+  const handleBlock = async (teacherId: string) => {
+    try {
+      await teachersService.blockUser(teacherId);
+      toast({
+        status: 'success',
+        description: 'تم حظر المدرس بنجاح',
+      });
+      fetchTeachers();
+      setShowDetailsModal(false);
+    } catch (error: any) {
+      toast({
+        status: 'error',
+        description: error.response?.data?.message || 'حدث خطأ أثناء حظر المدرس',
+      });
+    }
+  };
+
+  const handleUnblock = async (teacherId: string) => {
+    try {
+      await teachersService.unblockUser(teacherId);
+      toast({
+        status: 'success',
+        description: 'تم إلغاء حظر المدرس بنجاح',
+      });
+      fetchTeachers();
+      setShowDetailsModal(false);
+    } catch (error: any) {
+      toast({
+        status: 'error',
+        description: error.response?.data?.message || 'حدث خطأ أثناء إلغاء حظر المدرس',
       });
     }
   };

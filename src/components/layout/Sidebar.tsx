@@ -47,6 +47,7 @@ export default function Sidebar({ children, isOpen: externalIsOpen, onClose: ext
                 { path: "/admin/teachers", name: "المدرسين", icon: "solar:user-id-bold" },
                 { path: "/admin/students", name: "الطلاب", icon: "solar:users-group-rounded-bold" },
                 { path: "/admin/courses", name: "الكورسات", icon: "solar:book-bookmark-bold" },
+                { path: "/admin/question-bank", name: "بنك الأسئلة", icon: "solar:database-bold" },
                 { path: "/admin/exams", name: "الامتحانات", icon: "solar:document-text-bold" },
                 { path: "/admin/settings", name: "الإعدادات", icon: "solar:settings-minimalistic-line-duotone" },
             ];

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, BookOpen, DollarSign, Mail, Phone, MapPin, Crown, AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Users, BookOpen, Coins, Mail, Phone, MapPin, Crown, AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import {
     Modal,
     ModalOverlay,
@@ -243,9 +243,14 @@ export default function TeacherDetailsModal({
                                             <Text fontSize="sm" color="gray.500">
                                                 السعر
                                             </Text>
-                                            <Text fontWeight="medium" color="gray.800">
-                                                {teacher.subscription.plan.price.toLocaleString()} ج.م
-                                            </Text>
+                                            <HStack spacing={1} align="baseline">
+                                                <Text fontWeight="bold" fontSize="md" color="gray.800">
+                                                    {teacher.subscription.plan.price.toLocaleString()}
+                                                </Text>
+                                                <Text fontSize="sm" fontWeight="semibold" color="gray.600">
+                                                    ج.م
+                                                </Text>
+                                            </HStack>
                                         </VStack>
                                         <VStack align="start" spacing={0}>
                                             <Text fontSize="sm" color="gray.500">
@@ -321,13 +326,23 @@ export default function TeacherDetailsModal({
                                     </Text>
                                 </VStack>
                                 <VStack spacing={2}>
-                                    <DollarSign size={24} color="#9CA3AF" />
-                                    <Text fontSize="2xl" fontWeight="bold" color="green.600">
-                                        {teacher.stats.totalRevenue.toLocaleString()}
-                                    </Text>
-                                    <Text fontSize="sm" color="gray.500">
-                                        ج.م
-                                    </Text>
+                                    <Box
+                                        p={3}
+                                        bgGradient="linear(to-br, green.50, emerald.50)"
+                                        borderRadius="lg"
+                                        border="1px solid"
+                                        borderColor="green.200"
+                                    >
+                                        <Coins size={24} color="#16a34a" />
+                                    </Box>
+                                    <HStack spacing={1} align="baseline">
+                                        <Text fontSize="2xl" fontWeight="bold" color="green.700">
+                                            {teacher.stats.totalRevenue.toLocaleString()}
+                                        </Text>
+                                        <Text fontSize="sm" fontWeight="semibold" color="green.600">
+                                            ج.م
+                                        </Text>
+                                    </HStack>
                                 </VStack>
                             </Grid>
                         </Box>

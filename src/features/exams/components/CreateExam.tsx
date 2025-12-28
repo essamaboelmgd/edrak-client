@@ -39,10 +39,12 @@ import {
 import { Icon } from '@iconify-icon/react';
 import examService from '@/features/exams/examService';
 import courseService from '@/features/courses/courseService';
+import { coursesService } from '@/features/admin/services/coursesService';
 import { axiosInstance, getImageUrl } from '@/lib/axios';
 import { ICreateExamRequest, IQuestionBankResponse, IAnswer } from '@/types/exam.types';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import userService from '@/features/user/userService';
+import { teachersService } from '@/features/admin/services/teachersService';
 
 interface CreateExamProps {
   onSuccess: () => void;
@@ -187,6 +189,17 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
     }
   }, [selectedCourseId, isOpen]);
 
+  // Refetch courses when teacher changes (for admin)
+  const selectedTeacherId = formData.teacher;
+  useEffect(() => {
+    if (isOpen && role === UserRole.ADMIN && selectedTeacherId) {
+      fetchCourses();
+      // Reset course selection when teacher changes
+      setSelectedCourseId('');
+      setFormData(prev => ({ ...prev, course: undefined, lesson: undefined }));
+    }
+  }, [selectedTeacherId, isOpen, role]);
+
   useEffect(() => {
     if (isOpen && creationMethod === 'bank') {
       fetchBankQuestions();
@@ -195,8 +208,21 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
 
   const fetchCourses = async () => {
     try {
-      const response = await courseService.getMyCourses({ limit: 100 });
-      setCourses(response.data.courses || []);
+      if (role === UserRole.ADMIN && formData.teacher) {
+        // For admin, fetch courses for selected teacher
+        const response = await coursesService.getAllCourses({ 
+          page: 1, 
+          limit: 1000, 
+          teacher: formData.teacher 
+        });
+        if (response.success && response.data) {
+          setCourses(response.data.courses || []);
+        }
+      } else {
+        // For teacher, fetch their own courses
+        const response = await courseService.getMyCourses({ limit: 100 });
+        setCourses(response.data.courses || []);
+      }
     } catch (error) {
       console.error('Failed to fetch courses', error);
     }
@@ -213,8 +239,15 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
 
   const fetchTeachers = async () => {
     try {
-      const response = await userService.getAllTeachers({ limit: 100 });
-      setTeachers(response.data.teachers || []);
+      if (role === UserRole.ADMIN) {
+        const response = await teachersService.getAllTeachers({ limit: 1000 });
+        if (response.success && response.data) {
+          setTeachers(response.data.teachers || []);
+        }
+      } else {
+        const response = await userService.getAllTeachers({ limit: 100 });
+        setTeachers(response.data.teachers || []);
+      }
     } catch (error) {
       console.error('Failed to fetch teachers', error);
     }
@@ -240,6 +273,15 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
       toast({
         title: 'خطأ',
         description: 'العنوان مطلوب',
+        status: 'error',
+      });
+      return;
+    }
+
+    if (role === UserRole.ADMIN && !formData.teacher) {
+      toast({
+        title: 'خطأ',
+        description: 'يجب اختيار المدرس',
         status: 'error',
       });
       return;
@@ -602,13 +644,14 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
                   )}
 
                   {role === UserRole.ADMIN && (
-                    <FormControl>
+                    <FormControl isRequired>
                       <FormLabel>المدرس</FormLabel>
                       <Select
                         value={formData.teacher || ''}
                         onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
                         placeholder="اختر المدرس"
                       >
+                        <option value="">-- اختر المدرس --</option>
                         {teachers.map((teacher) => (
                           <option key={teacher._id} value={teacher._id}>
                             {teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim()}

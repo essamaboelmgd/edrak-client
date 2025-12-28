@@ -60,10 +60,25 @@ class ApiClient {
         this.instance.interceptors.response.use(
             (response: AxiosResponse) => response,
             (error: AxiosError<{ message: string; statusCode: number }>) => {
-                // Handle 401 Unauthorized - Token expired or invalid
+                // Get the request URL to check if it's a login/signup request
+                const requestUrl = error.config?.url || '';
+                const isLoginRequest = requestUrl.includes('/auth/login');
+                const isSignupRequest = requestUrl.includes('/auth/signup');
+                const isAuthRequest = isLoginRequest || isSignupRequest;
+                
+                // Don't redirect or reload for login/signup errors - let components handle them
+                if (isAuthRequest) {
+                    // Just reject the error, don't do anything else
+                    return Promise.reject(error);
+                }
+                
+                // Handle 401 Unauthorized - Token expired or invalid (only for authenticated requests)
                 if (error.response?.status === 401) {
                     this.clearToken();
-                    window.location.href = '/login';
+                    // Only redirect if we're not already on the login page
+                    if (window.location.pathname !== '/login') {
+                        window.location.href = '/login';
+                    }
                 }
 
                 // Handle 403 Forbidden

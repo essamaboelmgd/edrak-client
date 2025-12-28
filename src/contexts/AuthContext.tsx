@@ -81,7 +81,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
      */
     const login = async (credentials: ILogin) => {
         try {
-            setIsLoading(true);
+            // Don't set global isLoading for login attempts to prevent form flickering
+            // The login page handles its own loading state
             const response = await authService.login(credentials);
 
             if (response.success && response.data.token) {
@@ -107,8 +108,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } catch (error: any) {
             console.error('Login failed:', error);
             throw error;
-        } finally {
-            setIsLoading(false);
         }
     };
 

@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
-import { Users, BookOpen, DollarSign, Calendar, CheckCircle2, XCircle, Clock, Crown } from 'lucide-react';
+import { Users, BookOpen, Coins, CheckCircle2, XCircle, Clock, Crown } from 'lucide-react';
 import { ITeacherAdmin } from '../services/teachersService';
-import { getImageUrl } from '@/lib/axios';
 
 interface TeacherCardProps {
   teacher: ITeacherAdmin;
@@ -123,11 +122,11 @@ export default function TeacherCard({ teacher, onViewDetails, onEdit }: TeacherC
             <p className="text-xs text-gray-500">كورس</p>
           </div>
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-              <DollarSign size={16} />
+            <div className="flex items-center justify-center gap-1 text-green-600 mb-1">
+              <Coins size={16} />
             </div>
-            <p className="text-lg font-bold text-green-600">{teacher.stats.totalRevenue.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">ج.م</p>
+            <p className="text-lg font-bold text-green-700">{teacher.stats.totalRevenue.toLocaleString()}</p>
+            <p className="text-xs font-semibold text-green-600">ج.م</p>
           </div>
         </div>
 

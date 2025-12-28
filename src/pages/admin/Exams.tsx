@@ -35,7 +35,7 @@ import {
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import examService from '@/features/exams/examService';
-import userService from '@/features/user/userService';
+import { teachersService } from '@/features/admin/services/teachersService';
 import { IExamResponse } from '@/types/exam.types';
 import CreateExam from '@/features/exams/components/CreateExam';
 
@@ -84,8 +84,10 @@ export default function AdminExams() {
 
   const fetchTeachers = async () => {
     try {
-      const response = await userService.getAllTeachers({ limit: 100 });
-      setTeachers(response.data.teachers || []);
+      const response = await teachersService.getAllTeachers({ limit: 1000 });
+      if (response.success && response.data) {
+        setTeachers(response.data.teachers || []);
+      }
     } catch (error) {
       console.error('Failed to fetch teachers', error);
     }
@@ -163,10 +165,10 @@ export default function AdminExams() {
           <WrapItem>
             <Select
               bg="white"
-              value={searchParams.get('teacher') || ''}
+              value={searchParams.get('teacher') || 'all'}
               onChange={(e) => {
                 setSearchParams(prev => {
-                  if (e.target.value) {
+                  if (e.target.value && e.target.value !== 'all') {
                     prev.set('teacher', e.target.value);
                   } else {
                     prev.delete('teacher');
@@ -177,6 +179,7 @@ export default function AdminExams() {
               }}
               placeholder="المدرسين"
             >
+              <option value="all">جميع المدرسين</option>
               {teachers.map((teacher) => (
                 <option key={teacher._id} value={teacher._id}>
                   {teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim()}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Plus, Edit, Trash2, Eye, BookOpen, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, Plus, Edit, Trash2, Eye, BookOpen, FileText, CheckCircle, XCircle, User } from 'lucide-react';
 import { IQuestionBankResponse, QuestionType, Difficulty } from '@/types/question-bank.types';
 
 interface QuestionListProps {
@@ -10,6 +10,7 @@ interface QuestionListProps {
   onDelete: (id: string) => void;
   onView: (question: IQuestionBankResponse) => void;
   onCreateNew: () => void;
+  showTeacher?: boolean; // For admin view
 }
 
 export default function QuestionList({
@@ -19,6 +20,7 @@ export default function QuestionList({
   onDelete,
   onView,
   onCreateNew,
+  showTeacher = false,
 }: QuestionListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -184,6 +186,19 @@ export default function QuestionList({
                     {getDifficultyLabel(question.difficulty)}
                   </span>
                 </div>
+
+                {/* Teacher Info - For admin view */}
+                {showTeacher && question.teacher && (
+                  <div className="mb-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <User size={14} className="text-gray-500" />
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">المدرس:</span>{' '}
+                        {question.teacher.firstName} {question.teacher.middleName} {question.teacher.lastName}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Course/Lesson Info */}
                 {question.course && (

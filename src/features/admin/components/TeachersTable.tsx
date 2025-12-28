@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Users, BookOpen, DollarSign, MoreVertical, Edit, Eye, Crown, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Users, BookOpen, Coins, MoreVertical, Edit, Eye, Crown, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { ITeacherAdmin } from '../services/teachersService';
 
 interface TeachersTableProps {
@@ -150,9 +150,10 @@ export default function TeachersTable({ teachers, onViewDetails, onEdit, loading
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <DollarSign size={16} />
-                    <span className="font-bold">{teacher.stats.totalRevenue.toLocaleString()}</span>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 w-fit">
+                    <Coins size={16} className="text-green-600" />
+                    <span className="font-bold text-green-700">{teacher.stats.totalRevenue.toLocaleString()}</span>
+                    <span className="text-sm font-semibold text-green-600">ج.م</span>
                   </div>
                 </td>
                 <td className="px-6 py-4">

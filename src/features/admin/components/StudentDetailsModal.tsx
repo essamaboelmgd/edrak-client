@@ -15,9 +15,8 @@ import {
   Box,
   Button,
   Grid,
-  useToast,
 } from '@chakra-ui/react';
-import { IStudentAdmin, studentsService } from '../services/studentsService';
+import { IStudentAdmin } from '../services/studentsService';
 
 interface StudentDetailsModalProps {
   student: IStudentAdmin | null;
