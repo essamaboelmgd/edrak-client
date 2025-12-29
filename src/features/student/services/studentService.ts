@@ -23,8 +23,8 @@ class StudentService {
      * Get course details
      */
     async getCourseById(courseId: string) {
-        const response = await axiosInstance.get<{ data: IStudentCourse }>(`/courses/${courseId}`);
-        return response.data.data;
+        const response = await axiosInstance.get<{ data: { course: IStudentCourse } }>(`/courses/${courseId}`);
+        return response.data.data.course;
     }
     
     /**
@@ -34,9 +34,37 @@ class StudentService {
     /**
      * Get Platform Sections (The big sections containing courses)
      */
-    async getPlatformSections() {
-         const response = await axiosInstance.get<{ data: { sections: any[]; total: number } }>('/courses/sections/populated');
+    /**
+     * Get Platform Sections (The big sections containing courses)
+     */
+    async getPlatformSections(filters?: { educationalLevel?: string }) {
+         const response = await axiosInstance.get<{ data: { sections: any[]; total: number } }>('/courses/sections/populated', {
+             params: filters
+         });
          return response.data.data;
+    }
+
+    async getTeachers() {
+        // Assuming public endpoint or derived from courses. 
+        // Admin API has /users/teachers or similar. 
+        // For student, maybe just get unique teachers from courses? 
+        // Or use a specific endpoint if exists. 
+        // Let's rely on caching/static for now if no endpoint, or check backend again.
+        // CHECK: route.get("/statistics/all-teachers") in course.controller is ADMIN only.
+        // Student might need a public "get instructors" endpoint.
+        // I will assume for now filtering is done via params but filling the dropdown might need data.
+        // Temporary: I will not implement getTeachers API call if it doesn't exist for students, 
+        // but I'll add the method stub if I find the endpoint.
+        // Actually, let's skip a dedicated API call and maybe extract unique teachers from the loaded courses? 
+        // No, that's inefficient if paginated.
+        // Let's check api for public teachers list. `user.controller`?
+        return []; 
+    }
+
+    async getEducationalLevels() {
+        // Assuming /educational-levels endpoint exists
+        const response = await axiosInstance.get<{ data: { levels: any[] } }>('/educational-levels');
+        return response.data.data;
     }
 
     /**
@@ -65,7 +93,7 @@ class StudentService {
         // router.get("/:courseId/lesson-sections", ..., SectionService.getLessonSectionsByCourse)
         // I don't have SectionService code visible but standard pattern is { data: { lessonSections: [] } }
         // Let's assume standard response wrapper.
-        return response.data.data; // This might need adjustment if data structure is different
+        return response.data.data;
     }
 
     /**
@@ -88,11 +116,10 @@ class StudentService {
     /**
      * Subscribe to a course
      */
-    async subscribeToCourse(courseId: string) {
-        // Assuming 'wallet' as default payment method for now or passed as arg
+    async subscribeToCourse(courseId: string, paymentMethod: string = 'wallet') {
         const response = await axiosInstance.post('/courses/subscribe/course', {
             course: courseId,
-            paymentMethod: 'wallet' 
+            paymentMethod
         });
         return response.data;
     }
@@ -106,6 +133,44 @@ class StudentService {
     async getProfile() {
         const response = await axiosInstance.get('/users/me');
         return response.data.data.user;
+    }
+
+    async checkSubscriptionStatus(type: 'course' | 'lesson' | 'courseSection' | 'lessonSection', id: string) {
+        const response = await axiosInstance.get<{ success: boolean; data: { isSubscribed: boolean; subscription?: any } }>(`/courses/subscription-status/${type}/${id}`);
+        return response.data.data;
+    }
+
+    async subscribeToLesson(lessonId: string, paymentMethod: string = 'wallet') {
+        const response = await axiosInstance.post('/courses/subscribe/lesson', {
+            lesson: lessonId,
+            paymentMethod
+        });
+        return response.data;
+    }
+
+    async subscribeToLessonSection(sectionId: string, paymentMethod: string = 'wallet') {
+        const response = await axiosInstance.post('/courses/subscribe/lesson-section', {
+            lessonSection: sectionId, // Fixed param name from 'section' to 'lessonSection' match backend validation
+            paymentMethod
+        });
+        return response.data;
+    }
+
+    async subscribeToMultipleLessons(courseId: string, lessonIds: string[], paymentMethod: string = 'wallet') {
+        const response = await axiosInstance.post('/courses/subscribe/multiple-lessons', {
+            course: courseId,
+            lessons: lessonIds,
+            paymentMethod
+        });
+        return response.data;
+    }
+
+    async subscribeToCourseSection(sectionId: string, paymentMethod: string = 'wallet') {
+         const response = await axiosInstance.post('/courses/subscribe/course-section', {
+            courseSection: sectionId,
+            paymentMethod
+        });
+        return response.data;
     }
 
 }

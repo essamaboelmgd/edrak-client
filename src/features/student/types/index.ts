@@ -2,32 +2,32 @@ export interface IStudentCourse {
     _id: string;
     title: string;
     description: string;
-    poster: {
-        url: string;
-        public_id: string;
-    };
-    teacher: {
-        _id: string;
-        firstName: string;
-        middleName: string;
-        lastName: string;
-    };
-    subjects: string[]; // This might need verification if it's string[] or populated
+    level: string;
+    poster: string | { url: string; public_id: string };
+    price: number;
+    finalPrice: number;
+    isFree: boolean;
     educationalLevel: {
         _id: string;
         name: string;
-        nameArabic: string;
     };
-    grade?: string; // might not be in response
-    price: number;
-    finalPrice: number;
+    subjects: string[];
+    teacher: {
+        _id: string;
+        fullName: string;
+        email?: string;
+        specialization?: string;
+        image?: string;
+        bio?: string;
+    };
     discount?: number;
     subDescription?: string;
     requirements?: string[];
     whatToLearn?: string[];
-    isSubscribed?: boolean; // This usually comes from a check, not the raw course model. We might need to handle this.
-    isFree?: boolean;
-    // Backend getMyCourses just returns the course objects. 
+    isSubscribed?: boolean;
+    progress?: number;
+    updatedAt?: string;
+    createdAt?: string;
 }
 
 export interface IStudentLesson {
@@ -39,14 +39,20 @@ export interface IStudentLesson {
     isFree?: boolean;
     isSubscribed?: boolean;
     order: number;
+    price: number;
+    finalPrice: number;
+    type: 'video' | 'quiz' | 'file'; // inferred field for UI
 }
 
 export interface IStudentCourseSection {
     _id: string;
-    title: string;
+    name: string; // Backend uses name
+    title?: string; // For compatibility if mapped
     description: string;
     order: number;
     lessons: IStudentLesson[];
+    price: number;
+    finalPrice: number;
 }
 
 export interface IStudentExam {

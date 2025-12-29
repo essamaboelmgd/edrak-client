@@ -129,6 +129,16 @@ class CourseService {
         );
         return response.data;
     }
+    /**
+     * Update a course
+     */
+    async updateCourse(id: string, data: Partial<ICourse> | FormData): Promise<ApiResponse<ICourse>> {
+        const response = await axiosInstance.put<ApiResponse<ICourse>>(
+            `${this.BASE_PATH}/${id}`,
+            data
+        );
+        return response.data;
+    }
 }
 
 // Export singleton instance

@@ -29,10 +29,51 @@ export const useSubscribeToCourse = () => {
     const queryClient = useQueryClient();
     
     return useMutation({
-        mutationFn: (courseId: string) => studentService.subscribeToCourse(courseId),
+        mutationFn: ({ courseId, paymentMethod }: { courseId: string; paymentMethod: string }) => 
+            studentService.subscribeToCourse(courseId, paymentMethod),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['student', 'courses'] });
             queryClient.invalidateQueries({ queryKey: ['student', 'course'] });
+            queryClient.invalidateQueries({ queryKey: ['student', 'subscriptions'] });
+        },
+    });
+};
+
+export const useSubscribeToLesson = () => {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+        mutationFn: ({ lessonId, paymentMethod }: { lessonId: string; paymentMethod: string }) => 
+            studentService.subscribeToLesson(lessonId, paymentMethod),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['student', 'courses'] });
+            queryClient.invalidateQueries({ queryKey: ['student', 'subscriptions'] });
+        },
+    });
+};
+
+export const useSubscribeToLessonSection = () => {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+        mutationFn: ({ sectionId, paymentMethod }: { sectionId: string; paymentMethod: string }) => 
+            studentService.subscribeToLessonSection(sectionId, paymentMethod),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['student', 'courses'] });
+            queryClient.invalidateQueries({ queryKey: ['student', 'subscriptions'] });
+        },
+    });
+};
+
+export const useSubscribeToMultipleLessons = () => {
+    const queryClient = useQueryClient();
+    
+    return useMutation({
+        mutationFn: ({ courseId, lessonIds, paymentMethod }: { courseId: string; lessonIds: string[]; paymentMethod: string }) => 
+            studentService.subscribeToMultipleLessons(courseId, lessonIds, paymentMethod),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['student', 'courses'] });
+            queryClient.invalidateQueries({ queryKey: ['student', 'subscriptions'] });
         },
     });
 };
@@ -82,3 +123,10 @@ export const useLessonsByCourse = (courseId: string) => {
     });
 };
 
+export const useCheckSubscription = (type: 'course' | 'lesson' | 'courseSection' | 'lessonSection', id: string) => {
+    return useQuery({
+        queryKey: ['student', 'subscription', type, id],
+        queryFn: () => studentService.checkSubscriptionStatus(type, id),
+        enabled: !!id,
+    });
+};

@@ -14,11 +14,16 @@ import {
   Stack,
   Text,
   Heading,
+  Switch,
+  FormControl,
+  FormLabel,
+  useToast,
+  Tooltip
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
 import { Link } from "react-router-dom";
 import { axiosInstance, getImageUrl } from "@/lib/axios";
-import { useToast } from "@chakra-ui/react";
+import courseService from "@/features/teacher/services/courseService";
 
 import EditCourseModal from "./EditCourseModal";
 
@@ -30,6 +35,27 @@ interface CourseCardProps {
 export default function CourseCard({ course, callback }: CourseCardProps) {
   const toast = useToast();
 
+  const handleToggleStatus = async () => {
+    const newStatus = course.status === 'active' ? 'draft' : 'active';
+    try {
+        await courseService.updateCourse(course._id, { status: newStatus });
+        toast({
+            title: 'تم تحديث الحالة',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+        });
+        callback();
+    } catch (error: any) {
+        toast({
+            title: 'خطأ في التحديث',
+            description: error.response?.data?.message || 'حدث خطأ ما',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+        });
+    }
+  };
 
   const handleDelete = async () => {
     if (!confirm("هل أنت متأكد من حذف هذا الكورس؟")) return;
@@ -69,14 +95,21 @@ export default function CourseCard({ course, callback }: CourseCardProps) {
               w="full"
               fallbackSrc="https://via.placeholder.com/400x200"
             />
-            <Badge
-              position="absolute"
-              top={2}
-              right={2}
-              colorScheme={course.status === 'published' ? 'green' : 'gray'}
-            >
-              {course.status === 'published' ? 'منشور' : 'مسودة'}
-            </Badge>
+            <Box position="absolute" top={2} right={2} display="flex" alignItems="center" gap={2} bg="whiteAlpha.900" p={1} borderRadius="md" shadow="sm">
+                <Switch 
+                    size="sm" 
+                    colorScheme="green" 
+                    isChecked={course.status === 'active'}
+                    onChange={handleToggleStatus}
+                />
+                <Badge
+                  colorScheme={course.status === 'active' ? 'green' : 'orange'}
+                  variant="subtle"
+                  fontSize="xs"
+                >
+                  {course.status === 'active' ? 'نشط' : 'مسودة'}
+                </Badge>
+            </Box>
           </Box>
           <Box>
             <Heading size="md" mb={2} noOfLines={1}>

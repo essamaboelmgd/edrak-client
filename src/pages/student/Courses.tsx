@@ -1,11 +1,13 @@
-import { Search, ChevronRight, ChevronLeft } from 'lucide-react';
-import { usePlatformSections } from '@/features/student/hooks/useStudentCourses';
+import { useState, useRef } from 'react';
+import { usePlatformSections, useMyCourses } from '@/features/student/hooks/useStudentCourses';
 import { CourseCard } from '@/features/student/components/CourseCard';
-import { Box, Heading, Text, Flex, IconButton, Container } from '@chakra-ui/react';
-import { useRef } from 'react';
+import { Box, Heading, Text, Flex, Container, VStack, Center, Spinner } from '@chakra-ui/react';
+import { CoursesHero } from './components/CoursesHero';
+import { CoursesFilters } from './components/CoursesFilters';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 
+// Reuse the Row component logic, maybe extract later
 const CourseSectionRow = ({ section, index }: { section: any, index: number }) => {
-    // No more individual fetching!
     const courses = section.courses || [];
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -18,143 +20,205 @@ const CourseSectionRow = ({ section, index }: { section: any, index: number }) =
 
     if (courses.length === 0) return null;
 
-    // Alternating background for visual separation
-    const bgProps = index % 2 === 0 ? { bg: 'transparent' } : { bg: 'gray.50', py: 8, borderRadius: '2xl' };
+    const bgProps = index % 2 === 0 ? { bg: 'transparent' } : { bg: 'gray.50', py: 8, borderRadius: '2xl', my: 4 };
 
     return (
-        <Box py={8} px={4} {...bgProps} position="relative">
-            <Container maxW="container.xl" p={0}>
-                <Flex align="center" justify="space-between" mb={6} px={2}>
-                    <Box>
-                        <Flex align="center" gap={3} mb={1}>
-                            <Box w="6px" h="24px" bg="blue.500" borderRadius="full" />
-                            <Heading size="lg" color="gray.800">{section.title}</Heading>
-                        </Flex>
-                        {section.description && <Text color="gray.500" fontSize="md" mt={1} mr={4}>{section.description}</Text>}
-                    </Box>
-                    
-                    {/* Optional: 'View All' can be added here if we have a route for Section Details */}
-                    {/* <Button variant="ghost" colorScheme="blue" size="sm" rightIcon={<ArrowLeft size={16} />}>عرض الكل</Button> */}
-                </Flex>
-                
-                <Box position="relative" role="group">
-                    {courses.length > 3 && (
-                        <>
-                            <IconButton
-                                aria-label="Scroll Right"
-                                icon={<ChevronRight />}
-                                position="absolute"
-                                right="-20px"
-                                top="50%"
-                                transform="translateY(-50%)"
-                                zIndex={2}
-                                borderRadius="full"
-                                bg="white"
-                                shadow="lg"
-                                color="gray.700"
-                                _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'translateY(-50%) scale(1.1)' }}
-                                onClick={() => scroll('right')}
-                                display={{ base: 'none', md: 'flex' }}
-                                opacity={0}
-                                _groupHover={{ opacity: 1 }}
-                                transition="all 0.2s"
-                            />
+        <Box {...bgProps} className="group" position="relative" px={index % 2 === 0 ? 0 : 4}>
+             <Flex align="center" gap={3} mb={6}>
+                 <Box w="6px" h="24px" bg="blue.500" borderRadius="full" />
+                 <Heading size="lg" fontWeight="bold" color="gray.800">
+                     {section.title || section.name}
+                 </Heading>
+             </Flex>
 
-                            <IconButton
-                                aria-label="Scroll Left"
-                                icon={<ChevronLeft />}
-                                position="absolute"
-                                left="-20px"
-                                top="50%"
-                                transform="translateY(-50%)"
-                                zIndex={2}
-                                borderRadius="full"
-                                bg="white"
-                                shadow="lg"
-                                color="gray.700"
-                                _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'translateY(-50%) scale(1.1)' }}
-                                onClick={() => scroll('left')}
-                                display={{ base: 'none', md: 'flex' }}
-                                opacity={0}
-                                _groupHover={{ opacity: 1 }}
-                                transition="all 0.2s"
-                            />
-                        </>
-                    )}
+             <Box position="relative">
+                 {/* Scroll Buttons */}
+                 <Flex 
+                     position="absolute" 
+                     left="-20px" 
+                     top="50%" 
+                     transform="translateY(-50%)" 
+                     zIndex={2}
+                     opacity={0}
+                     _groupHover={{ opacity: 1 }}
+                     transition="all 0.3s"
+                 >
+                      <Box
+                         as="button"
+                         onClick={() => scroll('left')}
+                         bg="white"
+                         w="40px" 
+                         h="40px"
+                         borderRadius="full"
+                         boxShadow="lg"
+                         display="flex"
+                         alignItems="center"
+                         justifyContent="center"
+                         color="gray.600"
+                         _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'scale(1.1)' }}
+                         transition="all 0.2s"
+                     >
+                         <ChevronRight size={24} />
+                     </Box>
+                 </Flex>
 
-                    <Flex 
-                        ref={scrollContainerRef}
-                        gap={6} 
-                        overflowX="auto" 
-                        pb={8}
-                        pt={2}
-                        px={2}
-                        sx={{
-                            scrollbarWidth: 'none', // Firefox
-                            '::-webkit-scrollbar': { display: 'none' } // Chrome/Safari
-                        }}
-                    >
-                        {courses.map((course: any) => (
-                            <Box 
-                                key={course._id} 
-                                minW={{ base: "280px", md: "300px" }} 
-                                maxW={{ base: "280px", md: "300px" }}
-                                transition="transform 0.3s ease"
-                                _hover={{ transform: 'translateY(-8px)' }}
-                            >
-                                <CourseCard course={course} />
-                            </Box>
-                        ))}
-                    </Flex>
-                </Box>
-            </Container>
+                 <Flex 
+                     position="absolute" 
+                     right="-20px" 
+                     top="50%" 
+                     transform="translateY(-50%)" 
+                     zIndex={2}
+                     opacity={0}
+                     _groupHover={{ opacity: 1 }}
+                     transition="all 0.3s"
+                 >
+                     <Box
+                         as="button"
+                         onClick={() => scroll('right')}
+                         bg="white"
+                         w="40px" 
+                         h="40px"
+                         borderRadius="full"
+                         boxShadow="lg"
+                         display="flex"
+                         alignItems="center"
+                         justifyContent="center"
+                         color="gray.600"
+                         _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'scale(1.1)' }}
+                         transition="all 0.2s"
+                     >
+                         <ChevronLeft size={24} />
+                     </Box>
+                 </Flex>
+
+                 <Flex 
+                     ref={scrollContainerRef}
+                     gap={6} 
+                     overflowX="auto" 
+                     pb={8}
+                     pt={2}
+                     px={2}
+                     sx={{
+                         scrollbarWidth: 'none',
+                         '::-webkit-scrollbar': { display: 'none' }
+                     }}
+                 >
+                     {courses.map((course: any) => (
+                         <Box 
+                             key={course._id} 
+                             minW={{ base: "280px", md: "300px" }} 
+                             maxW={{ base: "280px", md: "300px" }}
+                             transition="transform 0.3s ease"
+                             _hover={{ transform: 'translateY(-8px)' }}
+                         >
+                             <CourseCard course={course} />
+                         </Box>
+                     ))}
+                 </Flex>
+             </Box>
         </Box>
     );
 };
 
 export default function StudentCourses() {
-  const { data: sectionsData, isLoading: isLoadingSections } = usePlatformSections();
-  const sections = sectionsData?.sections || [];
+    // Filters State
+    const [searchValue, setSearchValue] = useState('');
+    const [levelValue, setLevelValue] = useState('');
 
-  return (
-    <div className="space-y-0" dir="rtl">
-      <Container maxW="container.xl" py={4}>
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">استكشف الكورسات</h1>
-            <p className="text-gray-500 mt-1">اختر الكورس المناسب لك وابدأ رحلتك التعليمية</p>
-            </div>
-        </div>
+    // Fetch Data
+    const { data: sectionsData, isLoading: isLoadingSections } = usePlatformSections(); // We should update hook to accept filters if needed, or filter client side for smooth UX if data is small
+    const { data: myCoursesData, isLoading: isLoadingMyCourses } = useMyCourses();
 
-        {/* Search */}
-        <div className="relative mb-8">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-            type="text"
-            placeholder="ابحث عن كورس..."
-            className="w-full pr-12 pl-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent category-search-input"
-            />
-        </div>
-      </Container>
+    // NOTE for Senior Dev:
+    // Ideally, we pass filters to the API. 
+    // `usePlatformSections` is currently using cached data without params. 
+    // To implement real server-side filtering, we would need to pass params to `usePlatformSections({ educationalLevel: levelValue })`.
+    // For now, let's implement CLIENT-SIDE filtering for the 'search' on sections, 
+    // assuming 'educationalLevel' might come from the API later.
+    
+    // Derived Data
+    const myCourses = myCoursesData?.courses || [];
+    const allSections = sectionsData?.sections || [];
+    
+    // Filter Logic
+    const filteredSections = allSections.map((section: any) => {
+        // Filter courses inside section
+        const filteredCourses = (section.courses || []).filter((c: any) => {
+            const matchesSearch = c.title.toLowerCase().includes(searchValue.toLowerCase());
+            // const matchesLevel = levelValue ? c.educationalLevel?._id === levelValue : true;
+            return matchesSearch;
+        });
+        return { ...section, courses: filteredCourses };
+    }).filter((section: any) => section.courses.length > 0);
 
-      {/* Sections and Courses */}
-      <Box>
-          {isLoadingSections ? (
-              <Box p={4} textAlign="center">جاري تحميل الأقسام...</Box>
-          ) : (
-              sections.length > 0 ? (
-                  sections.map((section: any, index: number) => (
-                      <CourseSectionRow key={section._id} section={section} index={index} />
-                  ))
-              ) : (
-                  <Box p={8} textAlign="center" bg="gray.50" borderRadius="lg">
-                      <Text color="gray.500">لا توجد أقسام متاحة حالياً</Text>
-                  </Box>
-              )
-          )}
-      </Box>
-    </div>
-  );
+    const totalCourses = allSections.reduce((acc: number, sec: any) => acc + (sec.courses?.length || 0), 0);
+
+    const isLoading = isLoadingSections || isLoadingMyCourses;
+
+    if (isLoading) {
+        return (
+             <Center h="80vh">
+                 <Spinner size="xl" color="blue.500" thickness="4px" />
+             </Center>
+        );
+    }
+
+    return (
+        <Box minH="100vh" bg="gray.50" pb={20}>
+            {/* Main Content Container - constrained width */}
+            <Container maxW="container.xl" pt={8} px={{ base: 4, md: 8 }}>
+                
+                <CoursesHero 
+                    totalCourses={totalCourses}
+                    enrolledCount={myCourses.length}
+                    availableCount={totalCourses} // Should technically be total - enrolled, but for now Total is fine
+                />
+
+                <CoursesFilters 
+                    searchValue={searchValue}
+                    onSearchChange={setSearchValue}
+                    levelValue={levelValue}
+                    onLevelChange={setLevelValue}
+                    levels={[]} // TODO: Fetch levels properly
+                    onClearFilters={() => { setSearchValue(''); setLevelValue(''); }}
+                />
+
+                <VStack spacing={12} align="stretch">
+                    {/* My Courses Section */}
+                    {myCourses.length > 0 && !searchValue && (
+                         <Box>
+                             <Flex align="center" gap={3} mb={6}>
+                                 <Box w="6px" h="24px" bg="green.500" borderRadius="full" />
+                                 <Heading size="lg" fontWeight="bold" color="gray.800">
+                                     كورساتي
+                                 </Heading>
+                             </Flex>
+                             {/* Reusing Row for My Courses? Or Grid? Legacy used Category Grouping. */}
+                             {/* Let's use a single row for 'My Courses' for now for consistency */}
+                             <CourseSectionRow section={{ title: 'كورساتي', courses: myCourses }} index={1} />
+                         </Box>
+                    )}
+
+                    {/* Catalog Sections */}
+                    <Box>
+                        {filteredSections.length > 0 ? (
+                            filteredSections.map((section: any, index: number) => (
+                                <CourseSectionRow 
+                                    key={section._id} 
+                                    section={section} 
+                                    index={index} 
+                                />
+                            ))
+                        ) : (
+                             <Center py={20} flexDirection="column">
+                                 <Text fontSize="xl" fontWeight="bold" color="gray.400">لا توجد كورسات مطابقة للبحث</Text>
+                             </Center>
+                        )}
+                    </Box>
+                </VStack>
+
+            </Container>
+        </Box>
+    );
 }
 
