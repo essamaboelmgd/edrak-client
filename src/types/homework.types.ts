@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 // ===================== REQUEST TYPES ===================== //
 export interface ICreateHomeworkRequest {
     title: string;
