@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import QuestionList from '@/features/question-bank/components/QuestionList';
 import QuestionForm from '@/features/question-bank/components/QuestionForm';
 import QuestionView from '@/features/question-bank/components/QuestionView';
-import questionBankService from '@/features/question-bank/questionBankService';
+import questionBankService from '@/features/teacher/services/questionBankService';
 import {
   IQuestionBankResponse,
   ICreateQuestionBankRequest,

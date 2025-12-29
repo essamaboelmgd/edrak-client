@@ -6,7 +6,7 @@ import { Search, Plus } from 'lucide-react';
 import QuestionList from '@/features/question-bank/components/QuestionList';
 import AdminQuestionForm from '@/features/admin/components/AdminQuestionForm';
 import QuestionView from '@/features/question-bank/components/QuestionView';
-import questionBankService from '@/features/question-bank/questionBankService';
+import questionBankService from '@/features/teacher/services/questionBankService';
 import { teachersService } from '@/features/admin/services/teachersService';
 import {
   IQuestionBankResponse,

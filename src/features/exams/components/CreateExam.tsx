@@ -37,8 +37,8 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
-import examService from '@/features/exams/examService';
-import courseService from '@/features/courses/courseService';
+import examService from '@/features/teacher/services/examService';
+import courseService from '@/features/teacher/services/courseService';
 import { coursesService } from '@/features/admin/services/coursesService';
 import { axiosInstance, getImageUrl } from '@/lib/axios';
 import { ICreateExamRequest, IQuestionBankResponse, IAnswer } from '@/types/exam.types';

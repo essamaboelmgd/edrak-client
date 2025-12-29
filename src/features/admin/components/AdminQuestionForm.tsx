@@ -11,7 +11,7 @@ import {
     IAnswer,
 } from '@/types/question-bank.types';
 import { coursesService } from '@/features/admin/services/coursesService';
-import courseService from '@/features/courses/courseService';
+import courseService from '@/features/teacher/services/courseService';
 
 interface AdminQuestionFormProps {
     question?: IQuestionBankResponse;

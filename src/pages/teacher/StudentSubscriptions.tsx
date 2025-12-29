@@ -36,7 +36,7 @@ import { Icon } from '@iconify-icon/react';
 import {
   studentSubscriptionsService,
   StudentCourseSubscription,
-} from '@/features/teacher/studentSubscriptionsService';
+} from '@/features/teacher/services/studentSubscriptionsService';
 import { useSearchParams } from 'react-router-dom';
 
 export default function StudentSubscriptions() {

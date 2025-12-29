@@ -49,6 +49,9 @@ export default function Sidebar({ children, isOpen: externalIsOpen, onClose: ext
                 { path: "/admin/courses", name: "الكورسات", icon: "solar:book-bookmark-bold" },
                 { path: "/admin/question-bank", name: "بنك الأسئلة", icon: "solar:database-bold" },
                 { path: "/admin/exams", name: "الامتحانات", icon: "solar:document-text-bold" },
+                { path: "/admin/homeworks", name: "الواجبات", icon: "solar:notebook-bold" },
+                { path: "/admin/features", name: "الميزات", icon: "solar:widget-5-bold" },
+                { path: "/admin/subscriptions", name: "اشتراكات المدرسين", icon: "solar:card-bold" },
                 { path: "/admin/settings", name: "الإعدادات", icon: "solar:settings-minimalistic-line-duotone" },
             ];
         } else if (role === UserRole.TEACHER) {
@@ -57,6 +60,7 @@ export default function Sidebar({ children, isOpen: externalIsOpen, onClose: ext
                 { path: "/teacher/courses", name: "الكورسات", icon: "solar:inbox-archive-bold" },
                 { path: "/teacher/lessons", name: "الحصص", icon: "solar:video-library-line-duotone" },
                 { path: "/teacher/exams", name: "الاختبارات", icon: "solar:document-text-bold" },
+                { path: "/teacher/homeworks", name: "الواجبات", icon: "solar:notebook-bold" },
                 { path: "/teacher/question-bank", name: "بنك الأسئلة", icon: "solar:database-bold" },
                 { path: "/teacher/students", name: "طلابي", icon: "solar:users-group-two-rounded-bold" },
                 { path: "/teacher/student-subscriptions", name: "اشتراكات الطلاب", icon: "solar:card-bold" },
@@ -256,3 +260,5 @@ const NavItem = ({ icon, path, name }: NavItemProps) => {
         </Link>
     );
 };
+
+

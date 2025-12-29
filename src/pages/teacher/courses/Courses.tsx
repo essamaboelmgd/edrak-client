@@ -26,7 +26,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { axiosInstance, getImageUrl } from "@/lib/axios";
-import courseService from "@/features/courses/courseService";
+import courseService from "@/features/teacher/services/courseService";
 import AddCourseModal from "@/features/courses/components/AddCourseModal";
 import AddCourseSectionModal from "@/features/courses/components/AddCourseSectionModal";
 import LoadingCourseCard from "@/features/courses/components/LoadingCourseCard";

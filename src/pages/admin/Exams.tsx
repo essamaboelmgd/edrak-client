@@ -34,7 +34,7 @@ import {
   MenuItem,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
-import examService from '@/features/exams/examService';
+import examService from '@/features/teacher/services/examService';
 import { teachersService } from '@/features/admin/services/teachersService';
 import { IExamResponse } from '@/types/exam.types';
 import CreateExam from '@/features/exams/components/CreateExam';

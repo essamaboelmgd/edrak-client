@@ -29,7 +29,7 @@ import { Icon } from '@iconify-icon/react';
 import {
   teacherSubscriptionService,
   TeacherSubscription,
-} from '@/features/teacher/teacherSubscriptionService';
+} from '@/features/teacher/services/teacherSubscriptionService';
 
 export default function MySubscriptions() {
   const [loading, setLoading] = useState(true);

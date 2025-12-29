@@ -28,7 +28,7 @@ import {
   SimpleGrid,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
-import examService from '@/features/exams/examService';
+import examService from '@/features/teacher/services/examService';
 import { IExamResponse, IExamStatisticsResponse } from '@/types/exam.types';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 

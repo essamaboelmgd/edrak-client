@@ -10,7 +10,7 @@ import {
     Difficulty,
     IAnswer,
 } from '@/types/question-bank.types';
-import courseService from '@/features/courses/courseService';
+import courseService from '@/features/teacher/services/courseService';
 
 interface QuestionFormProps {
     question?: IQuestionBankResponse;

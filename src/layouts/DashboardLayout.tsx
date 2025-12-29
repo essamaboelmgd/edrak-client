@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import TrialCountdown from '@/components/teacher/TrialCountdown';
 import { Box } from '@chakra-ui/react';
 
 export default function DashboardLayout() {
@@ -16,6 +17,7 @@ export default function DashboardLayout() {
       <Box p={4}>
         <Outlet />
       </Box>
+      <TrialCountdown />
     </Sidebar>
   );
 }

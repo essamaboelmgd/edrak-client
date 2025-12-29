@@ -36,8 +36,8 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
-import { myStudentsService, MyStudent } from '@/features/teacher/myStudentsService';
-import { subscriptionService, StudentSubscription } from '@/features/teacher/subscriptionService';
+import { myStudentsService, MyStudent } from '@/features/teacher/services/myStudentsService';
+import { subscriptionService, StudentSubscription } from '@/features/teacher/services/subscriptionService';
 import { useSearchParams } from 'react-router-dom';
 
 export default function MyStudents() {

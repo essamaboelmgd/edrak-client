@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import examService from "@/features/exams/examService";
+import examService from "@/features/teacher/services/examService";
 import { ICreateExamRequest } from "@/types/exam.types";
 
 interface SimpleCreateExamProps {
