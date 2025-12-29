@@ -1,0 +1,167 @@
+export interface IStudentCourse {
+    _id: string;
+    title: string;
+    description: string;
+    poster: {
+        url: string;
+        public_id: string;
+    };
+    teacher: {
+        _id: string;
+        firstName: string;
+        middleName: string;
+        lastName: string;
+    };
+    subjects: string[]; // This might need verification if it's string[] or populated
+    educationalLevel: {
+        _id: string;
+        name: string;
+        nameArabic: string;
+    };
+    grade?: string; // might not be in response
+    price: number;
+    finalPrice: number;
+    discount?: number;
+    subDescription?: string;
+    requirements?: string[];
+    whatToLearn?: string[];
+    isSubscribed?: boolean; // This usually comes from a check, not the raw course model. We might need to handle this.
+    isFree?: boolean;
+    // Backend getMyCourses just returns the course objects. 
+}
+
+export interface IStudentLesson {
+    _id: string;
+    title: string;
+    description: string;
+    videoUrl?: string; // If accessed via direct link
+    duration?: number;
+    isFree?: boolean;
+    isSubscribed?: boolean;
+    order: number;
+}
+
+export interface IStudentCourseSection {
+    _id: string;
+    title: string;
+    description: string;
+    order: number;
+    lessons: IStudentLesson[];
+}
+
+export interface IStudentExam {
+  _id: string;
+  title: string;
+  description?: string;
+  duration: number; // in minutes
+  totalMarks: number;
+  passingMarks: number;
+  course: {
+    _id: string;
+    title: string;
+  };
+  questionsCount: number;
+  startDate?: string;
+  endDate?: string;
+  status: 'published' | 'draft' | 'archived';
+  isAttempted?: boolean;
+}
+
+export interface IQuestion {
+  _id: string;
+  text: string;
+  type: 'mcq' | 'true_false' | 'text';
+  options?: {
+    text: string;
+    isCorrect: boolean;
+    _id: string;
+  }[];
+  marks: number;
+}
+
+export interface IExamAttempt {
+  _id: string;
+  exam: string;
+  student: string;
+  startTime: string;
+  endTime?: string;
+  status: 'in_progress' | 'completed' | 'timeout';
+  answers: {
+    question: string;
+    selectedOptions?: string[]; // for mcq
+    textAnswer?: string; // for text
+  }[];
+  score?: number;
+}
+
+export interface IStudentHomework {
+  _id: string;
+  title: string;
+  description: string;
+  course: {
+    _id: string;
+    title: string;
+  };
+  dueDate?: string;
+  pdfUrl?: string; // Teacher's homework file
+  totalMarks: number;
+  status: 'published' | 'draft' | 'archived';
+  isSubmitted?: boolean;
+  submission?: {
+      _id: string;
+      status: 'pending' | 'submitted' | 'graded';
+      score?: number;
+      feedback?: string;
+      submittedAt: string;
+  };
+}
+
+export interface IStudentSubscription {
+    _id: string;
+    student: string;
+    course?: {
+        _id: string;
+        title: string;
+    };
+    courseSection?: {
+        _id: string;
+        title: string;
+    };
+    startDate: string;
+    endDate: string;
+    status: 'active' | 'expired' | 'cancelled';
+    paymentMethod: string;
+    finalPrice: number;
+    transactionId?: string;
+    daysRemaining?: number;
+    isActive?: boolean;
+}
+
+export interface IMySubscriptionsResponse {
+    lessons: { subscription: IStudentSubscription; content: any }[];
+    courses: { subscription: IStudentSubscription; content: any }[];
+    courseSections: { subscription: IStudentSubscription; content: any }[];
+    lessonSections: { subscription: IStudentSubscription; content: any }[];
+    total: {
+        lessons: number;
+        courses: number;
+        courseSections: number;
+        lessonSections: number;
+        all: number;
+    };
+}
+
+export interface IStudentProfile {
+
+    _id: string;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    email: string;
+    mobileNumber: string;
+    governorate: string;
+    educationalLevel: {
+        _id: string;
+        name: string;
+    };
+}

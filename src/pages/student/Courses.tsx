@@ -1,78 +1,159 @@
-import { motion } from 'framer-motion';
-import { Search, PlayCircle, Star, Clock } from 'lucide-react';
+import { Search, ChevronRight, ChevronLeft } from 'lucide-react';
+import { usePlatformSections } from '@/features/student/hooks/useStudentCourses';
+import { CourseCard } from '@/features/student/components/CourseCard';
+import { Box, Heading, Text, Flex, IconButton, Container } from '@chakra-ui/react';
+import { useRef } from 'react';
 
-const availableCourses = [
-  { id: 1, name: 'الرياضيات المتقدمة', teacher: 'أحمد محمد', rating: 4.8, students: 120, price: '500 ج.م', thumbnail: 'https://ui-avatars.com/api/?name=Math&background=3b82f6' },
-  { id: 2, name: 'الفيزياء', teacher: 'سارة علي', rating: 4.9, students: 89, price: '450 ج.م', thumbnail: 'https://ui-avatars.com/api/?name=Physics&background=8b5cf6' },
-  { id: 3, name: 'الكيمياء', teacher: 'محمد حسن', rating: 4.7, students: 156, price: '400 ج.م', thumbnail: 'https://ui-avatars.com/api/?name=Chemistry&background=10b981' },
-  { id: 4, name: 'الأحياء', teacher: 'نور أحمد', rating: 4.6, students: 98, price: '480 ج.م', thumbnail: 'https://ui-avatars.com/api/?name=Biology&background=f59e0b' },
-  { id: 5, name: 'اللغة العربية', teacher: 'خالد محمود', rating: 4.9, students: 203, price: '350 ج.م', thumbnail: 'https://ui-avatars.com/api/?name=Arabic&background=ef4444' },
-  { id: 6, name: 'اللغة الإنجليزية', teacher: 'فاطمة علي', rating: 4.8, students: 187, price: '420 ج.م', thumbnail: 'https://ui-avatars.com/api/?name=English&background=06b6d4' },
-];
+const CourseSectionRow = ({ section, index }: { section: any, index: number }) => {
+    // No more individual fetching!
+    const courses = section.courses || [];
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            const scrollAmount = direction === 'left' ? -300 : 300;
+            scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    };
+
+    if (courses.length === 0) return null;
+
+    // Alternating background for visual separation
+    const bgProps = index % 2 === 0 ? { bg: 'transparent' } : { bg: 'gray.50', py: 8, borderRadius: '2xl' };
+
+    return (
+        <Box py={8} px={4} {...bgProps} position="relative">
+            <Container maxW="container.xl" p={0}>
+                <Flex align="center" justify="space-between" mb={6} px={2}>
+                    <Box>
+                        <Flex align="center" gap={3} mb={1}>
+                            <Box w="6px" h="24px" bg="blue.500" borderRadius="full" />
+                            <Heading size="lg" color="gray.800">{section.title}</Heading>
+                        </Flex>
+                        {section.description && <Text color="gray.500" fontSize="md" mt={1} mr={4}>{section.description}</Text>}
+                    </Box>
+                    
+                    {/* Optional: 'View All' can be added here if we have a route for Section Details */}
+                    {/* <Button variant="ghost" colorScheme="blue" size="sm" rightIcon={<ArrowLeft size={16} />}>عرض الكل</Button> */}
+                </Flex>
+                
+                <Box position="relative" role="group">
+                    {courses.length > 3 && (
+                        <>
+                            <IconButton
+                                aria-label="Scroll Right"
+                                icon={<ChevronRight />}
+                                position="absolute"
+                                right="-20px"
+                                top="50%"
+                                transform="translateY(-50%)"
+                                zIndex={2}
+                                borderRadius="full"
+                                bg="white"
+                                shadow="lg"
+                                color="gray.700"
+                                _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'translateY(-50%) scale(1.1)' }}
+                                onClick={() => scroll('right')}
+                                display={{ base: 'none', md: 'flex' }}
+                                opacity={0}
+                                _groupHover={{ opacity: 1 }}
+                                transition="all 0.2s"
+                            />
+
+                            <IconButton
+                                aria-label="Scroll Left"
+                                icon={<ChevronLeft />}
+                                position="absolute"
+                                left="-20px"
+                                top="50%"
+                                transform="translateY(-50%)"
+                                zIndex={2}
+                                borderRadius="full"
+                                bg="white"
+                                shadow="lg"
+                                color="gray.700"
+                                _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'translateY(-50%) scale(1.1)' }}
+                                onClick={() => scroll('left')}
+                                display={{ base: 'none', md: 'flex' }}
+                                opacity={0}
+                                _groupHover={{ opacity: 1 }}
+                                transition="all 0.2s"
+                            />
+                        </>
+                    )}
+
+                    <Flex 
+                        ref={scrollContainerRef}
+                        gap={6} 
+                        overflowX="auto" 
+                        pb={8}
+                        pt={2}
+                        px={2}
+                        sx={{
+                            scrollbarWidth: 'none', // Firefox
+                            '::-webkit-scrollbar': { display: 'none' } // Chrome/Safari
+                        }}
+                    >
+                        {courses.map((course: any) => (
+                            <Box 
+                                key={course._id} 
+                                minW={{ base: "280px", md: "300px" }} 
+                                maxW={{ base: "280px", md: "300px" }}
+                                transition="transform 0.3s ease"
+                                _hover={{ transform: 'translateY(-8px)' }}
+                            >
+                                <CourseCard course={course} />
+                            </Box>
+                        ))}
+                    </Flex>
+                </Box>
+            </Container>
+        </Box>
+    );
+};
 
 export default function StudentCourses() {
+  const { data: sectionsData, isLoading: isLoadingSections } = usePlatformSections();
+  const sections = sectionsData?.sections || [];
+
   return (
-    <div className="space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">استكشف الكورسات</h1>
-          <p className="text-gray-500 mt-1">اختر الكورس المناسب لك وابدأ رحلتك التعليمية</p>
+    <div className="space-y-0" dir="rtl">
+      <Container maxW="container.xl" py={4}>
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">استكشف الكورسات</h1>
+            <p className="text-gray-500 mt-1">اختر الكورس المناسب لك وابدأ رحلتك التعليمية</p>
+            </div>
         </div>
-      </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input
-          type="text"
-          placeholder="ابحث عن كورس..."
-          className="w-full pr-12 pl-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
+        {/* Search */}
+        <div className="relative mb-8">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input
+            type="text"
+            placeholder="ابحث عن كورس..."
+            className="w-full pr-12 pl-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent category-search-input"
+            />
+        </div>
+      </Container>
 
-      {/* Courses Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {availableCourses.map((course) => (
-          <motion.div
-            key={course.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: course.id * 0.1 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all group cursor-pointer"
-          >
-            <div className="h-40 bg-gradient-to-br from-blue-500 to-purple-500 relative">
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                <PlayCircle size={48} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-gray-800 mb-1">{course.name}</h3>
-                  <p className="text-sm text-gray-500">{course.teacher}</p>
-                </div>
-                <div className="flex items-center gap-1 text-yellow-500">
-                  <Star size={16} className="fill-current" />
-                  <span className="text-sm font-medium text-gray-700">{course.rating}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                <span className="flex items-center gap-1">
-                  <Clock size={14} />
-                  {course.students} طالب
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xl font-bold text-blue-600">{course.price}</span>
-                <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all">
-                  عرض التفاصيل
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {/* Sections and Courses */}
+      <Box>
+          {isLoadingSections ? (
+              <Box p={4} textAlign="center">جاري تحميل الأقسام...</Box>
+          ) : (
+              sections.length > 0 ? (
+                  sections.map((section: any, index: number) => (
+                      <CourseSectionRow key={section._id} section={section} index={index} />
+                  ))
+              ) : (
+                  <Box p={8} textAlign="center" bg="gray.50" borderRadius="lg">
+                      <Text color="gray.500">لا توجد أقسام متاحة حالياً</Text>
+                  </Box>
+              )
+          )}
+      </Box>
     </div>
   );
 }

@@ -9,12 +9,14 @@ import {
   PlayCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMyCourses } from '@/features/student/hooks/useStudentCourses';
+import { useNavigate } from 'react-router-dom';
 
 const stats = [
   {
     title: 'الكورسات المسجلة',
-    value: '5',
-    change: '+2',
+    value: '0',
+    change: '0',
     isPositive: true,
     icon: BookOpen,
     color: 'bg-blue-500',
@@ -23,8 +25,8 @@ const stats = [
   },
   {
     title: 'الدروس المكتملة',
-    value: '32',
-    change: '+8',
+    value: '0',
+    change: '0',
     isPositive: true,
     icon: Award,
     color: 'bg-green-500',
@@ -33,8 +35,8 @@ const stats = [
   },
   {
     title: 'ساعات التعلم',
-    value: '45',
-    change: '+5',
+    value: '0',
+    change: '0',
     isPositive: true,
     icon: Clock,
     color: 'bg-purple-500',
@@ -43,8 +45,8 @@ const stats = [
   },
   {
     title: 'المستوى الحالي',
-    value: 'متقدم',
-    change: '+2',
+    value: 'مبتدئ',
+    change: '--',
     isPositive: true,
     icon: TrendingUp,
     color: 'bg-orange-500',
@@ -53,14 +55,10 @@ const stats = [
   },
 ];
 
-const myCourses = [
-  { id: 1, name: 'الرياضيات المتقدمة', progress: 75, teacher: 'أحمد محمد', nextLesson: 'الدرس 12', thumbnail: 'https://ui-avatars.com/api/?name=Math&background=3b82f6' },
-  { id: 2, name: 'الفيزياء', progress: 45, teacher: 'سارة علي', nextLesson: 'الدرس 8', thumbnail: 'https://ui-avatars.com/api/?name=Physics&background=8b5cf6' },
-  { id: 3, name: 'الكيمياء', progress: 90, teacher: 'محمد حسن', nextLesson: 'الاختبار النهائي', thumbnail: 'https://ui-avatars.com/api/?name=Chemistry&background=10b981' },
-];
-
 export default function StudentHome() {
   const { user } = useAuth();
+  const { data: myCourses, isLoading } = useMyCourses();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-8" dir="rtl">
@@ -80,7 +78,9 @@ export default function StudentHome() {
             <Calendar size={18} />
             <span>جدول الحصص</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95">
+          <button 
+            onClick={() => navigate('/student/courses')}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95">
             <BookOpen size={18} />
             <span>استكشف الكورسات</span>
           </button>
@@ -121,34 +121,60 @@ export default function StudentHome() {
         >
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-lg text-gray-800">كورساتي</h3>
-            <button className="text-blue-600 text-sm font-medium hover:underline">عرض الكل</button>
+            <button 
+                onClick={() => navigate('/student/courses')}
+                className="text-blue-600 text-sm font-medium hover:underline"
+            >
+                عرض الكل
+            </button>
           </div>
 
           <div className="space-y-4">
-            {myCourses.map((course) => (
-              <div key={course.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group cursor-pointer">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shrink-0">
-                  <BookOpen className="text-white" size={24} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-gray-800 mb-1">{course.name}</h4>
-                  <p className="text-sm text-gray-500 mb-2">{course.teacher}</p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
-                        style={{ width: `${course.progress}%` }}
-                      ></div>
+            {isLoading ? (
+                <div className="text-center text-gray-500">جاري التحميل...</div>
+            ) : myCourses?.courses?.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                    لا توجد كورسات مسجلة حالياً
+                    <div className="mt-4">
+                        <button 
+                            onClick={() => navigate('/student/courses')}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                        >
+                            تصفح الكورسات
+                        </button>
                     </div>
-                    <span className="text-xs font-medium text-gray-600">{course.progress}%</span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">الحصة القادمة: {course.nextLesson}</p>
                 </div>
-                <button className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors">
-                  <PlayCircle size={20} />
-                </button>
-              </div>
-            ))}
+            ) : (
+                myCourses?.courses?.map((course: any) => (
+                <div 
+                    key={course._id} 
+                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group cursor-pointer"
+                    onClick={() => navigate(`/student/courses/${course._id}`)}
+                >
+                    <div className="w-16 h-16 rounded-xl bg-gray-200 overflow-hidden shrink-0">
+                        {course.poster?.url ? (
+                            <img src={course.poster.url} alt={course.title} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                                <BookOpen className="text-white" size={24} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-gray-800 mb-1">{course.title}</h4>
+                    <p className="text-sm text-gray-500 mb-2">{course.teacher?.firstName} {course.teacher?.lastName}</p>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            {course.educationalLevel?.name}
+                        </span>
+                    </div>
+                    </div>
+                    <button className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors">
+                    <PlayCircle size={20} />
+                    </button>
+                </div>
+                ))
+            )}
           </div>
         </motion.div>
 
@@ -161,7 +187,10 @@ export default function StudentHome() {
         >
           <h3 className="font-bold text-lg text-gray-800 mb-6">إجراءات سريعة</h3>
           <div className="space-y-3">
-            <button className="w-full p-4 bg-blue-50 text-blue-600 rounded-xl font-medium hover:bg-blue-100 transition-colors text-right flex items-center justify-between group">
+            <button 
+                onClick={() => navigate('/student/courses')}
+                className="w-full p-4 bg-blue-50 text-blue-600 rounded-xl font-medium hover:bg-blue-100 transition-colors text-right flex items-center justify-between group"
+            >
               <span>استكشف الكورسات</span>
               <ArrowRight size={18} className="group-hover:-translate-x-1 transition-transform rotate-180" />
             </button>
@@ -179,4 +208,3 @@ export default function StudentHome() {
     </div>
   );
 }
-
