@@ -22,7 +22,7 @@ import {
   Text,
   Divider,
 } from '@chakra-ui/react';
-import examService from '@/features/exams/examService';
+import examService from '@/features/teacher/services/examService';
 import { IUpdateExamRequest, IExamResponse } from '@/types/exam.types';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 

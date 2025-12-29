@@ -31,8 +31,8 @@ import { KeyboardEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import SimpleCreateExam from "@/features/exams/components/SimpleCreateExam";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import examService from "@/features/exams/examService";
-import courseService, { ICourse } from "@/features/courses/courseService";
+import examService from "@/features/teacher/services/examService";
+import courseService, { ICourse } from "@/features/teacher/services/courseService";
 import ConfirmationAlert from "@/components/ui/ConfirmationAlert";
 
 export default function NewExams() {

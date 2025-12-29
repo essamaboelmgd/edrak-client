@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
+  Button,
   Card,
   CardBody,
   Heading,
@@ -8,7 +9,6 @@ import {
   Skeleton,
   Stack,
   Stat,
-
   StatLabel,
   StatNumber,
   Table,
@@ -28,7 +28,7 @@ import { Icon } from '@iconify-icon/react';
 import {
   teacherSubscriptionService,
   TeacherSubscription,
-} from '@/features/teacher/teacherSubscriptionService';
+} from '@/features/teacher/services/teacherSubscriptionService';
 
 export default function PlatformSubscriptions() {
   const [loading, setLoading] = useState(true);
@@ -126,6 +126,19 @@ export default function PlatformSubscriptions() {
   return (
     <Box p={6}>
       <Stack spacing={6}>
+        {/* Create Subscription Button */}
+        {(!currentSubscription || currentSubscription.status === 'expired') && (
+          <Box>
+            <Button
+              colorScheme="red"
+              size="lg"
+              leftIcon={<Icon icon="solar:add-circle-bold" />}
+              onClick={() => (window.location.href = '/teacher/create-subscription')}
+            >
+              إنشاء اشتراك جديد
+            </Button>
+          </Box>
+        )}
         {/* Statistics */}
         {statistics && (
           <HStack spacing={4} flexWrap="wrap" align="stretch">
@@ -243,10 +256,10 @@ export default function PlatformSubscriptions() {
                       {currentSubscription.plan === 'monthly'
                         ? 'شهري'
                         : currentSubscription.plan === 'quarterly'
-                        ? 'ربع سنوي'
-                        : currentSubscription.plan === 'semi_annual'
-                        ? 'نصف سنوي'
-                        : 'سنوي'}
+                          ? 'ربع سنوي'
+                          : currentSubscription.plan === 'semi_annual'
+                            ? 'نصف سنوي'
+                            : 'سنوي'}
                     </Text>
                   </Stack>
                   <Stack>
@@ -280,8 +293,8 @@ export default function PlatformSubscriptions() {
                           currentSubscription.daysRemaining > 7
                             ? 'green.500'
                             : currentSubscription.daysRemaining > 0
-                            ? 'orange.500'
-                            : 'red.500'
+                              ? 'orange.500'
+                              : 'red.500'
                         }
                       >
                         {currentSubscription.daysRemaining} يوم
@@ -361,10 +374,10 @@ export default function PlatformSubscriptions() {
                               {subscription.plan === 'monthly'
                                 ? 'شهري'
                                 : subscription.plan === 'quarterly'
-                                ? 'ربع سنوي'
-                                : subscription.plan === 'semi_annual'
-                                ? 'نصف سنوي'
-                                : 'سنوي'}
+                                  ? 'ربع سنوي'
+                                  : subscription.plan === 'semi_annual'
+                                    ? 'نصف سنوي'
+                                    : 'سنوي'}
                             </Text>
                           </Td>
                           <Td>
@@ -393,8 +406,8 @@ export default function PlatformSubscriptions() {
                                 subscription.daysRemaining > 7
                                   ? 'green.500'
                                   : subscription.daysRemaining > 0
-                                  ? 'orange.500'
-                                  : 'red.500'
+                                    ? 'orange.500'
+                                    : 'red.500'
                               }
                             >
                               {subscription.daysRemaining} يوم

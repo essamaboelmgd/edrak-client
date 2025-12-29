@@ -19,7 +19,7 @@ import {
 import { Icon } from "@iconify-icon/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import courseService from "@/features/courses/courseService";
+import courseService from "@/features/teacher/services/courseService";
 
 export default function CoursesList() {
   const { sectionId } = useParams();

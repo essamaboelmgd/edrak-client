@@ -30,13 +30,18 @@ const TeacherQuestionBank = lazy(() => import('@/pages/teacher/QuestionBank'))
 const TeacherExams = lazy(() => import('@/pages/teacher/Exams'))
 const TeacherViewExam = lazy(() => import('@/pages/teacher/ViewExam'))
 const TeacherEditExam = lazy(() => import('@/pages/teacher/EditExam'))
+const TeacherHomeworks = lazy(() => import('@/pages/teacher/Homeworks'))
 const MyStudents = lazy(() => import('@/pages/teacher/MyStudents'))
 const PlatformSubscriptions = lazy(() => import('@/pages/teacher/PlatformSubscriptions'))
+const CreateSubscription = lazy(() => import('@/pages/teacher/CreateSubscription'))
 const StudentSubscriptions = lazy(() => import('@/pages/teacher/StudentSubscriptions'))
 const AdminExams = lazy(() => import('@/pages/admin/Exams'))
 const AdminViewExam = lazy(() => import('@/pages/teacher/ViewExam'))
 const AdminEditExam = lazy(() => import('@/pages/teacher/EditExam'))
 const AdminQuestionBank = lazy(() => import('@/pages/admin/QuestionBank'))
+const AdminHomeworks = lazy(() => import('@/pages/admin/Homeworks'))
+const AdminFeatures = lazy(() => import('@/pages/admin/Features'))
+const AdminSubscriptions = lazy(() => import('@/pages/admin/Subscriptions'))
 const StudentHome = lazy(() => import('@/pages/student/Home'))
 const StudentCourses = lazy(() => import('@/pages/student/Courses'))
 
@@ -168,6 +173,9 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="exams" element={<AdminExams />} />
           <Route path="exams/:id" element={<AdminViewExam />} />
           <Route path="exams/:id/edit" element={<AdminEditExam />} />
+          <Route path="homeworks" element={<AdminHomeworks />} />
+          <Route path="features" element={<AdminFeatures />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="settings" element={<div>Admin Settings Page</div>} />
         </Route>
 
@@ -186,10 +194,12 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="exams" element={<TeacherExams />} />
           <Route path="exams/:id" element={<TeacherViewExam />} />
           <Route path="exams/:id/edit" element={<TeacherEditExam />} />
+          <Route path="homeworks" element={<TeacherHomeworks />} />
           <Route path="question-bank" element={<TeacherQuestionBank />} />
           <Route path="students" element={<MyStudents />} />
           <Route path="student-subscriptions" element={<StudentSubscriptions />} />
           <Route path="platform-subscriptions" element={<PlatformSubscriptions />} />
+          <Route path="create-subscription" element={<CreateSubscription />} />
           <Route path="transactions" element={<div>Teacher Transactions Page</div>} />
           <Route path="reports" element={<div>Teacher Reports Page</div>} />
           <Route path="settings" element={<div>Teacher Settings Page</div>} />
