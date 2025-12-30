@@ -30,6 +30,7 @@ export default function Header({ onOpen }: HeaderProps) {
       position="sticky"
       top={0}
       zIndex={5}
+      boxShadow="sm"
     >
       <Stack direction="row" alignItems="center" spacing={4} h="full">
         {/* Mobile menu button */}
@@ -37,8 +38,9 @@ export default function Header({ onOpen }: HeaderProps) {
           aria-label="القائمة"
           onClick={onOpen}
           display={{ base: "flex", md: "none" }}
-          icon={<Icon icon="solar:hamburger-menu-linear" width="24" height="24" />}
+          icon={<Icon icon="solar:hamburger-menu-bold-duotone" width="24" height="24" />}
           variant="ghost"
+          colorScheme="gray"
         />
 
         {/* Spacer */}

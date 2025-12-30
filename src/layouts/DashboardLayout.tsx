@@ -14,7 +14,7 @@ export default function DashboardLayout() {
       onClose={() => setIsSidebarOpen(false)}
     >
       <Header onOpen={() => setIsSidebarOpen(true)} />
-      <Box p={4}>
+      <Box>
         <Outlet />
       </Box>
       <TrialCountdown />
