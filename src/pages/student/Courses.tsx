@@ -22,6 +22,8 @@ import {
   Flex,
   FormControl,
   Skeleton,
+  Badge,
+  Divider,
 } from '@chakra-ui/react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAllCourses, useMyCourses, usePlatformSections } from '@/features/student/hooks/useStudentCourses';
@@ -414,17 +416,20 @@ export default function StudentCourses() {
         </CardBody>
       </Card>
 
-      {/* Results Count */}
+      {/* Results Count & View Toggle */}
       <HStack justify="space-between" px={2}>
         <Text fontSize="sm" color="gray.600">
-          عرض {filteredCourses.length} من {total} كورس
+          {searchTerm || educationalLevel 
+            ? `عرض ${filteredCourses.length} نتيجة بحث`
+            : `عرض ${sections.length} قسم تعليمي`
+          }
         </Text>
       </HStack>
 
-      {/* Courses Grid */}
-      <Grid templateColumns="repeat(auto-fill, minmax(17rem, 1fr))" gap={3}>
-        {isLoading ? (
-          Array.from({ length: 4 }).fill(0).map((_, index) => (
+      {/* Main Content Area */}
+      {isLoading ? (
+        <Grid templateColumns="repeat(auto-fill, minmax(17rem, 1fr))" gap={3}>
+          {Array.from({ length: 8 }).fill(0).map((_, index) => (
             <GridItem key={index}>
               <Card borderRadius="xl" border="1px" borderColor="gray.200">
                 <CardBody>
@@ -436,44 +441,106 @@ export default function StudentCourses() {
                 </CardBody>
               </Card>
             </GridItem>
-          ))
-        ) : filteredCourses.length === 0 ? (
-          <GridItem colSpan="full">
-            <Card borderRadius="xl" border="1px" borderColor="gray.200" bg="white" boxShadow="xl">
-              <CardBody>
-                <Center py={12}>
-                  <VStack spacing={4}>
-                    <Box>
-                      <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
-                    </Box>
-                    <VStack spacing={2}>
-                      <Heading as="h2" fontSize="xl" fontWeight="bold" textAlign="center">
-                        لا توجد بيانات للعرض
-                      </Heading>
-                      <Text textAlign="center" color="gray.500" fontSize="sm">
-                        {searchTerm || educationalLevel
-                          ? 'لا توجد نتائج مطابقة للبحث'
-                          : 'لا توجد كورسات متاحة حالياً'}
-                      </Text>
+          ))}
+        </Grid>
+      ) : (searchTerm || educationalLevel) ? (
+        /* Filtered View - Flat Grid */
+        <Grid templateColumns="repeat(auto-fill, minmax(17rem, 1fr))" gap={3}>
+           {filteredCourses.length === 0 ? (
+            <GridItem colSpan="full">
+              <Card borderRadius="xl" border="1px" borderColor="gray.200" bg="white" boxShadow="xl">
+                <CardBody>
+                  <Center py={12}>
+                    <VStack spacing={4}>
+                      <Box>
+                        <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
+                      </Box>
+                      <VStack spacing={2}>
+                        <Heading as="h2" fontSize="xl" fontWeight="bold" textAlign="center">
+                          لا توجد نتائج
+                        </Heading>
+                        <Text textAlign="center" color="gray.500" fontSize="sm">
+                          لم يتم العثور على كورسات تطابق بحثك
+                        </Text>
+                      </VStack>
                     </VStack>
-                  </VStack>
-                </Center>
-              </CardBody>
-            </Card>
-          </GridItem>
-        ) : (
-          filteredCourses.map((course: any) => (
-            <GridItem key={course._id || course.id}>
-              <Box
-                transition="transform 0.3s ease"
-                _hover={{ transform: 'translateY(-8px)' }}
-              >
-                <CourseCard course={course} />
-              </Box>
+                  </Center>
+                </CardBody>
+              </Card>
             </GridItem>
-          ))
-        )}
-      </Grid>
+          ) : (
+            filteredCourses.map((course: any) => (
+              <GridItem key={course._id || course.id}>
+                <Box
+                  transition="transform 0.3s ease"
+                  _hover={{ transform: 'translateY(-8px)' }}
+                >
+                  <CourseCard course={course} />
+                </Box>
+              </GridItem>
+            ))
+          )}
+        </Grid>
+      ) : (
+        /* Default View - Grouped by Sections */
+        <Stack spacing={8}>
+          {sections.length === 0 ? (
+             <Card borderRadius="xl" border="1px" borderColor="gray.200" bg="white" boxShadow="xl">
+                <CardBody>
+                  <Center py={12}>
+                    <VStack spacing={4}>
+                      <Box>
+                        <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
+                      </Box>
+                      <VStack spacing={2}>
+                        <Heading as="h2" fontSize="xl" fontWeight="bold" textAlign="center">
+                          لا توجد أقسام
+                        </Heading>
+                        <Text textAlign="center" color="gray.500" fontSize="sm">
+                          لا توجد أقسام تعليمية متاحة حالياً
+                        </Text>
+                      </VStack>
+                    </VStack>
+                  </Center>
+                </CardBody>
+              </Card>
+          ) : (
+            sections.map((section: any) => (
+              <Box key={section._id}>
+                <HStack mb={4} align="center" spacing={3}>
+                   <Box p={2} borderRadius="lg" bg="blue.50" color="blue.600">
+                      <Icon icon="solar:folder-with-files-bold-duotone" width={24} height={24} />
+                   </Box>
+                   <Heading as="h3" fontSize="xl" color="gray.700">
+                     {section.name || section.title}
+                   </Heading>
+                   <Spacer />
+                   <Badge colorScheme="blue" borderRadius="full" px={3}>
+                      {section.courses?.length || 0} كورس
+                   </Badge>
+                </HStack>
+                {(!section.courses || section.courses.length === 0) ? (
+                    <Text color="gray.500" fontSize="sm" fontStyle="italic">لا توجد كورسات في هذا القسم</Text>
+                ) : (
+                  <Grid templateColumns="repeat(auto-fill, minmax(17rem, 1fr))" gap={3}>
+                    {section.courses.map((course: any) => (
+                      <GridItem key={course._id || course.id}>
+                        <Box
+                          transition="transform 0.3s ease"
+                          _hover={{ transform: 'translateY(-8px)' }}
+                        >
+                          <CourseCard course={course} />
+                        </Box>
+                      </GridItem>
+                    ))}
+                  </Grid>
+                )}
+                <Divider mt={8} borderColor="gray.200" />
+              </Box>
+            ))
+          )}
+        </Stack>
+      )}
     </Stack>
   );
 }

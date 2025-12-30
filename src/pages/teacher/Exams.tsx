@@ -12,7 +12,7 @@ import {
   InputLeftElement,
   Select,
   Skeleton,
-  Spacer,
+
   Stack,
   Switch,
   Table,
@@ -24,8 +24,7 @@ import {
   Thead,
   Tr,
   useToast,
-  Wrap,
-  WrapItem,
+
   Badge,
   IconButton,
   Menu,
@@ -35,7 +34,7 @@ import {
   SimpleGrid,
   VStack,
   Flex,
-  Center,
+
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import examService from '@/features/teacher/services/examService';

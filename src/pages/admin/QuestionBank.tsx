@@ -16,7 +16,7 @@ import {
   CardBody,
   Stack,
   Flex,
-  Spacer,
+
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import QuestionList from '@/features/question-bank/components/QuestionList';

@@ -394,7 +394,7 @@ const NavItem = ({ icon, path, name, badge, isCollapsed = false }: NavItemProps)
                 fontSize="sm"
                 transition="all 0.2s ease"
                 position="relative"
-                group
+                role="group"
             >
                 <Box
                     color={isActive ? "white" : "whiteAlpha.700"}

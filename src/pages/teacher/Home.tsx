@@ -6,16 +6,9 @@ import {
   CardBody,
   Heading,
   HStack,
+  Text,
   Skeleton,
   Stack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
   SimpleGrid,
   VStack,
   Flex,
@@ -269,7 +262,7 @@ export default function TeacherHome() {
                   );
                   const height = (day.revenue / maxRevenue) * 100;
                   return (
-                    <VStack key={i} spacing={1} minW="40px" position="relative" group>
+                    <VStack key={i} spacing={1} minW="40px" position="relative" role="group">
                       <Box
                         w="full"
                         bgGradient="linear(to-t, green.500, green.600)"

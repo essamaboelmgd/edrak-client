@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
+
   Card,
   CardBody,
   Heading,
@@ -288,7 +288,7 @@ export default function AdminHome() {
             ) : summary?.top_ten_courses && summary.top_ten_courses.length > 0 ? (
               <Box position="relative" h="400px" w="100%">
                 <SimpleGrid columns={1} spacing={2}>
-                  {summary.top_ten_courses.map((course, idx) => {
+                  {summary.top_ten_courses.map((course) => {
                     const maxSubscribers = Math.max(
                       ...summary.top_ten_courses.map((c) => c.subscribers_count),
                       1

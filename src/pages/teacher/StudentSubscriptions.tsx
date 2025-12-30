@@ -23,8 +23,7 @@ import {
   Badge,
   Select,
   Avatar,
-  Wrap,
-  WrapItem,
+
   Spacer,
   SimpleGrid,
   VStack,

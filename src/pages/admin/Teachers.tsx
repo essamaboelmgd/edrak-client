@@ -10,7 +10,7 @@ import {
     Select,
     Button,
     Text,
-    Badge,
+  
     Box,
     SimpleGrid,
     Card,
@@ -470,7 +470,7 @@ export default function AdminTeachers() {
             ) : (
                 <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} spacing={6}>
                     {loading ? (
-                        <Box colSpan="full" textAlign="center" py={12}>
+                        <Box gridColumn="1 / -1" textAlign="center" py={12}>
                             <Text color="gray.500">جاري التحميل...</Text>
                         </Box>
                     ) : teachers.length === 0 ? (

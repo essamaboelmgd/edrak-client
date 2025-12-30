@@ -118,6 +118,7 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
       formData.append("videoUrl", values.videoUrl || "");
       formData.append("videoProvider", values.videoProvider || "youtube");
       if (values.lessonSection) formData.append("lessonSection", values.lessonSection);
+      if (courseId) formData.append("course", courseId);
       if (selectedImage) {
         formData.append("poster", selectedImage);
       }

@@ -12,7 +12,7 @@ export interface ITeacherPlan {
 
 export interface ITeacherSubscription {
     _id: string;
-    plan: string | null; // "monthly" | "quarterly" | "semi_annual" | "annual"
+    plan: ITeacherPlan | null;
     totalPrice?: number;
     finalPrice?: number;
     status: string;

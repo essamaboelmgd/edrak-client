@@ -5,7 +5,7 @@ import {
     Button,
     Card,
     CardBody,
-    Heading,
+  
     HStack,
     Input,
     InputGroup,
@@ -25,12 +25,9 @@ import {
     VStack,
     Stack,
     Flex,
-    Spacer,
+  
     Skeleton,
-    Menu,
-    MenuButton,
-    MenuList,
-    MenuItem,
+  
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -38,9 +35,8 @@ import {
     IActivationCode,
     ActivationTargetType,
 } from '@/features/admin/services/activationCodesService';
-import { coursesService } from '@/features/admin/services/coursesService';
+
 import { teachersService } from '@/features/admin/services/teachersService';
-import { courseService } from '@/features/courses/courseService';
 import CreateActivationCodesModal from '@/features/admin/components/CreateActivationCodesModal';
 
 export default function AdminActivationCodes() {

@@ -1,0 +1,13 @@
+src/features/admin/components/TeacherDetailsModal.tsx(93,9): error TS2657: JSX expressions must have one parent element.
+src/features/admin/components/TeacherDetailsModal.tsx(203,26): error TS17008: JSX element 'Box' has no corresponding closing tag.
+src/features/admin/components/TeacherDetailsModal.tsx(245,33): error TS2657: JSX expressions must have one parent element.
+src/features/admin/components/TeacherDetailsModal.tsx(249,43): error TS17002: Expected corresponding JSX closing tag for 'HStack'.
+src/features/admin/components/TeacherDetailsModal.tsx(250,39): error TS17002: Expected corresponding JSX closing tag for 'VStack'.
+src/features/admin/components/TeacherDetailsModal.tsx(294,37): error TS1005: ')' expected.
+src/features/admin/components/TeacherDetailsModal.tsx(311,30): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/features/admin/components/TeacherDetailsModal.tsx(312,27): error TS17002: Expected corresponding JSX closing tag for 'ModalBody'.
+src/features/admin/components/TeacherDetailsModal.tsx(413,23): error TS17002: Expected corresponding JSX closing tag for 'ModalContent'.
+src/features/admin/components/TeacherDetailsModal.tsx(414,19): error TS17002: Expected corresponding JSX closing tag for 'Modal'.
+src/features/admin/components/TeacherDetailsModal.tsx(462,13): error TS1005: ')' expected.
+src/features/admin/components/TeacherDetailsModal.tsx(463,9): error TS1109: Expression expected.
+src/features/admin/components/TeacherDetailsModal.tsx(464,5): error TS1109: Expression expected.

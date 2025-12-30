@@ -260,10 +260,17 @@ const StudentCourseDetails = () => {
                                 <Button 
                                     size="lg" 
                                     colorScheme="green" 
-                                    leftIcon={<CheckCircle />}
-                                    cursor="default"
+                                    leftIcon={<PlayCircle />}
+                                    onClick={() => {
+                                        const firstLesson = sectionsWithLessons[0]?.lessons?.[0];
+                                        if (firstLesson) {
+                                            navigate(`/student/courses/${courseId}/learn?lesson=${firstLesson._id}`);
+                                        } else {
+                                            toast({ title: 'تنبيه', description: 'لا يوجد دروس متاحة بعد', status: 'info' });
+                                        }
+                                    }}
                                 >
-                                    أنت مشترك في هذا الكورس
+                                    ابدأ التعلم الآن
                                 </Button>
                             )}
                         </Box>
@@ -388,18 +395,23 @@ const StudentCourseDetails = () => {
                                                                                 colorScheme="blue"
                                                                             />
                                                                         )}
-                                                                        <Box>
-                                                                            <Text fontWeight="medium">{lesson.title}</Text>
-                                                                            <Flex gap={2} fontSize="xs" color="gray.500">
-                                                                                <Flex align="center" gap={1}>
-                                                                                    <Icon as={Clock} boxSize={3} />
-                                                                                    <Text>{lesson.duration || 0} دقيقة</Text>
-                                                                                </Flex>
-                                                                                {!isLessonOwned && lesson.price > 0 && !isFullCourseOwned && (
-                                                                                    <Badge colorScheme="yellow">{lesson.finalPrice || lesson.price} ج.م</Badge>
+                                                                            <Box>
+                                                                                <Text fontWeight="medium">{lesson.title}</Text>
+                                                                                {lesson.description && (
+                                                                                    <Text fontSize="xs" color="gray.500" noOfLines={2} mt={1}>
+                                                                                        {lesson.description}
+                                                                                    </Text>
                                                                                 )}
-                                                                            </Flex>
-                                                                        </Box>
+                                                                                <Flex gap={2} fontSize="xs" color="gray.400" mt={1}>
+                                                                                    <Flex align="center" gap={1}>
+                                                                                        <Icon as={Clock} boxSize={3} />
+                                                                                        <Text>{lesson.duration || 0} دقيقة</Text>
+                                                                                    </Flex>
+                                                                                    {!isLessonOwned && lesson.price > 0 && !isFullCourseOwned && (
+                                                                                        <Badge colorScheme="yellow">{lesson.finalPrice || lesson.price} ج.م</Badge>
+                                                                                    )}
+                                                                                </Flex>
+                                                                            </Box>
                                                                     </Flex>
                                                                     
                                                                     <HStack>

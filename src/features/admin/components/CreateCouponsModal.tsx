@@ -61,7 +61,7 @@ export default function CreateCouponsModal({
     const [courses, setCourses] = useState<any[]>([]);
     const [lessons, setLessons] = useState<any[]>([]);
     const [courseSections, setCourseSections] = useState<any[]>([]);
-    const [lessonSections, setLessonSections] = useState<any[]>([]);
+    const [lessonSections] = useState<any[]>([]);
 
     // Fetch courses
     useEffect(() => {

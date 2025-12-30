@@ -7,16 +7,11 @@ import {
   CardBody,
   Heading,
   HStack,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Select,
   Stack,
   Text,
   SimpleGrid,
   VStack,
   Flex,
-  Center,
   useToast,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';

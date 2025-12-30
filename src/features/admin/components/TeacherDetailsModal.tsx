@@ -246,15 +246,7 @@ export default function TeacherDetailsModal({
                                     <HStack spacing={2}>
                                         <Crown size={20} color="#F59E0B" />
                                         <Text fontWeight="semibold" color="gray.800">
-                                            {(() => {
-                                                const planNames: Record<string, string> = {
-                                                    monthly: 'شهري',
-                                                    quarterly: 'ربع سنوي',
-                                                    semi_annual: 'نصف سنوي',
-                                                    annual: 'سنوي'
-                                                };
-                                                return planNames[teacher.subscription.plan] || teacher.subscription.plan;
-                                            })()}
+                                            {teacher.subscription.plan.nameArabic}
                                         </Text>
                                     </HStack>
                                     <Grid templateColumns="repeat(2, 1fr)" gap={4}>
@@ -276,15 +268,7 @@ export default function TeacherDetailsModal({
                                                 المدة
                                             </Text>
                                             <Text fontWeight="medium" color="gray.800">
-                                                {(() => {
-                                                    const planDurations: Record<string, number> = {
-                                                        monthly: 1,
-                                                        quarterly: 3,
-                                                        semi_annual: 6,
-                                                        annual: 12
-                                                    };
-                                                    return planDurations[teacher.subscription.plan] || 0;
-                                                })()} شهر
+                                                {teacher.subscription.plan.duration} شهر
                                             </Text>
                                         </VStack>
                                         {teacher.subscription.startDate && (

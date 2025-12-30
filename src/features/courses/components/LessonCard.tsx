@@ -14,6 +14,9 @@ import {
   Stack,
   Text,
   Heading,
+  Switch,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
 import { axiosInstance, getImageUrl } from "@/lib/axios";
@@ -89,36 +92,59 @@ export default function LessonCard({ lesson, callback }: LessonCardProps) {
               <Text>فيديو متوفر</Text>
             </HStack>
           )}
-          <HStack>
-            <EditLessonModal
-              lesson={lesson}
-              callback={callback}
-              trigger={
-                <Button size="sm" colorScheme="blue" flex={1}>
-                  تعديل
-                </Button>
-              }
-            />
-            <Menu>
-              <MenuButton
-                as={IconButton}
-                icon={<Icon icon="solar:menu-dots-bold" width="20" height="20" />}
-                variant="ghost"
-                size="sm"
-              />
-              <MenuList>
-                <MenuItem icon={<Icon icon="solar:eye-bold" width="16" height="16" />}>
-                  معاينة
-                </MenuItem>
-                <MenuItem
-                  icon={<Icon icon="solar:trash-bin-trash-bold" width="16" height="16" />}
-                  color="red.500"
-                  onClick={handleDelete}
-                >
-                  حذف
-                </MenuItem>
-              </MenuList>
-            </Menu>
+          <HStack justify="space-between">
+            <HStack>
+                <EditLessonModal
+                lesson={lesson}
+                callback={callback}
+                trigger={
+                    <Button size="sm" colorScheme="blue">
+                    تعديل
+                    </Button>
+                }
+                />
+                <Menu>
+                <MenuButton
+                    as={IconButton}
+                    icon={<Icon icon="solar:menu-dots-bold" width="20" height="20" />}
+                    variant="ghost"
+                    size="sm"
+                />
+                <MenuList>
+                    <MenuItem icon={<Icon icon="solar:eye-bold" width="16" height="16" />}>
+                    معاينة
+                    </MenuItem>
+                    <MenuItem
+                    icon={<Icon icon="solar:trash-bin-trash-bold" width="16" height="16" />}
+                    color="red.500"
+                    onClick={handleDelete}
+                    >
+                    حذف
+                    </MenuItem>
+                </MenuList>
+                </Menu>
+            </HStack>
+            
+            <FormControl display='flex' alignItems='center' width="auto">
+                <Switch 
+                    id={`status-${lesson._id}`} 
+                    isChecked={lesson.status === 'published'}
+                    onChange={async (e) => {
+                         try {
+                            const newStatus = e.target.checked ? 'published' : 'draft';
+                            await axiosInstance.patch(`/lessons/${lesson._id}`, { status: newStatus });
+                            toast({ status: 'success', description: `تم تحويل الدرس إلى ${newStatus === 'published' ? 'منشور' : 'مسودة'}` });
+                            callback();
+                         } catch (err: any) {
+                             toast({ status: 'error', description: err.response?.data?.message || 'برجاء المحاولة مرة أخرى' });
+                         }
+                    }}
+                    colorScheme="green"
+                />
+                <FormLabel htmlFor={`status-${lesson._id}`} mb='0' mr={2} fontSize="xs" color="gray.500">
+                    {lesson.status === 'published' ? 'تفعيل' : 'تعطيل'}
+                </FormLabel>
+            </FormControl>
           </HStack>
         </Stack>
       </CardBody>

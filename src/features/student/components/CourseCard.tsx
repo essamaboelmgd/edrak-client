@@ -55,41 +55,36 @@ export const CourseCard = ({ course }: CourseCardProps) => {
                         <Text>{course.teacher?.fullName}</Text>
                     </Flex>
 
-                    <Flex gap={2} mt={2}>
-                        <Button 
-                            variant='outline' 
-                            colorScheme='blue' 
-                            flex={1}
-                            onClick={() => navigate(`/student/courses/${course._id}`)}
-                            size="sm"
-                        >
-                            عرض التفاصيل
-                        </Button>
-                        {!course.isSubscribed && (
+                    <Box mt={2}>
+                        {!course.isSubscribed ? (
                             <Button 
+                                w="full"
                                 variant='solid' 
-                                colorScheme='yellow' 
-                                flex={1}
+                                bgGradient="linear(to-r, blue.500, purple.600)"
+                                _hover={{ bgGradient: "linear(to-r, blue.600, purple.700)" }}
+                                color="white"
                                 onClick={() => navigate(`/student/courses/${course._id}`)}
-                                size="sm"
-                                rightIcon={<Icon as={BookOpen} size={16} />}
+                                size="md"
+                                rightIcon={<Icon as={BookOpen} size={18} />}
+                                boxShadow="md"
                             >
                                 اشترك الآن
                             </Button>
-                        )}
-                        {course.isSubscribed && (
+                        ) : (
                             <Button 
-                                variant='solid' 
-                                colorScheme='green' 
-                                flex={1}
+                                w="full"
+                                variant='outline' 
+                                colorScheme='green'
+                                borderWidth="2px"
                                 onClick={() => navigate(`/student/courses/${course._id}`)}
-                                size="sm"
-                                rightIcon={<Icon as={BookOpen} size={16} />}
+                                size="md"
+                                rightIcon={<Icon as={BookOpen} size={18} />}
+                                _hover={{ bg: 'green.50' }}
                             >
-                                ابدأ
+                                دخول الكورس
                             </Button>
                         )}
-                    </Flex>
+                    </Box>
                 </Stack>
             </CardBody>
         </Card>
