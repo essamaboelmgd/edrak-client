@@ -18,10 +18,10 @@ import {
   Badge,
   Alert,
   AlertIcon,
-  useToast
+
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { IStudentCourse } from '../../types';
+import { IStudentCourse } from '../types';
 
 interface SubscriptionDrawerProps {
   isOpen: boolean;

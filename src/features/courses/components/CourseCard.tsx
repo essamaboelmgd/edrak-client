@@ -15,10 +15,10 @@ import {
   Text,
   Heading,
   Switch,
-  FormControl,
-  FormLabel,
+
+
   useToast,
-  Tooltip
+
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
 import { Link } from "react-router-dom";

@@ -1,4 +1,4 @@
-import { Box, Heading, Text, HStack, VStack, Icon, SimpleGrid } from '@chakra-ui/react';
+import { Box, Heading, Text, HStack, VStack } from '@chakra-ui/react';
 import { BookOpen, CheckCircle, Star } from 'lucide-react';
 
 interface CoursesHeroProps {

@@ -52,7 +52,7 @@ export const CourseCard = ({ course }: CourseCardProps) => {
 
                     <Flex align="center" gap={2} fontSize="sm" color="gray.500">
                         <Icon as={User} />
-                        <Text>{course.teacher?.firstName} {course.teacher?.lastName}</Text>
+                        <Text>{course.teacher?.fullName}</Text>
                     </Flex>
 
                     <Flex gap={2} mt={2}>
