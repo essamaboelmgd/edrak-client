@@ -52,6 +52,8 @@ export default function Sidebar({ children, isOpen: externalIsOpen, onClose: ext
                 { path: "/admin/homeworks", name: "الواجبات", icon: "solar:notebook-bold" },
                 { path: "/admin/features", name: "الميزات", icon: "solar:widget-5-bold" },
                 { path: "/admin/subscriptions", name: "اشتراكات المدرسين", icon: "solar:card-bold" },
+                { path: "/admin/activation-codes", name: "أكواد التفعيل", icon: "solar:key-line-duotone" },
+                { path: "/admin/coupons", name: "كوبونات الخصم", icon: "solar:ticket-line-duotone" },
                 { path: "/admin/settings", name: "الإعدادات", icon: "solar:settings-minimalistic-line-duotone" },
             ];
         } else if (role === UserRole.TEACHER) {
@@ -65,6 +67,8 @@ export default function Sidebar({ children, isOpen: externalIsOpen, onClose: ext
                 { path: "/teacher/students", name: "طلابي", icon: "solar:users-group-two-rounded-bold" },
                 { path: "/teacher/student-subscriptions", name: "اشتراكات الطلاب", icon: "solar:card-bold" },
                 { path: "/teacher/platform-subscriptions", name: "اشتراكي في المنصة", icon: "solar:wallet-money-line-duotone" },
+                { path: "/teacher/activation-codes", name: "أكواد التفعيل", icon: "solar:key-line-duotone" },
+                { path: "/teacher/coupons", name: "كوبونات الخصم", icon: "solar:ticket-line-duotone" },
                 { path: "/teacher/transactions", name: "المعاملات", icon: "solar:wallet-money-line-duotone" },
                 { path: "/teacher/reports", name: "التقارير", icon: "solar:chart-2-bold" },
                 { path: "/teacher/settings", name: "الإعدادات", icon: "solar:settings-minimalistic-line-duotone" },
@@ -134,7 +138,7 @@ const SidebarContent = ({ onClose, routes, ...rest }: SidebarProps) => {
             h="full"
             p={4}
             spacing={4}
-            overflow="hidden"
+            overflowY="auto"
             {...rest}
         >
             {/* Logo + close */}

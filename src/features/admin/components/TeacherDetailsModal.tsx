@@ -165,28 +165,39 @@ export default function TeacherDetailsModal({
                                         </Text>
                                     </VStack>
                                 </HStack>
-                                {teacher.specialization && (
-                                    <VStack align="start" spacing={0}>
-                                        <Text fontSize="sm" color="gray.500">
-                                            التخصص
-                                        </Text>
-                                        <Text fontWeight="medium" color="gray.800">
-                                            {teacher.specialization}
-                                        </Text>
-                                    </VStack>
-                                )}
-                                {teacher.yearsOfExperience && (
-                                    <VStack align="start" spacing={0}>
-                                        <Text fontSize="sm" color="gray.500">
-                                            سنوات الخبرة
-                                        </Text>
-                                        <Text fontWeight="medium" color="gray.800">
-                                            {teacher.yearsOfExperience} سنة
-                                        </Text>
-                                    </VStack>
-                                )}
                             </Grid>
                         </Box>
+
+                        {/* Professional Experience */}
+                        {(teacher.specialization || teacher.yearsOfExperience) && (
+                            <Box bg="black" borderRadius="xl" p={6}>
+                                <Text fontSize="lg" fontWeight="bold" color="white" mb={4}>
+                                    الخبرة المهنية
+                                </Text>
+                                <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
+                                    {teacher.specialization && (
+                                        <VStack align="start" spacing={0}>
+                                            <Text fontSize="sm" color="gray.300">
+                                                التخصص
+                                            </Text>
+                                            <Text fontWeight="medium" color="white">
+                                                {teacher.specialization}
+                                            </Text>
+                                        </VStack>
+                                    )}
+                                    {teacher.yearsOfExperience && (
+                                        <VStack align="start" spacing={0}>
+                                            <Text fontSize="sm" color="gray.300">
+                                                سنوات الخبرة
+                                            </Text>
+                                            <Text fontWeight="medium" color="white">
+                                                {teacher.yearsOfExperience} سنة
+                                            </Text>
+                                        </VStack>
+                                    )}
+                                </Grid>
+                            </Box>
+                        )}
 
                         {/* Subscription & Plan */}
                         <Box bg="gray.50" borderRadius="xl" p={6}>
@@ -235,7 +246,15 @@ export default function TeacherDetailsModal({
                                     <HStack spacing={2}>
                                         <Crown size={20} color="#F59E0B" />
                                         <Text fontWeight="semibold" color="gray.800">
-                                            {teacher.subscription.plan.nameArabic || teacher.subscription.plan.name}
+                                            {(() => {
+                                                const planNames: Record<string, string> = {
+                                                    monthly: 'شهري',
+                                                    quarterly: 'ربع سنوي',
+                                                    semi_annual: 'نصف سنوي',
+                                                    annual: 'سنوي'
+                                                };
+                                                return planNames[teacher.subscription.plan] || teacher.subscription.plan;
+                                            })()}
                                         </Text>
                                     </HStack>
                                     <Grid templateColumns="repeat(2, 1fr)" gap={4}>
@@ -245,7 +264,7 @@ export default function TeacherDetailsModal({
                                             </Text>
                                             <HStack spacing={1} align="baseline">
                                                 <Text fontWeight="bold" fontSize="md" color="gray.800">
-                                                    {teacher.subscription.plan.price.toLocaleString()}
+                                                    {(teacher.subscription.finalPrice || teacher.subscription.totalPrice || 0).toLocaleString()}
                                                 </Text>
                                                 <Text fontSize="sm" fontWeight="semibold" color="gray.600">
                                                     ج.م
@@ -257,7 +276,15 @@ export default function TeacherDetailsModal({
                                                 المدة
                                             </Text>
                                             <Text fontWeight="medium" color="gray.800">
-                                                {teacher.subscription.plan.duration} شهر
+                                                {(() => {
+                                                    const planDurations: Record<string, number> = {
+                                                        monthly: 1,
+                                                        quarterly: 3,
+                                                        semi_annual: 6,
+                                                        annual: 12
+                                                    };
+                                                    return planDurations[teacher.subscription.plan] || 0;
+                                                })()} شهر
                                             </Text>
                                         </VStack>
                                         {teacher.subscription.startDate && (
@@ -281,15 +308,15 @@ export default function TeacherDetailsModal({
                                             </VStack>
                                         )}
                                     </Grid>
-                                    {teacher.subscription.plan.features && teacher.subscription.plan.features.length > 0 && (
+                                    {teacher.selectedFeatures && teacher.selectedFeatures.length > 0 && (
                                         <VStack align="start" spacing={2}>
                                             <Text fontSize="sm" color="gray.500">
-                                                المميزات
+                                                المميزات المختارة
                                             </Text>
                                             <HStack spacing={2} flexWrap="wrap">
-                                                {teacher.subscription.plan.features.map((feature, idx) => (
+                                                {teacher.selectedFeatures.map((feature, idx) => (
                                                     <Badge key={idx} px={3} py={1} bg="blue.50" color="blue.700" borderRadius="lg">
-                                                        {feature}
+                                                        {feature.nameArabic || feature.name}
                                                     </Badge>
                                                 ))}
                                             </HStack>

@@ -18,7 +18,11 @@ const AdminHome = lazy(() => import('@/pages/admin/Home'))
 const AdminCourses = lazy(() => import('@/pages/admin/Courses'))
 const AdminTeachers = lazy(() => import('@/pages/admin/Teachers'))
 const AdminStudents = lazy(() => import('@/pages/admin/Students'))
+const AdminActivationCodes = lazy(() => import('@/pages/admin/ActivationCodes'))
+const AdminCoupons = lazy(() => import('@/pages/admin/Coupons'))
 const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
+const TeacherActivationCodes = lazy(() => import('@/pages/teacher/ActivationCodes'))
+const TeacherCoupons = lazy(() => import('@/pages/teacher/Coupons'))
 // const TeacherCourses = lazy(() => import('@/pages/teacher/Courses'))
 const CourseSections = lazy(() => import('@/pages/teacher/courses/CourseSections'))
 const Courses = lazy(() => import('@/pages/teacher/courses/Courses'))
@@ -184,6 +188,8 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="homeworks" element={<AdminHomeworks />} />
           <Route path="features" element={<AdminFeatures />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
+          <Route path="activation-codes" element={<AdminActivationCodes />} />
+          <Route path="coupons" element={<AdminCoupons />} />
           <Route path="settings" element={<div>Admin Settings Page</div>} />
         </Route>
 
@@ -208,6 +214,8 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="student-subscriptions" element={<StudentSubscriptions />} />
           <Route path="platform-subscriptions" element={<PlatformSubscriptions />} />
           <Route path="create-subscription" element={<CreateSubscription />} />
+          <Route path="activation-codes" element={<TeacherActivationCodes />} />
+          <Route path="coupons" element={<TeacherCoupons />} />
           <Route path="transactions" element={<div>Teacher Transactions Page</div>} />
           <Route path="reports" element={<div>Teacher Reports Page</div>} />
           <Route path="settings" element={<div>Teacher Settings Page</div>} />
