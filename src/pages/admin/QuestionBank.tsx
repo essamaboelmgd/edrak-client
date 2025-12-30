@@ -1,8 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast, HStack, VStack, Input, InputGroup, InputLeftElement, Select, Button, Text } from '@chakra-ui/react';
-import { Search, Plus } from 'lucide-react';
+import {
+  useToast,
+  HStack,
+  VStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Select,
+  Button,
+  Text,
+  Box,
+  SimpleGrid,
+  Card,
+  CardBody,
+  Stack,
+  Flex,
+  Spacer,
+} from '@chakra-ui/react';
+import { Icon } from '@iconify-icon/react';
 import QuestionList from '@/features/question-bank/components/QuestionList';
 import AdminQuestionForm from '@/features/admin/components/AdminQuestionForm';
 import QuestionView from '@/features/question-bank/components/QuestionView';
@@ -14,7 +30,6 @@ import {
   IUpdateQuestionBankRequest,
   IGetQuestionBankQuery,
 } from '@/types/question-bank.types';
-import { BarChart2, BookOpen } from 'lucide-react';
 
 type ViewMode = 'list' | 'create' | 'edit' | 'view';
 
@@ -201,20 +216,22 @@ export default function AdminQuestionBank() {
 
   if (viewMode === 'create' || viewMode === 'edit') {
     return (
-      <VStack spacing={6} align="stretch" dir="rtl">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">
-            {viewMode === 'create' ? 'إنشاء سؤال جديد' : 'تعديل السؤال'}
-          </h1>
-          <AdminQuestionForm
-            question={viewMode === 'edit' ? selectedQuestion || undefined : undefined}
-            teachers={teachers}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            isLoading={createMutation.isPending || updateMutation.isPending}
-          />
-        </div>
-      </VStack>
+      <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+        <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+          <CardBody>
+            <Text fontSize="2xl" fontWeight="bold" color="gray.800" mb={6}>
+              {viewMode === 'create' ? 'إنشاء سؤال جديد' : 'تعديل السؤال'}
+            </Text>
+            <AdminQuestionForm
+              question={viewMode === 'edit' ? selectedQuestion || undefined : undefined}
+              teachers={teachers}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+          </CardBody>
+        </Card>
+      </Stack>
     );
   }
 
@@ -229,162 +246,311 @@ export default function AdminQuestionBank() {
   }
 
   return (
-    <VStack spacing={6} align="stretch" dir="rtl">
-      {/* Header */}
-      <HStack justify="space-between" flexWrap="wrap" gap={4}>
-        <VStack align="start" spacing={1}>
-          <Text fontSize="2xl" fontWeight="bold" color="gray.800">
-            بنك الأسئلة
-          </Text>
-          <Text color="gray.500">
-            إدارة جميع أسئلة المدرسين ({data?.data?.total || 0} سؤال)
-          </Text>
-        </VStack>
-        <Button
-          leftIcon={<Plus size={18} />}
-          bgGradient="linear(to-r, red.600, orange.600)"
-          color="white"
-          _hover={{ bgGradient: 'linear(to-r, red.700, orange.700)' }}
-          shadow="lg"
-          onClick={handleCreate}
-        >
-          سؤال جديد
-        </Button>
-      </HStack>
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, orange.600 0%, red.500 50%, pink.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
 
-      {/* Search and Filters */}
-      <HStack spacing={4} flexWrap="wrap">
-        <InputGroup flex="1" minW="200px">
-          <InputLeftElement pointerEvents="none">
-            <Search size={20} color="#9CA3AF" />
-          </InputLeftElement>
-          <Input
-            placeholder="ابحث عن سؤال..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </InputGroup>
-        <Select
-          w="200px"
-          value={teacherFilter}
-          onChange={(e) => setTeacherFilter(e.target.value)}
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
         >
-          <option value="all">جميع المدرسين</option>
-          {teachers.map((teacher) => (
-            <option key={teacher._id} value={teacher._id}>
-              {teacher.fullName}
-            </option>
-          ))}
-        </Select>
-      </HStack>
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:book-bookmark-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              بنك الأسئلة
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              إدارة جميع أسئلة المدرسين ({data?.data?.total || 0} سؤال)
+            </Text>
+          </VStack>
+          <Button
+            bg="white"
+            color="orange.600"
+            _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+            onClick={handleCreate}
+            leftIcon={<Icon icon="solar:add-circle-bold-duotone" width="20" height="20" />}
+            size={{ base: 'md', md: 'lg' }}
+            borderRadius="xl"
+            shadow="md"
+            transition="all 0.3s"
+          >
+            سؤال جديد
+          </Button>
+        </Flex>
+      </Box>
 
-      {/* Statistics Cards */}
+      {/* Stats Cards */}
       {statistics && !statsError && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+        <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={{ base: 4, md: 6 }}>
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <BookOpen className="text-purple-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">إجمالي الأسئلة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.total}</p>
-          </motion.div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    إجمالي الأسئلة
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                    {statistics.total}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال متاح
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, purple.400, purple.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:book-bookmark-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                <BookOpen className="text-green-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">الأسئلة النشطة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.active}</p>
-          </motion.div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    الأسئلة النشطة
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                    {statistics.active}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال نشط
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, green.400, green.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:book-bookmark-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <BookOpen className="text-blue-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">الأسئلة العامة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.general}</p>
-          </motion.div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    الأسئلة العامة
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="blue.600">
+                    {statistics.general}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال عام
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, blue.400, blue.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:book-bookmark-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                <BarChart2 className="text-orange-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">الأسئلة المرتبطة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.courseSpecific}</p>
-          </motion.div>
-        </div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    الأسئلة المرتبطة
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="orange.600">
+                    {statistics.courseSpecific}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال مرتبط
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, orange.400, orange.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:chart-2-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+        </SimpleGrid>
       )}
 
+      {/* Filters Section */}
+      <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+        <CardBody>
+          <Flex direction={{ base: 'column', md: 'row' }} gap={4} align={{ base: 'stretch', md: 'center' }}>
+            <InputGroup flex="1" minW="200px">
+              <InputLeftElement pointerEvents="none">
+                <Icon icon="solar:magnifer-bold-duotone" width="20" height="20" color="gray.400" />
+              </InputLeftElement>
+              <Input
+                placeholder="ابحث عن سؤال..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                bg="white"
+              />
+            </InputGroup>
+            <Select
+              w={{ base: '100%', md: '200px' }}
+              value={teacherFilter}
+              onChange={(e) => setTeacherFilter(e.target.value)}
+              bg="white"
+            >
+              <option value="all">جميع المدرسين</option>
+              {teachers.map((teacher) => (
+                <option key={teacher._id} value={teacher._id}>
+                  {teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim()}
+                </option>
+              ))}
+            </Select>
+          </Flex>
+        </CardBody>
+      </Card>
+
       {/* Questions List */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-            حدث خطأ أثناء جلب الأسئلة
-          </div>
-        )}
-        <QuestionList
-          questions={data?.data?.questions || []}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          onCreateNew={handleCreate}
-          showTeacher={true}
-        />
-      </div>
+      <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+        <CardBody>
+          {error && (
+            <Box mb={4} p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="xl" color="red.700">
+              حدث خطأ أثناء جلب الأسئلة
+            </Box>
+          )}
+          <QuestionList
+            questions={data?.data?.questions || []}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            onCreateNew={handleCreate}
+            showTeacher={true}
+          />
+        </CardBody>
+      </Card>
 
       {/* Pagination */}
       {data?.data && data.data.totalPages > 1 && (
-        <HStack justify="center" spacing={2}>
-          <Button
-            onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
-            disabled={filters.page === 1}
-            variant="outline"
-            size="sm"
-          >
-            السابق
-          </Button>
-          <Text px={4} py={2} color="gray.700">
-            صفحة {filters.page} من {data.data.totalPages}
-          </Text>
-          <Button
-            onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
-            disabled={filters.page === data.data.totalPages}
-            variant="outline"
-            size="sm"
-          >
-            التالي
-          </Button>
-        </HStack>
+        <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+          <CardBody>
+            <HStack justify="center" spacing={2}>
+              <Button
+                onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
+                isDisabled={filters.page === 1}
+                variant="outline"
+                size="sm"
+                fontWeight="medium"
+                h={8}
+                rounded={2}
+              >
+                السابق
+              </Button>
+              <Text px={4} py={2} color="gray.700" fontSize="sm" fontWeight="medium">
+                صفحة {filters.page} من {data.data.totalPages}
+              </Text>
+              <Button
+                onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
+                isDisabled={filters.page === data.data.totalPages}
+                variant="outline"
+                size="sm"
+                fontWeight="medium"
+                h={8}
+                rounded={2}
+              >
+                التالي
+              </Button>
+            </HStack>
+          </CardBody>
+        </Card>
       )}
-    </VStack>
+    </Stack>
   );
 }
 

@@ -10,10 +10,6 @@ import {
   InputLeftElement,
   Skeleton,
   Stack,
-  Stat,
-
-  StatLabel,
-  StatNumber,
   Table,
   TableContainer,
   Tbody,
@@ -26,11 +22,14 @@ import {
   useToast,
   Badge,
   Select,
-  Center,
   Avatar,
   Wrap,
   WrapItem,
   Spacer,
+  SimpleGrid,
+  VStack,
+  Flex,
+  Checkbox,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -233,184 +232,307 @@ export default function StudentSubscriptions() {
   const allSelected = subscriptions.length > 0 && selectedIds.length === subscriptions.length;
 
   return (
-    <Box p={6}>
-      <Stack spacing={6}>
-        {/* Statistics */}
-        {statistics && (
-          <HStack spacing={4} flexWrap="wrap" align="stretch">
-            <Stat as={Card} flexShrink={0} flex="max-content">
-              <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="blue.500"
-                    color="white"
-                  >
-                    <Icon
-                      icon="solar:card-bold"
-                      width="26"
-                      height="26"
-                    />
-                  </Center>
-                  <Box>
-                    <StatNumber>{statistics.totalSubscriptions || 0}</StatNumber>
-                    <StatLabel color="gray.500">إجمالي الاشتراكات</StatLabel>
-                  </Box>
-                </HStack>
-              </CardBody>
-            </Stat>
-            <Stat as={Card} flexShrink={0} flex="max-content">
-              <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="green.500"
-                    color="white"
-                  >
-                    <Icon
-                      icon="solar:check-circle-bold"
-                      width="26"
-                      height="26"
-                    />
-                  </Center>
-                  <Box>
-                    <StatNumber>{statistics.paidSubscriptions || 0}</StatNumber>
-                    <StatLabel color="gray.500">المدفوعة</StatLabel>
-                  </Box>
-                </HStack>
-              </CardBody>
-            </Stat>
-            <Stat as={Card} flexShrink={0} flex="max-content">
-              <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="yellow.500"
-                    color="white"
-                  >
-                    <Icon
-                      icon="solar:clock-circle-bold"
-                      width="26"
-                      height="26"
-                    />
-                  </Center>
-                  <Box>
-                    <StatNumber>{statistics.pendingSubscriptions || 0}</StatNumber>
-                    <StatLabel color="gray.500">قيد الانتظار</StatLabel>
-                  </Box>
-                </HStack>
-              </CardBody>
-            </Stat>
-            <Stat as={Card} flexShrink={0} flex="max-content">
-              <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="purple.500"
-                    color="white"
-                  >
-                    <Icon
-                      icon="solar:dollar-bold"
-                      width="26"
-                      height="26"
-                    />
-                  </Center>
-                  <Box>
-                    <StatNumber>{formatCurrency(statistics.totalRevenue || 0)}</StatNumber>
-                    <StatLabel color="gray.500">إجمالي الإيرادات</StatLabel>
-                  </Box>
-                </HStack>
-              </CardBody>
-            </Stat>
-          </HStack>
-        )}
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, indigo.600 0%, purple.500 50%, pink.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
 
-        {/* Filters */}
-        <Wrap spacing={4}>
-          <WrapItem>
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
+        >
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:card-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              اشتراكات الطلاب
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              عرض وإدارة {pagination.total} اشتراك على المنصة
+            </Text>
+          </VStack>
+        </Flex>
+      </Box>
+
+      {/* Statistics */}
+      {statistics && (
+        <SimpleGrid columns={{ base: 2, sm: 4 }} spacing={{ base: 4, md: 6 }}>
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+          >
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    إجمالي الاشتراكات
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                    {statistics.totalSubscriptions || 0}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    اشتراك مسجل
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, blue.400, blue.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:card-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+          >
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    مدفوع
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                    {statistics.paidSubscriptions || 0}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    اشتراك مدفوع
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, green.400, green.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:check-circle-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+          >
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    قيد الانتظار
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="yellow.600">
+                    {statistics.pendingSubscriptions || 0}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    اشتراك قيد الانتظار
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, yellow.400, yellow.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:clock-circle-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+          >
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    إجمالي الإيرادات
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="purple.600" noOfLines={1}>
+                    {formatCurrency(statistics.totalRevenue || 0)}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    إيرادات
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, purple.400, purple.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:dollar-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+        </SimpleGrid>
+      )}
+
+      {/* Filters */}
+      <Card
+        borderRadius="2xl"
+        border="1px"
+        borderColor="gray.200"
+        bg="white"
+        boxShadow="xl"
+      >
+        <CardBody>
+          <Flex
+            direction={{ base: 'column', md: 'row' }}
+            gap={4}
+            align={{ base: 'stretch', md: 'center' }}
+            wrap="wrap"
+          >
+            <InputGroup flex={1} minW={{ base: '100%', md: '300px' }}>
+              <InputLeftElement pointerEvents="none">
+                <Icon icon="solar:magnifer-bold-duotone" width="18" height="18" />
+              </InputLeftElement>
+              <Input
+                type="search"
+                placeholder="ابحث عن طالب أو كورس..."
+                defaultValue={searchParams.get('search') || ''}
+                onKeyDown={handleSearch}
+                bg="white"
+              />
+            </InputGroup>
+
             <Select
               placeholder="نوع الاشتراك"
               value={searchParams.get('subscriptionType') || ''}
               onChange={(e) => handleFilterChange('subscriptionType', e.target.value)}
               bg="white"
-              w="200px"
+              minW={{ base: '100%', md: '200px' }}
             >
               <option value="lesson">درس</option>
               <option value="course">كورس</option>
               <option value="courseSection">قسم كورسات</option>
               <option value="lessonSection">قسم دروس</option>
             </Select>
-          </WrapItem>
-          <WrapItem>
+
             <Select
               placeholder="حالة الدفع"
               value={searchParams.get('paymentStatus') || ''}
               onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
               bg="white"
-              w="200px"
+              minW={{ base: '100%', md: '200px' }}
             >
               <option value="paid">مدفوع</option>
               <option value="pending">قيد الانتظار</option>
               <option value="failed">فشل</option>
               <option value="refunded">مسترد</option>
             </Select>
-          </WrapItem>
-        </Wrap>
+          </Flex>
+        </CardBody>
+      </Card>
 
-        {/* Main Content */}
-        <Card>
-          <CardBody>
-            <Stack spacing={4}>
-              <HStack justify="space-between" flexWrap="wrap" gap={4}>
-                <Stack>
-                  <Heading as="h2" fontSize="xl">
-                    اشتراكات الطلاب
-                  </Heading>
-                  <Text fontSize="smaller" fontWeight="medium">
-                    النتائج {pagination.currentPage} / {pagination.totalPages} من{' '}
-                    {pagination.total}
-                  </Text>
-                </Stack>
-                <Spacer />
-                {selectedIds.length > 0 && (
-                  <Button
-                    colorScheme="green"
-                    size="sm"
-                    onClick={handleBulkUpdate}
-                  >
-                    تحديث حالة الدفع للطلاب المحددين ({selectedIds.length})
-                  </Button>
-                )}
-                <InputGroup w={{ base: '100%', sm: '300px' }} size="sm">
-                  <InputLeftElement pointerEvents="none">
-                    <Icon icon="lucide:search" width="15" height="15" />
-                  </InputLeftElement>
-                  <Input
-                    type="search"
-                    placeholder="ابحث عن طالب أو كورس..."
-                    defaultValue={searchParams.get('search') || ''}
-                    onKeyDown={handleSearch}
-                    bg="white"
-                  />
-                </InputGroup>
-              </HStack>
+      {/* Main Content */}
+      <Card
+        borderRadius="2xl"
+        border="1px"
+        borderColor="gray.200"
+        bg="white"
+        boxShadow="xl"
+      >
+        <CardBody>
+          <Stack spacing={4}>
+            <HStack justify="space-between" flexWrap="wrap" gap={4}>
+              <Stack>
+                <Heading as="h2" fontSize="xl">
+                  اشتراكات الطلاب
+                </Heading>
+                <Text fontSize="smaller" fontWeight="medium">
+                  النتائج {pagination.currentPage} / {pagination.totalPages} من{' '}
+                  {pagination.total}
+                </Text>
+              </Stack>
+              <Spacer />
+              {selectedIds.length > 0 && (
+                <Button
+                  colorScheme="green"
+                  size="sm"
+                  onClick={handleBulkUpdate}
+                >
+                  تحديث حالة الدفع للطلاب المحددين ({selectedIds.length})
+                </Button>
+              )}
+            </HStack>
 
-              <TableContainer>
+            <TableContainer bg="white" rounded={10}>
                 <Table>
                   <Thead>
                     <Tr>
                       <Th>
-                        <input
-                          type="checkbox"
-                          checked={allSelected}
+                        <Checkbox
+                          isChecked={allSelected}
                           onChange={handleSelectAll}
                           aria-label="اختيار الكل"
                         />
@@ -440,9 +562,8 @@ export default function StudentSubscriptions() {
                       subscriptions.map((subscription) => (
                         <Tr key={subscription._id}>
                           <Td>
-                            <input
-                              type="checkbox"
-                              checked={selectedIds.includes(subscription._id)}
+                            <Checkbox
+                              isChecked={selectedIds.includes(subscription._id)}
                               onChange={() => handleSelectRow(subscription._id)}
                               aria-label={`اختيار الاشتراك ${subscription._id}`}
                             />
@@ -503,8 +624,20 @@ export default function StudentSubscriptions() {
                       ))}
                     {!loading && subscriptions.length === 0 && (
                       <Tr>
-                        <Td colSpan={9} textAlign="center">
-                          <Text color="gray.500">لا توجد بيانات للعرض</Text>
+                        <Td colSpan={9} textAlign="center" py={12}>
+                          <VStack spacing={4}>
+                            <Box>
+                              <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
+                            </Box>
+                            <VStack spacing={2}>
+                              <Text fontSize="lg" fontWeight="bold" color="gray.600">
+                                لا توجد بيانات للعرض
+                              </Text>
+                              <Text fontSize="sm" color="gray.500">
+                                ليس هناك نتائج لعرضها
+                              </Text>
+                            </VStack>
+                          </VStack>
                         </Td>
                       </Tr>
                     )}
@@ -513,32 +646,47 @@ export default function StudentSubscriptions() {
               </TableContainer>
 
               {/* Pagination */}
-              <HStack justify="flex-end" spacing={2}>
-                <Button
-                  size="sm"
-                  isDisabled={pagination.currentPage === 1 || loading}
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                >
-                  السابقة
-                </Button>
-                <Text fontSize="sm">
-                  صفحة {pagination.currentPage} من {pagination.totalPages}
-                </Text>
-                <Button
-                  size="sm"
-                  isDisabled={
-                    pagination.currentPage === pagination.totalPages || loading
-                  }
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                >
-                  التالية
-                </Button>
-              </HStack>
+              <Card
+                borderRadius="2xl"
+                border="1px"
+                borderColor="gray.200"
+                bg="white"
+                boxShadow="xl"
+              >
+                <CardBody>
+                  <HStack justify="flex-end" spacing={3}>
+                    <Button
+                      size="sm"
+                      fontWeight="medium"
+                      borderRadius="xl"
+                      h={8}
+                      isDisabled={pagination.currentPage === 1 || loading}
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    >
+                      السابقة
+                    </Button>
+                    <Text fontSize="sm">
+                      صفحة {pagination.currentPage} من {pagination.totalPages}
+                    </Text>
+                    <Button
+                      size="sm"
+                      fontWeight="medium"
+                      borderRadius="xl"
+                      h={8}
+                      isDisabled={
+                        pagination.currentPage === pagination.totalPages || loading
+                      }
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    >
+                      التالية
+                    </Button>
+                  </HStack>
+                </CardBody>
+              </Card>
             </Stack>
           </CardBody>
         </Card>
       </Stack>
-    </Box>
   );
 }
 

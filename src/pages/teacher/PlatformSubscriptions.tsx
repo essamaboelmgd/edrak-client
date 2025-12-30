@@ -8,9 +8,6 @@ import {
   HStack,
   Skeleton,
   Stack,
-  Stat,
-  StatLabel,
-  StatNumber,
   Table,
   TableContainer,
   Tbody,
@@ -22,7 +19,9 @@ import {
   useToast,
   Badge,
   Divider,
-  Center,
+  SimpleGrid,
+  VStack,
+  Flex,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -124,124 +123,237 @@ export default function PlatformSubscriptions() {
   };
 
   return (
-    <Box p={6}>
-      <Stack spacing={6}>
-        {/* Create Subscription Button */}
-        {(!currentSubscription || currentSubscription.status === 'expired') && (
-          <Box>
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, indigo.600 0%, purple.500 50%, pink.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
+
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
+        >
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:card-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              اشتراكات المنصة
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              عرض وإدارة اشتراكاتك على المنصة
+            </Text>
+          </VStack>
+          {(!currentSubscription || currentSubscription.status === 'expired') && (
             <Button
-              colorScheme="red"
-              size="lg"
-              leftIcon={<Icon icon="solar:add-circle-bold" />}
+              bg="white"
+              color="indigo.600"
+              _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+              leftIcon={<Icon icon="solar:add-circle-bold-duotone" width="20" height="20" />}
+              size={{ base: 'md', md: 'lg' }}
+              borderRadius="xl"
+              shadow="md"
+              transition="all 0.3s"
               onClick={() => (window.location.href = '/teacher/create-subscription')}
             >
               إنشاء اشتراك جديد
             </Button>
-          </Box>
-        )}
-        {/* Statistics */}
-        {statistics && (
-          <HStack spacing={4} flexWrap="wrap" align="stretch">
-            <Stat as={Card} flexShrink={0} flex="max-content">
+          )}
+        </Flex>
+      </Box>
+
+      {/* Statistics */}
+      {statistics && (
+        <SimpleGrid columns={{ base: 2, sm: 4 }} spacing={{ base: 4, md: 6 }}>
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+          >
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    إجمالي الاشتراكات
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                    {statistics.totalSubscriptions || 0}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    اشتراك مسجل
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, blue.400, blue.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:card-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+          >
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    نشط
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                    {statistics.activeSubscriptions || 0}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    اشتراك نشط
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, green.400, green.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:check-circle-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+          >
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    إجمالي المصروف
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="purple.600" noOfLines={1}>
+                    {formatCurrency(statistics.totalSpent || 0)}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    مصروف
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, purple.400, purple.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:dollar-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+
+          {statistics.averageMonthlySpend && (
+            <Card
+              borderRadius="2xl"
+              border="1px"
+              borderColor="gray.200"
+              bg="white"
+              transition="all 0.3s"
+              _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+            >
               <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="blue.500"
-                    color="white"
+                <HStack justify="space-between">
+                  <VStack align="start" spacing={1}>
+                    <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                      متوسط الإنفاق الشهري
+                    </Text>
+                    <Text fontSize="2xl" fontWeight="bold" color="orange.600" noOfLines={1}>
+                      {formatCurrency(statistics.averageMonthlySpend)}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500">
+                      شهري
+                    </Text>
+                  </VStack>
+                  <Box
+                    p={4}
+                    borderRadius="xl"
+                    bgGradient="linear(135deg, orange.400, orange.600)"
+                    shadow="md"
                   >
                     <Icon
-                      icon="solar:card-bold"
-                      width="26"
-                      height="26"
+                      icon="solar:chart-2-bold-duotone"
+                      width="32"
+                      height="32"
+                      style={{ color: 'white' }}
                     />
-                  </Center>
-                  <Box>
-                    <StatNumber>{statistics.totalSubscriptions || 0}</StatNumber>
-                    <StatLabel color="gray.500">إجمالي الاشتراكات</StatLabel>
                   </Box>
                 </HStack>
               </CardBody>
-            </Stat>
-            <Stat as={Card} flexShrink={0} flex="max-content">
-              <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="green.500"
-                    color="white"
-                  >
-                    <Icon
-                      icon="solar:check-circle-bold"
-                      width="26"
-                      height="26"
-                    />
-                  </Center>
-                  <Box>
-                    <StatNumber>{statistics.activeSubscriptions || 0}</StatNumber>
-                    <StatLabel color="gray.500">الاشتراكات النشطة</StatLabel>
-                  </Box>
-                </HStack>
-              </CardBody>
-            </Stat>
-            <Stat as={Card} flexShrink={0} flex="max-content">
-              <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="purple.500"
-                    color="white"
-                  >
-                    <Icon
-                      icon="solar:dollar-bold"
-                      width="26"
-                      height="26"
-                    />
-                  </Center>
-                  <Box>
-                    <StatNumber>{formatCurrency(statistics.totalSpent || 0)}</StatNumber>
-                    <StatLabel color="gray.500">إجمالي المصروف</StatLabel>
-                  </Box>
-                </HStack>
-              </CardBody>
-            </Stat>
-            {statistics.averageMonthlySpend && (
-              <Stat as={Card} flexShrink={0} flex="max-content">
-                <CardBody>
-                  <HStack gap={4}>
-                    <Center
-                      w={12}
-                      h={12}
-                      rounded={100}
-                      bg="orange.500"
-                      color="white"
-                    >
-                      <Icon
-                        icon="solar:chart-2-bold"
-                        width="26"
-                        height="26"
-                      />
-                    </Center>
-                    <Box>
-                      <StatNumber>{formatCurrency(statistics.averageMonthlySpend)}</StatNumber>
-                      <StatLabel color="gray.500">متوسط الإنفاق الشهري</StatLabel>
-                    </Box>
-                  </HStack>
-                </CardBody>
-              </Stat>
-            )}
-          </HStack>
-        )}
+            </Card>
+          )}
+        </SimpleGrid>
+      )}
 
         {/* Current Subscription */}
         {currentSubscription && (
-          <Card>
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            boxShadow="xl"
+          >
             <CardBody>
               <Stack spacing={4}>
                 <Heading as="h2" fontSize="xl">
@@ -336,7 +448,13 @@ export default function PlatformSubscriptions() {
         )}
 
         {/* Subscriptions History */}
-        <Card>
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          boxShadow="xl"
+        >
           <CardBody>
             <Stack spacing={4}>
               <Heading as="h2" fontSize="xl">
@@ -417,8 +535,20 @@ export default function PlatformSubscriptions() {
                       ))}
                     {!loading && subscriptionsHistory.length === 0 && (
                       <Tr>
-                        <Td colSpan={7} textAlign="center">
-                          <Text color="gray.500">لا توجد اشتراكات سابقة</Text>
+                        <Td colSpan={7} textAlign="center" py={12}>
+                          <VStack spacing={4}>
+                            <Box>
+                              <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
+                            </Box>
+                            <VStack spacing={2}>
+                              <Text fontSize="lg" fontWeight="bold" color="gray.600">
+                                لا توجد اشتراكات سابقة
+                              </Text>
+                              <Text fontSize="sm" color="gray.500">
+                                ليس هناك نتائج لعرضها
+                              </Text>
+                            </VStack>
+                          </VStack>
                         </Td>
                       </Tr>
                     )}
@@ -429,7 +559,6 @@ export default function PlatformSubscriptions() {
           </CardBody>
         </Card>
       </Stack>
-    </Box>
   );
 }
 

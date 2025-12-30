@@ -1,6 +1,25 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Heading,
+  HStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Select,
+  Stack,
+  Text,
+  SimpleGrid,
+  VStack,
+  Flex,
+  Center,
+  useToast,
+} from '@chakra-ui/react';
+import { Icon } from '@iconify-icon/react';
 import QuestionList from '@/features/question-bank/components/QuestionList';
 import QuestionForm from '@/features/question-bank/components/QuestionForm';
 import QuestionView from '@/features/question-bank/components/QuestionView';
@@ -11,7 +30,6 @@ import {
   IUpdateQuestionBankRequest,
   IGetQuestionBankQuery,
 } from '@/types/question-bank.types';
-import { BarChart2, BookOpen, Plus } from 'lucide-react';
 
 type ViewMode = 'list' | 'create' | 'edit' | 'view';
 
@@ -42,6 +60,8 @@ export default function QuestionBank() {
     enabled: true, // Still try to fetch, but handle errors gracefully
   });
 
+  const toast = useToast();
+
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: ICreateQuestionBankRequest) => questionBankService.createQuestion(data),
@@ -49,10 +69,16 @@ export default function QuestionBank() {
       queryClient.invalidateQueries({ queryKey: ['questionBank'] });
       queryClient.invalidateQueries({ queryKey: ['questionBankStats'] });
       setViewMode('list');
-      alert('تم إنشاء السؤال بنجاح');
+      toast({
+        status: 'success',
+        description: 'تم إنشاء السؤال بنجاح',
+      });
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'حدث خطأ أثناء إنشاء السؤال');
+      toast({
+        status: 'error',
+        description: error.response?.data?.message || 'حدث خطأ أثناء إنشاء السؤال',
+      });
     },
   });
 
@@ -65,10 +91,16 @@ export default function QuestionBank() {
       queryClient.invalidateQueries({ queryKey: ['questionBankStats'] });
       setViewMode('list');
       setSelectedQuestion(null);
-      alert('تم تحديث السؤال بنجاح');
+      toast({
+        status: 'success',
+        description: 'تم تحديث السؤال بنجاح',
+      });
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'حدث خطأ أثناء تحديث السؤال');
+      toast({
+        status: 'error',
+        description: error.response?.data?.message || 'حدث خطأ أثناء تحديث السؤال',
+      });
     },
   });
 
@@ -78,10 +110,16 @@ export default function QuestionBank() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['questionBank'] });
       queryClient.invalidateQueries({ queryKey: ['questionBankStats'] });
-      alert('تم حذف السؤال بنجاح');
+      toast({
+        status: 'success',
+        description: 'تم حذف السؤال بنجاح',
+      });
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'حدث خطأ أثناء حذف السؤال');
+      toast({
+        status: 'error',
+        description: error.response?.data?.message || 'حدث خطأ أثناء حذف السؤال',
+      });
     },
   });
 
@@ -123,19 +161,27 @@ export default function QuestionBank() {
 
   if (viewMode === 'create' || viewMode === 'edit') {
     return (
-      <div className="space-y-6" dir="rtl">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">
-            {viewMode === 'create' ? 'إنشاء سؤال جديد' : 'تعديل السؤال'}
-          </h1>
-          <QuestionForm
-            question={viewMode === 'edit' ? selectedQuestion || undefined : undefined}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            isLoading={createMutation.isPending || updateMutation.isPending}
-          />
-        </div>
-      </div>
+      <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          boxShadow="xl"
+        >
+          <CardBody>
+            <Heading fontSize="2xl" fontWeight="bold" mb={6}>
+              {viewMode === 'create' ? 'إنشاء سؤال جديد' : 'تعديل السؤال'}
+            </Heading>
+            <QuestionForm
+              question={viewMode === 'edit' ? selectedQuestion || undefined : undefined}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+          </CardBody>
+        </Card>
+      </Stack>
     );
   }
 
@@ -149,127 +195,291 @@ export default function QuestionBank() {
     );
   }
 
+  const total = data?.data?.total || 0;
+
   return (
-    <div className="space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">بنك الأسئلة</h1>
-          <p className="text-gray-500 mt-1">إدارة وإنشاء الأسئلة الخاصة بك</p>
-        </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, orange.600 0%, red.500 50%, pink.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
+
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
         >
-          <Plus size={18} />
-          <span>سؤال جديد</span>
-        </button>
-      </div>
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:question-circle-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              بنك الأسئلة
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              عرض وإدارة {total} سؤال على المنصة
+            </Text>
+          </VStack>
+          <Button
+            bg="white"
+            color="orange.600"
+            _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+            onClick={handleCreate}
+            leftIcon={<Icon icon="solar:question-circle-add-bold-duotone" width="20" height="20" />}
+            size={{ base: 'md', md: 'lg' }}
+            borderRadius="xl"
+            shadow="md"
+            transition="all 0.3s"
+          >
+            إضافة سؤال جديد
+          </Button>
+        </Flex>
+      </Box>
 
-      {/* Statistics Cards */}
+      {/* Stats Cards */}
       {statistics && !statsError && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+        <SimpleGrid columns={{ base: 2, sm: 4 }} spacing={{ base: 4, md: 6 }}>
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <BookOpen className="text-purple-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">إجمالي الأسئلة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.total}</p>
-          </motion.div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    إجمالي الأسئلة
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                    {statistics.total}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال مسجل
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, purple.400, purple.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:question-circle-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                <BookOpen className="text-green-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">الأسئلة النشطة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.active}</p>
-          </motion.div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    نشط
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                    {statistics.active}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال نشط
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, green.400, green.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:check-circle-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <BookOpen className="text-blue-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">الأسئلة العامة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.general}</p>
-          </motion.div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    عام
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="blue.600">
+                    {statistics.general}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال عام
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, blue.400, blue.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:question-circle-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+          <Card
+            borderRadius="2xl"
+            border="1px"
+            borderColor="gray.200"
+            bg="white"
+            transition="all 0.3s"
+            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                <BarChart2 className="text-orange-600" size={24} />
-              </div>
-            </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">الأسئلة المرتبطة</h3>
-            <p className="text-2xl font-bold text-gray-800">{statistics.courseSpecific}</p>
-          </motion.div>
-        </div>
+            <CardBody>
+              <HStack justify="space-between">
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                    مرتبط
+                  </Text>
+                  <Text fontSize="3xl" fontWeight="bold" color="orange.600">
+                    {statistics.courseSpecific}
+                  </Text>
+                  <Text fontSize="xs" color="gray.500">
+                    سؤال مرتبط
+                  </Text>
+                </VStack>
+                <Box
+                  p={4}
+                  borderRadius="xl"
+                  bgGradient="linear(135deg, orange.400, orange.600)"
+                  shadow="md"
+                >
+                  <Icon
+                    icon="solar:chart-2-bold-duotone"
+                    width="32"
+                    height="32"
+                    style={{ color: 'white' }}
+                  />
+                </Box>
+              </HStack>
+            </CardBody>
+          </Card>
+        </SimpleGrid>
       )}
 
       {/* Questions List */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-            حدث خطأ أثناء جلب الأسئلة
-          </div>
-        )}
-        <QuestionList
-          questions={data?.data?.questions || []}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          onCreateNew={handleCreate}
-        />
-      </div>
+      <Card
+        borderRadius="2xl"
+        border="1px"
+        borderColor="gray.200"
+        bg="white"
+        boxShadow="xl"
+      >
+        <CardBody>
+          {error && (
+            <Box mb={4} p={4} bg="red.50" border="1px" borderColor="red.200" borderRadius="xl" color="red.700">
+              حدث خطأ أثناء جلب الأسئلة
+            </Box>
+          )}
+          <QuestionList
+            questions={data?.data?.questions || []}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            onCreateNew={handleCreate}
+          />
+        </CardBody>
+      </Card>
 
       {/* Pagination */}
       {data?.data && data.data.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
-            disabled={filters.page === 1}
-            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            السابق
-          </button>
-          <span className="px-4 py-2 text-gray-700">
-            صفحة {filters.page} من {data.data.totalPages}
-          </span>
-          <button
-            onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
-            disabled={filters.page === data.data.totalPages}
-            className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            التالي
-          </button>
-        </div>
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          boxShadow="xl"
+        >
+          <CardBody>
+            <HStack justify="center" spacing={3}>
+              <Button
+                size="sm"
+                fontWeight="medium"
+                borderRadius="xl"
+                h={8}
+                isDisabled={filters.page === 1}
+                onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
+              >
+                السابق
+              </Button>
+              <Text fontSize="sm" color="gray.700">
+                صفحة {filters.page} من {data.data.totalPages}
+              </Text>
+              <Button
+                size="sm"
+                fontWeight="medium"
+                borderRadius="xl"
+                h={8}
+                isDisabled={filters.page === data.data.totalPages}
+                onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
+              >
+                التالي
+              </Button>
+            </HStack>
+          </CardBody>
+        </Card>
       )}
-    </div>
+    </Stack>
   );
 }
 

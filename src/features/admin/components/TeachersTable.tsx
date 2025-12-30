@@ -1,6 +1,21 @@
-import { motion } from 'framer-motion';
-import { Users, BookOpen, Coins, MoreVertical, Edit, Eye, Crown, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Icon } from '@iconify-icon/react';
 import { ITeacherAdmin } from '../services/teachersService';
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Badge,
+  HStack,
+  VStack,
+  Text,
+  Card,
+  CardBody,
+  Avatar,
+} from '@chakra-ui/react';
 
 interface TeachersTableProps {
   teachers: ITeacherAdmin[];
@@ -18,40 +33,36 @@ export default function TeachersTable({ teachers, onViewDetails, onEdit, loading
 
     if (isSuspended) {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 flex items-center gap-1 w-fit">
-          <XCircle size={12} />
+        <Badge colorScheme="red" fontSize="xs" px={2} py={1} borderRadius="full">
           معطل
-        </span>
+        </Badge>
       );
     }
     if (isExpired) {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 flex items-center gap-1 w-fit">
-          <Clock size={12} />
+        <Badge colorScheme="gray" fontSize="xs" px={2} py={1} borderRadius="full">
           منتهي
-        </span>
+        </Badge>
       );
     }
     if (isInTrial) {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 flex items-center gap-1 w-fit">
-          <Clock size={12} />
+        <Badge colorScheme="yellow" fontSize="xs" px={2} py={1} borderRadius="full">
           تجريبي
-        </span>
+        </Badge>
       );
     }
     if (hasActiveSubscription) {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1 w-fit">
-          <CheckCircle2 size={12} />
+        <Badge colorScheme="green" fontSize="xs" px={2} py={1} borderRadius="full">
           نشط
-        </span>
+        </Badge>
       );
     }
     return (
-      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 w-fit">
+      <Badge colorScheme="gray" fontSize="xs" px={2} py={1} borderRadius="full">
         غير نشط
-      </span>
+      </Badge>
     );
   };
 
@@ -67,122 +78,158 @@ export default function TeachersTable({ teachers, onViewDetails, onEdit, loading
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
-        <div className="text-center text-gray-500">جاري التحميل...</div>
-      </div>
+      <Card>
+        <CardBody>
+          <Text textAlign="center" color="gray.500" py={8}>
+            جاري التحميل...
+          </Text>
+        </CardBody>
+      </Card>
     );
   }
 
   if (teachers.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
-        <div className="text-center text-gray-500">لا يوجد مدرسين</div>
-      </div>
+      <Card>
+        <CardBody>
+          <VStack py={12} spacing={4}>
+            <Icon
+              icon="solar:users-group-two-rounded-bold-duotone"
+              width="64"
+              height="64"
+              style={{ color: 'var(--chakra-colors-gray-300)' }}
+            />
+            <Text fontSize="lg" color="gray.500" fontWeight="medium">
+              لا يوجد معلمين
+            </Text>
+            <Text fontSize="sm" color="gray.400">
+              لا توجد نتائج مطابقة للبحث
+            </Text>
+          </VStack>
+        </CardBody>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المدرس</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الخطة</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الطلاب</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الكورسات</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الإيرادات</th>
-              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {teachers.map((teacher, idx) => (
-              <motion.tr
-                key={teacher._id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                      <Users className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800">{teacher.fullName}</p>
-                      <p className="text-sm text-gray-500">{teacher.platformName}</p>
-                      {teacher.specialization && (
-                        <p className="text-xs text-gray-400">{teacher.specialization}</p>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {getStatusBadge(teacher)}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {teacher.subscription?.plan && (
-                      <Crown size={16} className="text-yellow-500" />
-                    )}
-                    <span className="text-sm font-medium text-gray-700">
-                      {getPlanName(teacher)}
-                    </span>
-                  </div>
-                  {teacher.subscription?.endDate && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      حتى {new Date(teacher.subscription.endDate).toLocaleDateString('ar-EG')}
-                    </p>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Users size={16} />
-                    <span className="font-medium">{teacher.stats.totalStudents}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <BookOpen size={16} />
-                    <span className="font-medium">{teacher.stats.activeCourses}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 w-fit">
-                    <Coins size={16} className="text-green-600" />
-                    <span className="font-bold text-green-700">{teacher.stats.totalRevenue.toLocaleString()}</span>
-                    <span className="text-sm font-semibold text-green-600">ج.م</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <button
+    <Card>
+      <CardBody px={0}>
+        <TableContainer bg="white" rounded={10}>
+          <Table colorScheme="gray">
+            <Thead>
+              <Tr>
+                <Th>المدرس</Th>
+                <Th>الحالة</Th>
+                <Th>الخطة</Th>
+                <Th>الطلاب</Th>
+                <Th>الكورسات</Th>
+                <Th>الإيرادات</Th>
+                <Th>الإجراءات</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {teachers.map((teacher) => (
+                <Tr key={teacher._id}>
+                  <Td>
+                    <HStack
+                      color="blue"
+                      textDecoration="underline"
+                      _hover={{ textDecoration: 'none' }}
+                      cursor="pointer"
                       onClick={() => onViewDetails?.(teacher)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="عرض التفاصيل"
                     >
-                      <Eye size={18} />
-                    </button>
-                    <button
-                      onClick={() => onEdit?.(teacher)}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                      title="تعديل"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                      <MoreVertical size={18} />
-                    </button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                      <Avatar
+                        name={teacher.fullName}
+                        width={25}
+                        height={25}
+                        bg={teacher.isActive ? 'purple.500' : 'gray.400'}
+                      />
+                      <VStack align="start" spacing={0}>
+                        <Text fontSize="small" fontWeight="medium">
+                          {teacher.fullName}
+                        </Text>
+                        {teacher.platformName && (
+                          <Text fontSize="xs" color="gray.500">
+                            {teacher.platformName}
+                          </Text>
+                        )}
+                      </VStack>
+                    </HStack>
+                  </Td>
+                  <Td>{getStatusBadge(teacher)}</Td>
+                  <Td>
+                    <Text fontSize="small" fontWeight="medium">
+                      {getPlanName(teacher)}
+                    </Text>
+                    {teacher.subscription?.endDate && (
+                      <Text fontSize="xs" color="gray.500">
+                        حتى {new Date(teacher.subscription.endDate).toLocaleDateString('ar-EG')}
+                      </Text>
+                    )}
+                  </Td>
+                  <Td>
+                    <HStack spacing={1}>
+                      <Icon
+                        icon="solar:users-group-rounded-bold-duotone"
+                        width="16"
+                        height="16"
+                        style={{ color: 'var(--chakra-colors-gray-500)' }}
+                      />
+                      <Text fontSize="small" fontWeight="medium">
+                        {teacher.stats?.totalStudents || 0}
+                      </Text>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    <HStack spacing={1}>
+                      <Icon
+                        icon="solar:book-bold-duotone"
+                        width="16"
+                        height="16"
+                        style={{ color: 'var(--chakra-colors-gray-500)' }}
+                      />
+                      <Text fontSize="small" fontWeight="medium">
+                        {teacher.stats?.activeCourses || 0}
+                      </Text>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    <HStack spacing={1}>
+                      <Icon
+                        icon="solar:dollar-minimalistic-bold-duotone"
+                        width="16"
+                        height="16"
+                        style={{ color: 'var(--chakra-colors-green-500)' }}
+                      />
+                      <Text fontSize="small" fontWeight="bold" color="green.600">
+                        {teacher.stats?.totalRevenue?.toLocaleString() || 0} ج.م
+                      </Text>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    <HStack spacing={1} justify="center">
+                      <Icon
+                        icon="solar:eye-bold-duotone"
+                        width="18"
+                        height="18"
+                        style={{ color: 'var(--chakra-colors-blue-500)', cursor: 'pointer' }}
+                        onClick={() => onViewDetails?.(teacher)}
+                      />
+                      <Icon
+                        icon="solar:pen-bold-duotone"
+                        width="18"
+                        height="18"
+                        style={{ color: 'var(--chakra-colors-gray-500)', cursor: 'pointer' }}
+                        onClick={() => onEdit?.(teacher)}
+                      />
+                    </HStack>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </CardBody>
+    </Card>
   );
 }
-

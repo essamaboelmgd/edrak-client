@@ -10,10 +10,6 @@ import {
   InputLeftElement,
   Skeleton,
   Stack,
-  Stat,
-
-  StatLabel,
-  StatNumber,
   Table,
   TableContainer,
   Tbody,
@@ -25,7 +21,6 @@ import {
   Button,
   useToast,
   Badge,
-  Center,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -34,6 +29,8 @@ import {
   ModalCloseButton,
   useDisclosure,
   VStack,
+  Flex,
+  SimpleGrid,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import { myStudentsService, MyStudent } from '@/features/teacher/services/myStudentsService';
@@ -108,112 +105,254 @@ export default function MyStudents() {
   };
 
   return (
-    <Box p={6}>
-      <Stack spacing={6}>
-        {/* Statistics */}
-        {statistics && (
-          <HStack spacing={4} flexWrap="wrap" align="stretch">
-            <Stat as={Card} flexShrink={0} flex="max-content">
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, purple.600 0%, blue.500 50%, teal.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
+
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
+        >
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:users-group-rounded-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              طلابي
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              عرض وإدارة {pagination.total} طالب على المنصة
+            </Text>
+          </VStack>
+        </Flex>
+      </Box>
+
+      {/* Statistics */}
+      {statistics && (
+        <SimpleGrid columns={{ base: 2, sm: 2, lg: 4 }} spacing={{ base: 4, md: 6 }}>
+          <Card
+              borderRadius="2xl"
+              border="1px"
+              borderColor="gray.200"
+              bg="white"
+              transition="all 0.3s"
+              _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+            >
               <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="blue.500"
-                    color="white"
+                <HStack justify="space-between">
+                  <VStack align="start" spacing={1}>
+                    <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                      إجمالي الطلاب
+                    </Text>
+                    <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                      {statistics.totalStudents || 0}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500">
+                      طالب مسجل
+                    </Text>
+                  </VStack>
+                  <Box
+                    p={4}
+                    borderRadius="xl"
+                    bgGradient="linear(135deg, blue.400, blue.600)"
+                    shadow="md"
                   >
                     <Icon
-                      icon="solar:users-group-two-rounded-bold"
-                      width="26"
-                      height="26"
+                      icon="solar:users-group-rounded-bold-duotone"
+                      width="32"
+                      height="32"
+                      style={{ color: 'white' }}
                     />
-                  </Center>
-                  <Box>
-                    <StatNumber>{statistics.totalStudents || 0}</StatNumber>
-                    <StatLabel color="gray.500">إجمالي الطلاب</StatLabel>
                   </Box>
                 </HStack>
               </CardBody>
-            </Stat>
-            <Stat as={Card} flexShrink={0} flex="max-content">
+            </Card>
+            <Card
+              borderRadius="2xl"
+              border="1px"
+              borderColor="gray.200"
+              bg="white"
+              transition="all 0.3s"
+              _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+            >
               <CardBody>
-                <HStack gap={4}>
-                  <Center
-                    w={12}
-                    h={12}
-                    rounded={100}
-                    bg="green.500"
-                    color="white"
+                <HStack justify="space-between">
+                  <VStack align="start" spacing={1}>
+                    <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                      الطلاب النشطين
+                    </Text>
+                    <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                      {statistics.activeStudents || 0}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500">
+                      طالب نشط
+                    </Text>
+                  </VStack>
+                  <Box
+                    p={4}
+                    borderRadius="xl"
+                    bgGradient="linear(135deg, green.400, green.600)"
+                    shadow="md"
                   >
                     <Icon
-                      icon="solar:user-check-rounded-bold"
-                      width="26"
-                      height="26"
+                      icon="solar:check-circle-bold-duotone"
+                      width="32"
+                      height="32"
+                      style={{ color: 'white' }}
                     />
-                  </Center>
-                  <Box>
-                    <StatNumber>{statistics.activeStudents || 0}</StatNumber>
-                    <StatLabel color="gray.500">الطلاب النشطين</StatLabel>
                   </Box>
                 </HStack>
               </CardBody>
-            </Stat>
+            </Card>
             {statistics.byGender && (
               <>
-                <Stat as={Card} flexShrink={0} flex="max-content">
+                <Card
+                  borderRadius="2xl"
+                  border="1px"
+                  borderColor="gray.200"
+                  bg="white"
+                  transition="all 0.3s"
+                  _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                >
                   <CardBody>
-                    <HStack gap={4}>
-                      <Center
-                        w={12}
-                        h={12}
-                        rounded={100}
-                        bg="blue.400"
-                        color="white"
+                    <HStack justify="space-between">
+                      <VStack align="start" spacing={1}>
+                        <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                          ذكور
+                        </Text>
+                        <Text fontSize="3xl" fontWeight="bold" color="blue.600">
+                          {statistics.byGender.male || 0}
+                        </Text>
+                        <Text fontSize="xs" color="gray.500">
+                          طالب
+                        </Text>
+                      </VStack>
+                      <Box
+                        p={4}
+                        borderRadius="xl"
+                        bgGradient="linear(135deg, blue.400, blue.600)"
+                        shadow="md"
                       >
                         <Icon
-                          icon="solar:user-bold"
-                          width="26"
-                          height="26"
+                          icon="solar:user-bold-duotone"
+                          width="32"
+                          height="32"
+                          style={{ color: 'white' }}
                         />
-                      </Center>
-                      <Box>
-                        <StatNumber>{statistics.byGender.male || 0}</StatNumber>
-                        <StatLabel color="gray.500">ذكور</StatLabel>
                       </Box>
                     </HStack>
                   </CardBody>
-                </Stat>
-                <Stat as={Card} flexShrink={0} flex="max-content">
+                </Card>
+                <Card
+                  borderRadius="2xl"
+                  border="1px"
+                  borderColor="gray.200"
+                  bg="white"
+                  transition="all 0.3s"
+                  _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                >
                   <CardBody>
-                    <HStack gap={4}>
-                      <Center
-                        w={12}
-                        h={12}
-                        rounded={100}
-                        bg="pink.400"
-                        color="white"
+                    <HStack justify="space-between">
+                      <VStack align="start" spacing={1}>
+                        <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                          إناث
+                        </Text>
+                        <Text fontSize="3xl" fontWeight="bold" color="pink.600">
+                          {statistics.byGender.female || 0}
+                        </Text>
+                        <Text fontSize="xs" color="gray.500">
+                          طالبة
+                        </Text>
+                      </VStack>
+                      <Box
+                        p={4}
+                        borderRadius="xl"
+                        bgGradient="linear(135deg, pink.400, pink.600)"
+                        shadow="md"
                       >
                         <Icon
-                          icon="solar:user-speak-rounded-bold"
-                          width="26"
-                          height="26"
+                          icon="solar:user-speak-rounded-bold-duotone"
+                          width="32"
+                          height="32"
+                          style={{ color: 'white' }}
                         />
-                      </Center>
-                      <Box>
-                        <StatNumber>{statistics.byGender.female || 0}</StatNumber>
-                        <StatLabel color="gray.500">إناث</StatLabel>
                       </Box>
                     </HStack>
                   </CardBody>
-                </Stat>
+                </Card>
               </>
             )}
-          </HStack>
-        )}
+        </SimpleGrid>
+      )}
+
+        {/* Filters */}
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          boxShadow="xl"
+        >
+          <CardBody>
+            <Flex
+              direction={{ base: 'column', md: 'row' }}
+              gap={4}
+              align={{ base: 'stretch', md: 'center' }}
+            >
+              <InputGroup flex={1} minW={{ base: '100%', md: '300px' }}>
+                <InputLeftElement pointerEvents="none">
+                  <Icon
+                    icon="solar:magnifer-bold-duotone"
+                    width="20"
+                    height="20"
+                  />
+                </InputLeftElement>
+                <Input
+                  type="search"
+                  placeholder="ابحث عن طالب..."
+                  defaultValue={searchParams.get('search') || ''}
+                  onKeyDown={handleSearch}
+                  bg="white"
+                />
+              </InputGroup>
+            </Flex>
+          </CardBody>
+        </Card>
 
         {/* Main Content */}
-        <Card>
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          boxShadow="xl"
+        >
           <CardBody>
             <Stack spacing={4}>
               <HStack justify="space-between" flexWrap="wrap" gap={4}>
@@ -226,22 +365,10 @@ export default function MyStudents() {
                     {pagination.total}
                   </Text>
                 </Stack>
-                <InputGroup w={{ base: '100%', sm: '300px' }} size="sm">
-                  <InputLeftElement pointerEvents="none">
-                    <Icon icon="lucide:search" width="15" height="15" />
-                  </InputLeftElement>
-                  <Input
-                    type="search"
-                    placeholder="ابحث عن طالب..."
-                    defaultValue={searchParams.get('search') || ''}
-                    onKeyDown={handleSearch}
-                    bg="white"
-                  />
-                </InputGroup>
               </HStack>
 
-              <TableContainer>
-                <Table>
+              <TableContainer bg="white" rounded={10}>
+                <Table colorScheme="gray">
                   <Thead>
                     <Tr>
                       <Th>#</Th>
@@ -249,9 +376,13 @@ export default function MyStudents() {
                       <Th>البريد الإلكتروني</Th>
                       <Th>رقم الموبايل</Th>
                       <Th>المستوى التعليمي</Th>
+                      <Th>رصيد المحفظة</Th>
+                      <Th>نقاط الترتيب</Th>
+                      <Th>المستوى</Th>
                       <Th>النوع</Th>
                       <Th>المحافظة</Th>
                       <Th>الحالة</Th>
+                      <Th>آخر تسجيل دخول</Th>
                       <Th>الإجراءات</Th>
                     </Tr>
                   </Thead>
@@ -259,7 +390,7 @@ export default function MyStudents() {
                     {loading &&
                       Array.from({ length: 5 }).map((_, idx) => (
                         <Tr key={idx}>
-                          {Array.from({ length: 9 }).map((_, index) => (
+                          {Array.from({ length: 13 }).map((_, index) => (
                             <Td key={index}>
                               <Skeleton h={4} rounded={3} />
                             </Td>
@@ -272,8 +403,20 @@ export default function MyStudents() {
                       ))}
                     {!loading && students.length === 0 && (
                       <Tr>
-                        <Td colSpan={9} textAlign="center">
-                          <Text color="gray.500">لا توجد بيانات للعرض</Text>
+                        <Td colSpan={13} textAlign="center" py={12}>
+                          <VStack spacing={4}>
+                            <Box>
+                              <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
+                            </Box>
+                            <VStack spacing={2}>
+                              <Text fontSize="lg" fontWeight="bold" color="gray.600">
+                                لا توجد بيانات للعرض
+                              </Text>
+                              <Text fontSize="sm" color="gray.500">
+                                ليس هناك نتائج لعرضها
+                              </Text>
+                            </VStack>
+                          </VStack>
                         </Td>
                       </Tr>
                     )}
@@ -282,32 +425,53 @@ export default function MyStudents() {
               </TableContainer>
 
               {/* Pagination */}
-              <HStack justify="flex-end" spacing={2}>
-                <Button
-                  size="sm"
-                  isDisabled={pagination.currentPage === 1 || loading}
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+              {pagination.totalPages > 1 && (
+                <Card
+                  borderRadius="2xl"
+                  border="1px"
+                  borderColor="gray.200"
+                  bg="white"
+                  boxShadow="xl"
                 >
-                  السابقة
-                </Button>
-                <Text fontSize="sm">
-                  صفحة {pagination.currentPage} من {pagination.totalPages}
-                </Text>
-                <Button
-                  size="sm"
-                  isDisabled={
-                    pagination.currentPage === pagination.totalPages || loading
-                  }
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                >
-                  التالية
-                </Button>
-              </HStack>
+                  <CardBody>
+                    <HStack justify="flex-end" spacing={3}>
+                      <Button
+                        size="sm"
+                        fontWeight="medium"
+                        borderRadius="xl"
+                        h={8}
+                        isDisabled={pagination.currentPage === 1 || loading}
+                        isLoading={loading}
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        leftIcon={<Icon icon="solar:alt-arrow-right-bold-duotone" width="16" height="16" />}
+                      >
+                        السابقة
+                      </Button>
+                      <Text fontSize="sm">
+                        صفحة {pagination.currentPage} من {pagination.totalPages}
+                      </Text>
+                      <Button
+                        size="sm"
+                        fontWeight="medium"
+                        borderRadius="xl"
+                        h={8}
+                        isDisabled={
+                          pagination.currentPage === pagination.totalPages || loading
+                        }
+                        isLoading={loading}
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        rightIcon={<Icon icon="solar:alt-arrow-left-bold-duotone" width="16" height="16" />}
+                      >
+                        التالية
+                      </Button>
+                    </HStack>
+                  </CardBody>
+                </Card>
+              )}
             </Stack>
           </CardBody>
         </Card>
       </Stack>
-    </Box>
   );
 }
 
@@ -418,6 +582,30 @@ function StudentRow({ student, onUpdate }: { student: MyStudent; onUpdate: () =>
           )}
         </Td>
         <Td>
+          <HStack spacing={1}>
+            <Icon icon="solar:wallet-money-bold" width="14" height="14" color="#16a34a" />
+            <Text fontSize="sm" fontWeight="medium" color="green.600">
+              {student.wallet?.amount?.toLocaleString() || 0} ج.م
+            </Text>
+          </HStack>
+        </Td>
+        <Td>
+          <HStack spacing={1}>
+            <Icon icon="solar:trophy-bold" width="14" height="14" color="#f59e0b" />
+            <Text fontSize="sm" fontWeight="medium" color="yellow.600">
+              {student.leaderboardRank?.value?.toLocaleString() || 0} xp
+            </Text>
+          </HStack>
+        </Td>
+        <Td>
+          <HStack spacing={1}>
+            <Icon icon="solar:graph-up-bold" width="14" height="14" color="#6366f1" />
+            <Text fontSize="sm" fontWeight="medium" color="blue.600">
+              {student.level?.value?.toLocaleString() || 0} xp
+            </Text>
+          </HStack>
+        </Td>
+        <Td>
           <Badge colorScheme={student.gender === 'male' ? 'blue' : 'pink'}>
             {student.gender === 'male' ? 'ذكر' : 'أنثى'}
           </Badge>
@@ -429,6 +617,13 @@ function StudentRow({ student, onUpdate }: { student: MyStudent; onUpdate: () =>
           <Badge colorScheme={student.isActive ? 'green' : 'red'}>
             {student.isActive ? 'نشط' : 'غير نشط'}
           </Badge>
+        </Td>
+        <Td>
+          <Text fontSize="sm" color="gray.600">
+            {student.lastLogin
+              ? new Date(student.lastLogin).toLocaleDateString('ar-EG')
+              : '-'}
+          </Text>
         </Td>
         <Td>
           <Button size="sm" colorScheme="blue" onClick={handleOpenModal}>

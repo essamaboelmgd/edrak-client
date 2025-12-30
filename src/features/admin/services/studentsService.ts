@@ -30,6 +30,18 @@ export interface IStudentAdmin {
     isActive: boolean;
     isEmailVerified: boolean;
     isMobileVerified: boolean;
+    status?: "active" | "blocked" | "reviewing";
+    canUpdateInfo?: boolean;
+    wallet?: {
+        amount: number;
+    };
+    leaderboardRank?: {
+        value: number;
+    };
+    level?: {
+        value: number;
+    };
+    lastLogin?: string;
     parentInfo?: {
         parentName?: string;
         parentMobile?: string;
@@ -171,6 +183,106 @@ class StudentsService {
     async unblockUser(userId: string): Promise<ApiResponse<any>> {
         const response = await axiosInstance.post<ApiResponse<any>>(
             `/users/${userId}/unblock`
+        );
+        return response.data;
+    }
+
+    /**
+     * Manage wallet (Admin only)
+     */
+    async manageWallet(userId: string, amount: number, type: "deposit" | "withdraw"): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/manage-wallet`,
+            { userId, amount, type }
+        );
+        return response.data;
+    }
+
+    /**
+     * Change user status (Admin only)
+     */
+    async changeUserStatus(userId: string): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/${userId}/change-status`
+        );
+        return response.data;
+    }
+
+    /**
+     * Allow/Disallow modifications (Admin only)
+     */
+    async allowModifications(userId: string): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/${userId}/allow-modifications`
+        );
+        return response.data;
+    }
+
+    /**
+     * Change user activation (Admin only)
+     */
+    async changeUserActivation(userId: string): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/${userId}/change-activation`
+        );
+        return response.data;
+    }
+
+    /**
+     * Reset user level (Admin only)
+     */
+    async resetLevel(userId: string): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/${userId}/reset-level`
+        );
+        return response.data;
+    }
+
+    /**
+     * Reset user leaderboard rank (Admin only)
+     */
+    async resetRank(userId: string): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/${userId}/reset-rank`
+        );
+        return response.data;
+    }
+
+    /**
+     * Activate multiple users (Admin only)
+     */
+    async activateMultipleUsers(userIds: string[]): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/activate-multiple`,
+            { userIds }
+        );
+        return response.data;
+    }
+
+    /**
+     * Export students (Admin only)
+     */
+    async exportStudents(query?: {
+        user_type?: string;
+        search?: string;
+        status?: string;
+        city_id?: string;
+        state_id?: string;
+        educational_level?: string;
+        teacher_id?: string;
+    }): Promise<Blob> {
+        const params = new URLSearchParams();
+        if (query?.user_type) params.append('user_type', query.user_type);
+        if (query?.search) params.append('search', query.search);
+        if (query?.status) params.append('status', query.status);
+        if (query?.city_id) params.append('city_id', query.city_id);
+        if (query?.state_id) params.append('state_id', query.state_id);
+        if (query?.educational_level) params.append('educational_level', query.educational_level);
+        if (query?.teacher_id) params.append('teacher_id', query.teacher_id);
+
+        const response = await axiosInstance.get(
+            `/users/export?${params.toString()}`,
+            { responseType: 'blob' }
         );
         return response.data;
     }

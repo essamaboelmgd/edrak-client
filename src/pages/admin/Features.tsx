@@ -33,6 +33,11 @@ import {
   useDisclosure,
   Skeleton,
   Text,
+  SimpleGrid,
+  Stack,
+  Flex,
+  InputGroup,
+  InputLeftElement,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -234,141 +239,360 @@ export default function AdminFeatures() {
     }).format(amount);
   };
 
+  // Calculate stats
+  const stats = {
+    total: features.length,
+    essential: features.filter((f) => f.type === 'essential').length,
+    optional: features.filter((f) => f.type === 'optional').length,
+    active: features.filter((f) => f.isActive).length,
+  };
+
   return (
-    <Box p={6} dir="rtl">
-      <VStack spacing={6} align="stretch">
-        {/* Header */}
-        <HStack justify="space-between">
-          <Box>
-            <Heading as="h1" size="lg" mb={2}>
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, red.600 0%, pink.500 50%, purple.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
+
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
+        >
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:settings-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
               إدارة الميزات
-            </Heading>
-            <Text color="gray.600">إدارة ميزات المنصة وأسعارها</Text>
-          </Box>
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              إدارة ميزات المنصة وأسعارها ({stats.total} ميزة)
+            </Text>
+          </VStack>
           <Button
-            leftIcon={<Icon icon="solar:add-circle-bold" />}
-            colorScheme="red"
+            bg="white"
+            color="red.600"
+            _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
             onClick={onCreateOpen}
+            leftIcon={<Icon icon="solar:add-circle-bold-duotone" width="20" height="20" />}
+            size={{ base: 'md', md: 'lg' }}
+            borderRadius="xl"
+            shadow="md"
+            transition="all 0.3s"
           >
             إضافة ميزة جديدة
           </Button>
-        </HStack>
+        </Flex>
+      </Box>
 
-        {/* Filters */}
-        <HStack spacing={4}>
-          <Select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            width="200px"
-          >
-            <option value="all">جميع الأنواع</option>
-            <option value="essential">أساسية</option>
-            <option value="optional">اختيارية</option>
-          </Select>
-          <Select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            width="200px"
-          >
-            <option value="all">جميع الفئات</option>
-            {Object.entries(categoryLabels).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        </HStack>
-
-        {/* Table */}
-        <Card>
+      {/* Stats Cards */}
+      <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={{ base: 4, md: 6 }}>
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
           <CardBody>
-            <TableContainer>
-              <Table>
-                <Thead>
-                  <Tr>
-                    <Th>الاسم</Th>
-                    <Th>النوع</Th>
-                    <Th>الفئة</Th>
-                    <Th>السعر</Th>
-                    <Th>الخصم</Th>
-                    <Th>السعر النهائي</Th>
-                    <Th>الحالة</Th>
-                    <Th>الإجراءات</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {loading ? (
-                    Array.from({ length: 5 }).map((_, idx) => (
-                      <Tr key={idx}>
-                        {Array.from({ length: 8 }).map((_, i) => (
-                          <Td key={i}>
-                            <Skeleton height="20px" />
-                          </Td>
-                        ))}
-                      </Tr>
-                    ))
-                  ) : features.length === 0 ? (
-                    <Tr>
-                      <Td colSpan={8} textAlign="center">
-                        <Text color="gray.500">لا توجد ميزات</Text>
-                      </Td>
-                    </Tr>
-                  ) : (
-                    features.map((feature) => (
-                      <Tr key={feature._id}>
-                        <Td>
-                          <VStack align="start" spacing={0}>
-                            <Text fontWeight="bold">{feature.nameArabic}</Text>
-                            <Text fontSize="sm" color="gray.500">
-                              {feature.name}
-                            </Text>
-                          </VStack>
-                        </Td>
-                        <Td>
-                          <Badge
-                            colorScheme={feature.type === 'essential' ? 'green' : 'blue'}
-                          >
-                            {feature.type === 'essential' ? 'أساسية' : 'اختيارية'}
-                          </Badge>
-                        </Td>
-                        <Td>{categoryLabels[feature.category] || feature.category}</Td>
-                        <Td>{formatCurrency(feature.price)}</Td>
-                        <Td>{feature.discount}%</Td>
-                        <Td fontWeight="bold" color="green.500">
-                          {formatCurrency(feature.finalPrice)}
-                        </Td>
-                        <Td>
-                          <Badge colorScheme={feature.isActive ? 'green' : 'gray'}>
-                            {feature.isActive ? 'نشط' : 'غير نشط'}
-                          </Badge>
-                        </Td>
-                        <Td>
-                          <HStack spacing={2}>
-                            <IconButton
-                              aria-label="تعديل"
-                              icon={<Icon icon="solar:pen-bold" />}
-                              size="sm"
-                              colorScheme="blue"
-                              onClick={() => handleEdit(feature)}
-                            />
-                            <IconButton
-                              aria-label="حذف"
-                              icon={<Icon icon="solar:trash-bin-trash-bold" />}
-                              size="sm"
-                              colorScheme="red"
-                              onClick={() => handleDelete(feature._id)}
-                            />
-                          </HStack>
-                        </Td>
-                      </Tr>
-                    ))
-                  )}
-                </Tbody>
-              </Table>
-            </TableContainer>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي الميزات
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                  {stats.total}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  ميزة متاحة
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, red.400, red.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:settings-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
           </CardBody>
         </Card>
-      </VStack>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  الميزات الأساسية
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                  {stats.essential}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  ميزة أساسية
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, green.400, green.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:check-circle-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  الميزات الاختيارية
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="blue.600">
+                  {stats.optional}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  ميزة اختيارية
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, blue.400, blue.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:star-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  الميزات النشطة
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="purple.600">
+                  {stats.active}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  ميزة نشطة
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, purple.400, purple.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:power-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
+
+      {/* Filters Section */}
+      <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+        <CardBody>
+          <Flex direction={{ base: 'column', md: 'row' }} gap={4}>
+            <Select
+              w={{ base: '100%', md: '200px' }}
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              bg="white"
+            >
+              <option value="all">جميع الأنواع</option>
+              <option value="essential">أساسية</option>
+              <option value="optional">اختيارية</option>
+            </Select>
+            <Select
+              w={{ base: '100%', md: '200px' }}
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              bg="white"
+            >
+              <option value="all">جميع الفئات</option>
+              {Object.entries(categoryLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </Flex>
+        </CardBody>
+      </Card>
+
+      {/* Table Section */}
+      <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+        <CardBody>
+          <TableContainer>
+            <Table colorScheme="gray" rounded={10}>
+              <Thead>
+                <Tr>
+                  <Th>الاسم</Th>
+                  <Th>النوع</Th>
+                  <Th>الفئة</Th>
+                  <Th>السعر</Th>
+                  <Th>الخصم</Th>
+                  <Th>السعر النهائي</Th>
+                  <Th>الحالة</Th>
+                  <Th>الإجراءات</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <Tr key={idx}>
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <Td key={i}>
+                          <Skeleton height="20px" />
+                        </Td>
+                      ))}
+                    </Tr>
+                  ))
+                ) : features.length === 0 ? (
+                  <Tr>
+                    <Td colSpan={8} textAlign="center" py={8}>
+                      <VStack spacing={2}>
+                        <Icon icon="solar:settings-bold-duotone" width="48" height="48" color="gray.300" />
+                        <Text color="gray.500" fontSize="sm" fontWeight="medium">
+                          لا توجد ميزات
+                        </Text>
+                      </VStack>
+                    </Td>
+                  </Tr>
+                ) : (
+                  features.map((feature) => (
+                    <Tr key={feature._id}>
+                      <Td>
+                        <VStack align="start" spacing={0}>
+                          <Text fontWeight="bold" fontSize="sm">{feature.nameArabic}</Text>
+                          <Text fontSize="xs" color="gray.500">
+                            {feature.name}
+                          </Text>
+                        </VStack>
+                      </Td>
+                      <Td>
+                        <Badge
+                          colorScheme={feature.type === 'essential' ? 'green' : 'blue'}
+                        >
+                          {feature.type === 'essential' ? 'أساسية' : 'اختيارية'}
+                        </Badge>
+                      </Td>
+                      <Td fontSize="sm" fontWeight="medium">{categoryLabels[feature.category] || feature.category}</Td>
+                      <Td fontSize="sm" fontWeight="medium">{formatCurrency(feature.price)}</Td>
+                      <Td fontSize="sm" fontWeight="medium">{feature.discount}%</Td>
+                      <Td fontWeight="bold" color="green.500" fontSize="sm">
+                        {formatCurrency(feature.finalPrice)}
+                      </Td>
+                      <Td>
+                        <Badge colorScheme={feature.isActive ? 'green' : 'gray'}>
+                          {feature.isActive ? 'نشط' : 'غير نشط'}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <HStack spacing={2}>
+                          <IconButton
+                            aria-label="تعديل"
+                            icon={<Icon icon="solar:pen-bold-duotone" />}
+                            size="sm"
+                            colorScheme="blue"
+                            onClick={() => handleEdit(feature)}
+                            rounded={2}
+                            h={8}
+                          />
+                          <IconButton
+                            aria-label="حذف"
+                            icon={<Icon icon="solar:trash-bin-trash-bold-duotone" />}
+                            size="sm"
+                            colorScheme="red"
+                            onClick={() => handleDelete(feature._id)}
+                            rounded={2}
+                            h={8}
+                          />
+                        </HStack>
+                      </Td>
+                    </Tr>
+                  ))
+                )}
+              </Tbody>
+            </Table>
+          </TableContainer>
+        </CardBody>
+      </Card>
 
       {/* Create Modal */}
       <Modal isOpen={isCreateOpen} onClose={onCreateClose} size="xl">
@@ -681,7 +905,7 @@ export default function AdminFeatures() {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Box>
+    </Stack>
   );
 }
 

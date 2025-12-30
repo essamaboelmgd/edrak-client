@@ -1,5 +1,4 @@
-import { motion } from 'framer-motion';
-import { Users, Mail, Phone, MoreVertical, Edit, Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { Icon } from '@iconify-icon/react';
 import { IStudentAdmin } from '../services/studentsService';
 import {
   Table,
@@ -9,177 +8,240 @@ import {
   Th,
   Td,
   TableContainer,
-  Badge,
   HStack,
   VStack,
   Text,
-  IconButton,
-  Tooltip,
+  Checkbox,
+  Switch,
+  Card,
+  CardBody,
+  Avatar,
+  Button,
+  Stack,
 } from '@chakra-ui/react';
 
 interface StudentsTableProps {
   students: IStudentAdmin[];
   onViewDetails?: (student: IStudentAdmin) => void;
   onEdit?: (student: IStudentAdmin) => void;
+  onManageWallet?: (student: IStudentAdmin) => void;
+  onResetLevel?: (studentId: string) => void;
+  onResetRank?: (studentId: string) => void;
+  onChangeStatus?: (studentId: string) => void;
+  onAllowModifications?: (studentId: string) => void;
+  onToggleActivation?: (studentId: string) => void;
+  selectedStudents?: string[];
+  onSelectStudent?: (studentId: string) => void;
+  onSelectAll?: () => void;
   loading?: boolean;
 }
 
-export default function StudentsTable({ students, onViewDetails, onEdit, loading }: StudentsTableProps) {
+export default function StudentsTable({
+  students,
+  onViewDetails,
+  onManageWallet,
+  onResetLevel,
+  onResetRank,
+  onChangeStatus,
+  onAllowModifications,
+  onToggleActivation,
+  selectedStudents = [],
+  onSelectStudent,
+  onSelectAll,
+  loading,
+}: StudentsTableProps) {
+  const allSelected = students.length > 0 && selectedStudents.length === students.length;
+  const someSelected = selectedStudents.length > 0 && selectedStudents.length < students.length;
+
   if (loading) {
     return (
-      <TableContainer bg="white" borderRadius="2xl" shadow="lg" border="1px solid" borderColor="gray.100" p={12}>
-        <Text textAlign="center" color="gray.500">جاري التحميل...</Text>
-      </TableContainer>
+      <Card>
+        <CardBody>
+          <Text textAlign="center" color="gray.500" py={8}>
+            جاري التحميل...
+          </Text>
+        </CardBody>
+      </Card>
     );
   }
 
   if (students.length === 0) {
     return (
-      <TableContainer bg="white" borderRadius="2xl" shadow="lg" border="1px solid" borderColor="gray.100" p={12}>
-        <Text textAlign="center" color="gray.500">لا يوجد طلاب</Text>
-      </TableContainer>
+      <Card>
+        <CardBody>
+          <VStack py={12} spacing={4}>
+            <Icon
+              icon="solar:users-group-two-rounded-bold-duotone"
+              width="64"
+              height="64"
+              style={{ color: 'var(--chakra-colors-gray-300)' }}
+            />
+            <Text fontSize="lg" color="gray.500" fontWeight="medium">
+              لا يوجد طلاب
+            </Text>
+            <Text fontSize="sm" color="gray.400">
+              لا توجد نتائج مطابقة للبحث
+            </Text>
+          </VStack>
+        </CardBody>
+      </Card>
     );
   }
 
   return (
-    <TableContainer bg="white" borderRadius="2xl" shadow="lg" border="1px solid" borderColor="gray.100" overflowX="auto">
-      <Table variant="simple">
-        <Thead bg="gray.50" borderBottom="1px solid" borderColor="gray.200">
-          <Tr>
-            <Th textAlign="right" color="gray.700" fontWeight="semibold" fontSize="sm">الطالب</Th>
-            <Th textAlign="right" color="gray.700" fontWeight="semibold" fontSize="sm">البريد الإلكتروني</Th>
-            <Th textAlign="right" color="gray.700" fontWeight="semibold" fontSize="sm">رقم الموبايل</Th>
-            <Th textAlign="right" color="gray.700" fontWeight="semibold" fontSize="sm">المستوى التعليمي</Th>
-            <Th textAlign="right" color="gray.700" fontWeight="semibold" fontSize="sm">المدرسين</Th>
-            <Th textAlign="right" color="gray.700" fontWeight="semibold" fontSize="sm">الحالة</Th>
-            <Th textAlign="center" color="gray.700" fontWeight="semibold" fontSize="sm">الإجراءات</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {students.map((student, idx) => (
-            <motion.tr
-              key={student._id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              style={{ cursor: 'pointer' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f9fafb';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Td>
-                <HStack spacing={3}>
-                  <VStack
-                    w={12}
-                    h={12}
-                    borderRadius="xl"
-                    bgGradient="linear(to-br, blue.500, purple.500)"
-                    align="center"
-                    justify="center"
-                  >
-                    <Users className="text-white" size={20} />
-                  </VStack>
-                  <VStack align="start" spacing={0}>
-                    <Text fontWeight="bold" color="gray.800">{student.fullName}</Text>
-                    <Text fontSize="sm" color="gray.500">{student.governorate}</Text>
-                  </VStack>
-                </HStack>
-              </Td>
-              <Td>
-                <HStack spacing={2}>
-                  <Mail size={16} color="#9CA3AF" />
-                  <Text fontSize="sm" color="gray.700">{student.email}</Text>
-                </HStack>
-              </Td>
-              <Td>
-                <HStack spacing={2}>
-                  <Phone size={16} color="#9CA3AF" />
-                  <Text fontSize="sm" color="gray.700">{student.mobileNumber}</Text>
-                </HStack>
-              </Td>
-              <Td>
-                {student.educationalLevel ? (
-                  <Badge colorScheme="blue" px={3} py={1} borderRadius="lg">
-                    {student.educationalLevel.name}
-                  </Badge>
-                ) : (
-                  <Text fontSize="sm" color="gray.400">غير محدد</Text>
+    <Card>
+      <CardBody px={0}>
+        <TableContainer bg="white" rounded={10}>
+          <Table colorScheme="gray">
+            <Thead>
+              <Tr>
+                {onSelectStudent && (
+                  <Th>
+                    <Checkbox
+                      isChecked={allSelected}
+                      isIndeterminate={someSelected}
+                      onChange={onSelectAll}
+                    />
+                  </Th>
                 )}
-              </Td>
-              <Td>
-                {student.assignedTeachers && student.assignedTeachers.length > 0 ? (
-                  <VStack align="start" spacing={1}>
-                    {student.assignedTeachers.slice(0, 2).map((teacher) => (
-                      <Text key={teacher._id} fontSize="sm" color="gray.700">
-                        {teacher.fullName}
-                      </Text>
-                    ))}
-                    {student.assignedTeachers.length > 2 && (
-                      <Text fontSize="xs" color="gray.500">
-                        +{student.assignedTeachers.length - 2} آخرين
-                      </Text>
-                    )}
-                  </VStack>
-                ) : (
-                  <Text fontSize="sm" color="gray.400">لا يوجد</Text>
-                )}
-              </Td>
-              <Td>
-                <Badge
-                  px={3}
-                  py={1}
-                  borderRadius="full"
-                  fontSize="xs"
-                  fontWeight="semibold"
-                  colorScheme={student.isActive ? 'green' : 'red'}
-                  display="flex"
-                  alignItems="center"
-                  gap={1}
-                  w="fit-content"
-                >
-                  {student.isActive ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                  {student.isActive ? 'نشط' : 'غير نشط'}
-                </Badge>
-              </Td>
-              <Td>
-                <HStack spacing={2} justify="center">
-                  <Tooltip label="عرض التفاصيل">
-                    <IconButton
-                      aria-label="عرض التفاصيل"
-                      icon={<Eye size={18} />}
-                      size="sm"
-                      colorScheme="blue"
-                      variant="ghost"
+                <Th>#</Th>
+                <Th>الاسم</Th>
+                <Th>البريد الالكتروني</Th>
+                <Th>رقم الموبايل</Th>
+                <Th>الرصيد</Th>
+                <Th>نقاط الترتيب LeaderBoard</Th>
+                <Th>المستوى</Th>
+                <Th>السماح بتعديل البيانات</Th>
+                <Th>حالة الحساب</Th>
+                <Th>تنشيط الحساب</Th>
+                <Th>اخر تسجيل دخول</Th>
+                <Th>تاريخ الانشاء</Th>
+                <Th>الاجراءات</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {students.map((student) => (
+                <Tr key={student._id}>
+                  {onSelectStudent && (
+                    <Td>
+                      <Checkbox
+                        isChecked={selectedStudents.includes(student._id)}
+                        onChange={() => onSelectStudent(student._id)}
+                      />
+                    </Td>
+                  )}
+                  <Td>{student._id.slice(-6)}</Td>
+                  <Td>
+                    <HStack
+                      color="blue"
+                      textDecoration="underline"
+                      _hover={{ textDecoration: 'none' }}
+                      cursor="pointer"
                       onClick={() => onViewDetails?.(student)}
-                    />
-                  </Tooltip>
-                  <Tooltip label="تعديل">
-                    <IconButton
-                      aria-label="تعديل"
-                      icon={<Edit size={18} />}
-                      size="sm"
-                      colorScheme="gray"
-                      variant="ghost"
-                      onClick={() => onEdit?.(student)}
-                    />
-                  </Tooltip>
-                  <IconButton
-                    aria-label="المزيد"
-                    icon={<MoreVertical size={18} />}
-                    size="sm"
-                    colorScheme="gray"
-                    variant="ghost"
-                  />
-                </HStack>
-              </Td>
-            </motion.tr>
-          ))}
-        </Tbody>
-      </Table>
-    </TableContainer>
+                    >
+                      <Avatar
+                        name={student.fullName}
+                        width={25}
+                        height={25}
+                        bg={student.isActive ? 'blue.500' : 'gray.400'}
+                      />
+                      <Text fontSize="small" fontWeight="medium">
+                        {student.fullName}
+                      </Text>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    <Text fontSize="small" fontWeight="medium" noOfLines={1}>
+                      {student.email}
+                    </Text>
+                  </Td>
+                  <Td isNumeric>
+                    <Text fontSize="small" fontWeight="medium" noOfLines={1} textAlign="start">
+                      {student.mobileNumber}
+                    </Text>
+                  </Td>
+                  <Td>{student.wallet?.amount || 0} ج.م</Td>
+                  <Td>{student.leaderboardRank?.value || 0}xp</Td>
+                  <Td>{student.level?.value || 0}xp</Td>
+                  <Td>
+                    {onAllowModifications && (
+                      <Switch
+                        isChecked={student.canUpdateInfo || false}
+                        onChange={() => onAllowModifications(student._id)}
+                      />
+                    )}
+                  </Td>
+                  <Td>
+                    {onChangeStatus && (
+                      <Switch
+                        isChecked={student.status === 'active'}
+                        onChange={() => onChangeStatus(student._id)}
+                      />
+                    )}
+                  </Td>
+                  <Td>
+                    {onToggleActivation && (
+                      <Switch
+                        isChecked={student.isActive}
+                        onChange={() => onToggleActivation(student._id)}
+                      />
+                    )}
+                  </Td>
+                  <Td>
+                    <Text>{student.lastLogin ? student.lastLogin.substring(0, 10) : '-'}</Text>
+                  </Td>
+                  <Td>
+                    <Text>{student.createdAt ? student.createdAt.substring(0, 10) : '-'}</Text>
+                  </Td>
+                  <Td>
+                    <Stack direction="row">
+                      {onManageWallet && (
+                        <Button
+                          fontWeight="medium"
+                          size="sm"
+                          h={8}
+                          colorScheme="blue"
+                          rounded={2}
+                          onClick={() => onManageWallet(student)}
+                          gap={1.5}
+                        >
+                          <Text fontSize="smaller">المحفظة</Text>
+                        </Button>
+                      )}
+                      {onResetRank && (
+                        <Button
+                          fontWeight="medium"
+                          size="sm"
+                          h={8}
+                          colorScheme="blue"
+                          rounded={2}
+                          onClick={() => onResetRank(student._id)}
+                          gap={1.5}
+                        >
+                          <Text fontSize="smaller">إعادة تعيين الترتيب</Text>
+                        </Button>
+                      )}
+                      {onResetLevel && (
+                        <Button
+                          fontWeight="medium"
+                          size="sm"
+                          h={8}
+                          colorScheme="blue"
+                          rounded={2}
+                          onClick={() => onResetLevel(student._id)}
+                          gap={1.5}
+                        >
+                          <Text fontSize="smaller">إعادة تعيين المستويات</Text>
+                        </Button>
+                      )}
+                    </Stack>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </CardBody>
+    </Card>
   );
 }
-

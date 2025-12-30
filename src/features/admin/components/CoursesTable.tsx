@@ -1,7 +1,23 @@
-import { motion } from 'framer-motion';
-import { BookOpen, Users, Coins, Edit, Eye, MoreVertical } from 'lucide-react';
+import { Icon } from '@iconify-icon/react';
 import { ICourseAdmin } from '../services/coursesService';
 import { getImageUrl } from '@/lib/axios';
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Badge,
+  HStack,
+  VStack,
+  Text,
+  Card,
+  CardBody,
+  Image,
+  Box,
+} from '@chakra-ui/react';
 
 interface CoursesTableProps {
   courses: ICourseAdmin[];
@@ -14,157 +30,211 @@ export default function CoursesTable({ courses, onViewDetails, onEdit, loading }
   const getStatusBadge = (course: ICourseAdmin) => {
     if (course.status === 'active' || course.status === 'published') {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+        <Badge colorScheme="green" fontSize="xs" px={2} py={1} borderRadius="full">
           نشط
-        </span>
+        </Badge>
       );
     }
     if (course.status === 'draft') {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+        <Badge colorScheme="orange" fontSize="xs" px={2} py={1} borderRadius="full">
           مسودة
-        </span>
+        </Badge>
       );
     }
     return (
-      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+      <Badge colorScheme="red" fontSize="xs" px={2} py={1} borderRadius="full">
         معطل
-      </span>
+      </Badge>
     );
   };
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
-        <div className="text-center text-gray-500">جاري التحميل...</div>
-      </div>
+      <Card>
+        <CardBody>
+          <Text textAlign="center" color="gray.500" py={8}>
+            جاري التحميل...
+          </Text>
+        </CardBody>
+      </Card>
     );
   }
 
   if (courses.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
-        <div className="text-center text-gray-500">لا يوجد كورسات</div>
-      </div>
+      <Card>
+        <CardBody>
+          <VStack py={12} spacing={4}>
+            <Icon
+              icon="solar:inbox-line-bold-duotone"
+              width="64"
+              height="64"
+              style={{ color: 'var(--chakra-colors-gray-300)' }}
+            />
+            <Text fontSize="lg" color="gray.500" fontWeight="medium">
+              لا توجد كورسات
+            </Text>
+            <Text fontSize="sm" color="gray.400">
+              لا توجد نتائج مطابقة للبحث
+            </Text>
+          </VStack>
+        </CardBody>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الكورس</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المدرس</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المرحلة</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الطلاب</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الدروس</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">السعر</th>
-              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {courses.map((course, idx) => (
-              <motion.tr
-                key={course._id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    {course.poster || course.thumbnail ? (
-                      <img
-                        src={getImageUrl(course.poster || course.thumbnail!)}
-                        alt={course.title}
-                        className="w-12 h-12 rounded-xl object-cover"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                        <BookOpen className="text-white" size={20} />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-bold text-gray-800">{course.title}</p>
-                      <p className="text-sm text-gray-500 line-clamp-1">
-                        {course.description || 'لا يوجد وصف'}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div>
-                    <p className="font-medium text-gray-800">{course.teacher.fullName}</p>
-                    <p className="text-sm text-gray-500">{course.teacher.email}</p>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-sm text-gray-700">
-                    {course.educationalLevel.name || course.educationalLevel.shortName}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  {getStatusBadge(course)}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Users size={16} />
-                    <span className="font-medium">{course.stats.totalStudents}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <BookOpen size={16} />
-                    <span className="font-medium">{course.stats.totalLessons}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {course.isFree ? (
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                        مجاني
-                      </span>
-                    ) : (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                        <Coins size={16} className="text-green-600" />
-                        <span className="font-bold text-green-700">
-                          {course.finalPrice.toLocaleString()}
-                        </span>
-                        <span className="text-sm font-semibold text-green-600">ج.م</span>
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <button
+    <Card>
+      <CardBody px={0}>
+        <TableContainer bg="white" rounded={10}>
+          <Table colorScheme="gray">
+            <Thead>
+              <Tr>
+                <Th>الكورس</Th>
+                <Th>المدرس</Th>
+                <Th>المرحلة</Th>
+                <Th>الحالة</Th>
+                <Th>الطلاب</Th>
+                <Th>الدروس</Th>
+                <Th>السعر</Th>
+                <Th>الإجراءات</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {courses.map((course) => (
+                <Tr key={course._id}>
+                  <Td>
+                    <HStack
+                      spacing={3}
+                      color="blue"
+                      textDecoration="underline"
+                      _hover={{ textDecoration: 'none' }}
+                      cursor="pointer"
                       onClick={() => onViewDetails?.(course)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="عرض التفاصيل"
                     >
-                      <Eye size={18} />
-                    </button>
-                    <button
-                      onClick={() => onEdit?.(course)}
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                      title="تعديل"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                      <MoreVertical size={18} />
-                    </button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                      {course.poster || course.thumbnail ? (
+                        <Image
+                          src={getImageUrl(course.poster || course.thumbnail!)}
+                          alt={course.title}
+                          w={12}
+                          h={12}
+                          borderRadius="xl"
+                          objectFit="cover"
+                        />
+                      ) : (
+                        <Box
+                          w={12}
+                          h={12}
+                          borderRadius="xl"
+                          bgGradient="linear(to-br, green.500, teal.500)"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Icon
+                            icon="solar:book-bold-duotone"
+                            width="24"
+                            height="24"
+                            style={{ color: 'white' }}
+                          />
+                        </Box>
+                      )}
+                      <VStack align="start" spacing={0}>
+                        <Text fontSize="small" fontWeight="bold" color="gray.800">
+                          {course.title}
+                        </Text>
+                        <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                          {course.description || 'لا يوجد وصف'}
+                        </Text>
+                      </VStack>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    <VStack align="start" spacing={0}>
+                      <Text fontSize="small" fontWeight="medium" color="gray.800">
+                        {course.teacher.fullName}
+                      </Text>
+                      <Text fontSize="xs" color="gray.500">
+                        {course.teacher.email}
+                      </Text>
+                    </VStack>
+                  </Td>
+                  <Td>
+                    <Text fontSize="small" color="gray.700">
+                      {course.educationalLevel?.name || course.educationalLevel?.shortName || '-'}
+                    </Text>
+                  </Td>
+                  <Td>{getStatusBadge(course)}</Td>
+                  <Td>
+                    <HStack spacing={1}>
+                      <Icon
+                        icon="solar:users-group-rounded-bold-duotone"
+                        width="16"
+                        height="16"
+                        style={{ color: 'var(--chakra-colors-gray-500)' }}
+                      />
+                      <Text fontSize="small" fontWeight="medium">
+                        {course.stats?.totalStudents || 0}
+                      </Text>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    <HStack spacing={1}>
+                      <Icon
+                        icon="solar:play-circle-bold-duotone"
+                        width="16"
+                        height="16"
+                        style={{ color: 'var(--chakra-colors-gray-500)' }}
+                      />
+                      <Text fontSize="small" fontWeight="medium">
+                        {course.stats?.totalLessons || 0}
+                      </Text>
+                    </HStack>
+                  </Td>
+                  <Td>
+                    {course.isFree ? (
+                      <Badge colorScheme="blue" fontSize="xs" px={2} py={1} borderRadius="full">
+                        مجاني
+                      </Badge>
+                    ) : (
+                      <HStack spacing={1}>
+                        <Icon
+                          icon="solar:dollar-minimalistic-bold-duotone"
+                          width="16"
+                          height="16"
+                          style={{ color: 'var(--chakra-colors-green-500)' }}
+                        />
+                        <Text fontSize="small" fontWeight="bold" color="green.600">
+                          {course.finalPrice?.toLocaleString() || course.price?.toLocaleString() || 0} ج.م
+                        </Text>
+                      </HStack>
+                    )}
+                  </Td>
+                  <Td>
+                    <HStack spacing={1} justify="center">
+                      <Icon
+                        icon="solar:eye-bold-duotone"
+                        width="18"
+                        height="18"
+                        style={{ color: 'var(--chakra-colors-blue-500)', cursor: 'pointer' }}
+                        onClick={() => onViewDetails?.(course)}
+                      />
+                      <Icon
+                        icon="solar:pen-bold-duotone"
+                        width="18"
+                        height="18"
+                        style={{ color: 'var(--chakra-colors-gray-500)', cursor: 'pointer' }}
+                        onClick={() => onEdit?.(course)}
+                      />
+                    </HStack>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
+      </CardBody>
+    </Card>
   );
 }
-

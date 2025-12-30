@@ -204,6 +204,68 @@ class UserService {
         }>>(`${this.BASE_PATH}/teacher/statistics`);
         return response.data;
     }
+
+    /**
+     * Get admin summary/dashboard (Admin only)
+     */
+    async getAdminSummary(): Promise<ApiResponse<{
+        result: {
+            total_courses_count: number;
+            total_users_count: number;
+            total_students_count: number;
+            total_subscriptions_count: number;
+            total_sales_amount: number;
+            total_subscriptions_amount: number;
+            total_transactions_amount: number;
+            top_ten_courses: Array<{
+                id: string;
+                title: string;
+                subscribers_count: number;
+                teacher: string;
+            }>;
+            recent_users: Array<{
+                id: string;
+                full_name: string;
+                first_name: string;
+                middle_name: string;
+                last_name: string;
+                email: string;
+                mobile: string;
+                photo: string;
+                created_at: string;
+            }>;
+        };
+    }>> {
+        const response = await axiosInstance.get<ApiResponse<{
+            result: {
+                total_courses_count: number;
+                total_users_count: number;
+                total_students_count: number;
+                total_subscriptions_count: number;
+                total_sales_amount: number;
+                total_subscriptions_amount: number;
+                total_transactions_amount: number;
+                top_ten_courses: Array<{
+                    id: string;
+                    title: string;
+                    subscribers_count: number;
+                    teacher: string;
+                }>;
+                recent_users: Array<{
+                    id: string;
+                    full_name: string;
+                    first_name: string;
+                    middle_name: string;
+                    last_name: string;
+                    email: string;
+                    mobile: string;
+                    photo: string;
+                    created_at: string;
+                }>;
+            };
+        }>>(`${this.BASE_PATH}/admin/summary`);
+        return response.data;
+    }
 }
 
 // Export singleton instance

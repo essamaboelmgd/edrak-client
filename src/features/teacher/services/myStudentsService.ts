@@ -17,6 +17,16 @@ export interface MyStudent {
     fullName: string;
   }>;
   isActive: boolean;
+  wallet?: {
+    amount: number;
+  };
+  leaderboardRank?: {
+    value: number;
+  };
+  level?: {
+    value: number;
+  };
+  lastLogin?: string;
   createdAt: string;
 }
 

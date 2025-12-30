@@ -32,6 +32,10 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  SimpleGrid,
+  VStack,
+  Flex,
+  Center,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import examService from '@/features/teacher/services/examService';
@@ -51,6 +55,14 @@ export default function TeacherExams() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [courses, setCourses] = useState<any[]>([]);
+
+  // Calculate stats
+  const stats = {
+    total,
+    published: exams.filter(e => e.status === 'published').length,
+    draft: exams.filter(e => e.status === 'draft').length,
+    totalAttempts: exams.reduce((sum, e) => sum + (e.stats?.totalAttempts || 0), 0),
+  };
 
 
   const fetchExams = async () => {
@@ -158,10 +170,257 @@ export default function TeacherExams() {
   };
 
   return (
-    <Box p={6} dir="rtl">
-      <Stack spacing={6}>
-        <Wrap>
-          <WrapItem>
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, blue.600 0%, indigo.500 50%, purple.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
+
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
+        >
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:document-text-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              الامتحانات
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              عرض وإدارة {total} امتحان على المنصة
+            </Text>
+          </VStack>
+          <CreateExam
+            onSuccess={fetchExams}
+            trigger={
+              <Button
+                bg="white"
+                color="blue.600"
+                _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+                leftIcon={<Icon icon="solar:document-add-bold-duotone" width="20" height="20" />}
+                size={{ base: 'md', md: 'lg' }}
+                borderRadius="xl"
+                shadow="md"
+                transition="all 0.3s"
+              >
+                إضافة امتحان جديد
+              </Button>
+            }
+          />
+        </Flex>
+      </Box>
+
+      {/* Stats Cards */}
+      <SimpleGrid columns={{ base: 2, sm: 4 }} spacing={{ base: 4, md: 6 }}>
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي الامتحانات
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                  {stats.total}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  امتحان مسجل
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, blue.400, blue.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:document-text-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  منشور
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                  {stats.published}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  امتحان منشور
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, green.400, green.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:check-circle-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  مسودة
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="orange.600">
+                  {stats.draft}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  امتحان مسودة
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, orange.400, orange.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:document-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي المحاولات
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="purple.600">
+                  {stats.totalAttempts}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  محاولة
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, purple.400, purple.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:users-group-rounded-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
+
+      {/* Filters */}
+      <Card
+        borderRadius="2xl"
+        border="1px"
+        borderColor="gray.200"
+        bg="white"
+        boxShadow="xl"
+      >
+        <CardBody>
+          <Flex
+            direction={{ base: 'column', md: 'row' }}
+            gap={4}
+            align={{ base: 'stretch', md: 'center' }}
+            wrap="wrap"
+          >
+            <InputGroup flex={1} minW={{ base: '100%', md: '200px' }}>
+              <InputLeftElement pointerEvents="none">
+                <Icon icon="solar:magnifer-bold-duotone" width="18" height="18" />
+              </InputLeftElement>
+              <Input
+                placeholder="بحث..."
+                bg="white"
+                defaultValue={searchParams.get('search') || ''}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch((e.target as HTMLInputElement).value);
+                  }
+                }}
+              />
+            </InputGroup>
+
             <Select
               bg="white"
               value={searchParams.get('course') || 'all'}
@@ -177,6 +436,7 @@ export default function TeacherExams() {
                 });
               }}
               placeholder="الكورسات"
+              minW={{ base: '100%', md: '200px' }}
             >
               <option value="all">جميع الكورسات</option>
               {courses.map((course) => (
@@ -185,8 +445,7 @@ export default function TeacherExams() {
                 </option>
               ))}
             </Select>
-          </WrapItem>
-          <WrapItem>
+
             <Select
               bg="white"
               value={searchParams.get('examType') || ''}
@@ -202,13 +461,13 @@ export default function TeacherExams() {
                 });
               }}
               placeholder="نوع الامتحان"
+              minW={{ base: '100%', md: '150px' }}
             >
               <option value="general">عام</option>
               <option value="course">كورس</option>
               <option value="lesson">درس</option>
             </Select>
-          </WrapItem>
-          <WrapItem>
+
             <Select
               bg="white"
               value={searchParams.get('status') || ''}
@@ -224,53 +483,36 @@ export default function TeacherExams() {
                 });
               }}
               placeholder="الحالة"
+              minW={{ base: '100%', md: '150px' }}
             >
               <option value="draft">مسودة</option>
               <option value="published">منشور</option>
               <option value="archived">مؤرشف</option>
             </Select>
-          </WrapItem>
-        </Wrap>
+          </Flex>
+        </CardBody>
+      </Card>
 
-        <Card>
-          <CardBody>
-            <Stack spacing={4}>
-              <HStack justify="space-between" flexWrap="wrap">
-                <Stack>
-                  <Heading fontSize="xl">الامتحانات</Heading>
-                  <Text fontSize="sm" color="gray.500">
-                    النتائج {page} / {totalPages} من {total}
-                  </Text>
-                </Stack>
-                <Spacer />
-                <HStack>
-                  <InputGroup size="sm" w={{ base: '100%', sm: '200px' }}>
-                    <InputLeftElement pointerEvents="none">
-                      <Icon icon="lucide:search" width="15" height="15" />
-                    </InputLeftElement>
-                    <Input
-                      placeholder="بحث..."
-                      bg="white"
-                      defaultValue={searchParams.get('search') || ''}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSearch((e.target as HTMLInputElement).value);
-                        }
-                      }}
-                    />
-                  </InputGroup>
-                  <CreateExam
-                    onSuccess={fetchExams}
-                    trigger={
-                      <Button colorScheme="blue" size="sm">
-                        + امتحان جديد
-                      </Button>
-                    }
-                  />
-                </HStack>
-              </HStack>
+      {/* Table */}
+      <Card
+        borderRadius="2xl"
+        border="1px"
+        borderColor="gray.200"
+        bg="white"
+        boxShadow="xl"
+      >
+        <CardBody>
+          <Stack spacing={4}>
+            <HStack justify="space-between" flexWrap="wrap">
+              <Stack>
+                <Heading fontSize="xl">الامتحانات</Heading>
+                <Text fontSize="sm" color="gray.500">
+                  النتائج {page} / {totalPages} من {total}
+                </Text>
+              </Stack>
+            </HStack>
 
-              <TableContainer bg="white" rounded={10}>
+            <TableContainer bg="white" rounded={10}>
                 <Table>
                   <Thead>
                     <Tr>
@@ -300,8 +542,20 @@ export default function TeacherExams() {
                       ))
                     ) : exams.length === 0 ? (
                       <Tr>
-                        <Td colSpan={11} textAlign="center">
-                          لا توجد بيانات للعرض
+                        <Td colSpan={11} textAlign="center" py={12}>
+                          <VStack spacing={4}>
+                            <Box>
+                              <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
+                            </Box>
+                            <VStack spacing={2}>
+                              <Text fontSize="lg" fontWeight="bold" color="gray.600">
+                                لا توجد بيانات للعرض
+                              </Text>
+                              <Text fontSize="sm" color="gray.500">
+                                ليس هناك نتائج لعرضها
+                              </Text>
+                            </VStack>
+                          </VStack>
                         </Td>
                       </Tr>
                     ) : (
@@ -396,39 +650,54 @@ export default function TeacherExams() {
                 </Table>
               </TableContainer>
 
-              <HStack justify="flex-end" px={4}>
-                <Button
-                  size="sm"
-                  isDisabled={isFetching || loading || page >= totalPages}
-                  isLoading={loading || isFetching}
-                  onClick={() => {
-                    setSearchParams(prev => {
-                      prev.set('page', (page + 1).toString());
-                      return prev;
-                    });
-                  }}
-                >
-                  التالية
-                </Button>
-                <Button
-                  size="sm"
-                  isDisabled={isFetching || loading || page === 1}
-                  isLoading={loading || isFetching}
-                  onClick={() => {
-                    setSearchParams(prev => {
-                      prev.set('page', (page - 1).toString());
-                      return prev;
-                    });
-                  }}
-                >
-                  السابقة
-                </Button>
-              </HStack>
+              <Card
+                borderRadius="2xl"
+                border="1px"
+                borderColor="gray.200"
+                bg="white"
+                boxShadow="xl"
+              >
+                <CardBody>
+                  <HStack justify="flex-end" spacing={3}>
+                    <Button
+                      size="sm"
+                      fontWeight="medium"
+                      borderRadius="xl"
+                      h={8}
+                      isDisabled={isFetching || loading || page >= totalPages}
+                      isLoading={loading || isFetching}
+                      onClick={() => {
+                        setSearchParams(prev => {
+                          prev.set('page', (page + 1).toString());
+                          return prev;
+                        });
+                      }}
+                    >
+                      التالية
+                    </Button>
+                    <Button
+                      size="sm"
+                      fontWeight="medium"
+                      borderRadius="xl"
+                      h={8}
+                      isDisabled={isFetching || loading || page === 1}
+                      isLoading={loading || isFetching}
+                      onClick={() => {
+                        setSearchParams(prev => {
+                          prev.set('page', (page - 1).toString());
+                          return prev;
+                        });
+                      }}
+                    >
+                      السابقة
+                    </Button>
+                  </HStack>
+                </CardBody>
+              </Card>
             </Stack>
           </CardBody>
         </Card>
       </Stack>
-    </Box>
   );
 }
 

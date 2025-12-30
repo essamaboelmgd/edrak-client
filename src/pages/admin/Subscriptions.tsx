@@ -31,7 +31,13 @@ import {
   Skeleton,
   Text,
   Divider,
+  SimpleGrid,
+  Stack,
+  Flex,
+  InputGroup,
+  InputLeftElement,
 } from '@chakra-ui/react';
+import { Icon } from '@iconify-icon/react';
 import {
   subscriptionsService,
   UpdatePaymentStatusData,
@@ -181,154 +187,420 @@ export default function AdminSubscriptions() {
     return planMap[plan] || plan;
   };
 
+  // Calculate stats
+  const stats = {
+    total: subscriptions.length,
+    active: subscriptions.filter((s) => s.status === 'active').length,
+    expired: subscriptions.filter((s) => s.status === 'expired').length,
+    paid: subscriptions.filter((s) => s.paymentStatus === 'paid').length,
+    pending: subscriptions.filter((s) => s.paymentStatus === 'pending').length,
+  };
+
   return (
-    <Box p={6} dir="rtl">
-      <VStack spacing={6} align="stretch">
-        {/* Header */}
-        <Box>
-          <Heading as="h1" size="lg" mb={2}>
-            إدارة اشتراكات المدرسين
-          </Heading>
-          <Text color="gray.600">عرض وإدارة جميع اشتراكات المدرسين</Text>
-        </Box>
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, indigo.600 0%, purple.500 50%, pink.400 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
 
-        {/* Filters */}
-        <HStack spacing={4}>
-          <Select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            width="200px"
-          >
-            <option value="all">جميع الحالات</option>
-            <option value="active">نشط</option>
-            <option value="expired">منتهي</option>
-            <option value="cancelled">ملغي</option>
-            <option value="suspended">معلق</option>
-          </Select>
-          <Select
-            value={paymentStatusFilter}
-            onChange={(e) => setPaymentStatusFilter(e.target.value)}
-            width="200px"
-          >
-            <option value="all">جميع حالات الدفع</option>
-            <option value="pending">قيد الانتظار</option>
-            <option value="paid">مدفوع</option>
-            <option value="failed">فشل</option>
-            <option value="refunded">مسترد</option>
-          </Select>
-        </HStack>
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
+        >
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:card-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                إدارة المنصة
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              إدارة اشتراكات المدرسين
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              عرض وإدارة جميع اشتراكات المدرسين
+            </Text>
+          </VStack>
+        </Flex>
+      </Box>
 
-        {/* Table */}
-        <Card>
+      {/* Stats Cards */}
+      <SimpleGrid columns={{ base: 1, sm: 2, lg: 5 }} spacing={{ base: 4, md: 6 }}>
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
           <CardBody>
-            <TableContainer>
-              <Table>
-                <Thead>
-                  <Tr>
-                    <Th>المدرس</Th>
-                    <Th>الخطة</Th>
-                    <Th>المميزات</Th>
-                    <Th>السعر النهائي</Th>
-                    <Th>حالة الاشتراك</Th>
-                    <Th>حالة الدفع</Th>
-                    <Th>تاريخ البدء</Th>
-                    <Th>تاريخ الانتهاء</Th>
-                    <Th>الإجراءات</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {loading ? (
-                    Array.from({ length: 5 }).map((_, idx) => (
-                      <Tr key={idx}>
-                        {Array.from({ length: 9 }).map((_, i) => (
-                          <Td key={i}>
-                            <Skeleton height="20px" />
-                          </Td>
-                        ))}
-                      </Tr>
-                    ))
-                  ) : subscriptions.length === 0 ? (
-                    <Tr>
-                      <Td colSpan={9} textAlign="center">
-                        <Text color="gray.500">لا توجد اشتراكات</Text>
-                      </Td>
-                    </Tr>
-                  ) : (
-                    subscriptions.map((subscription) => (
-                      <Tr key={subscription._id}>
-                        <Td>
-                          <VStack align="start" spacing={0}>
-                            <Text fontWeight="bold">
-                              {subscription.teacher.fullName}
-                            </Text>
-                            <Text fontSize="sm" color="gray.500">
-                              {subscription.teacher.email}
-                            </Text>
-                          </VStack>
-                        </Td>
-                        <Td>{getPlanLabel(subscription.plan)}</Td>
-                        <Td>
-                          <Text fontSize="sm">
-                            {subscription.selectedFeatures.length} ميزة
-                          </Text>
-                        </Td>
-                        <Td fontWeight="bold" color="green.500">
-                          {formatCurrency(subscription.finalPrice)}
-                        </Td>
-                        <Td>{getStatusBadge(subscription.status)}</Td>
-                        <Td>{getPaymentStatusBadge(subscription.paymentStatus)}</Td>
-                        <Td>{formatDate(subscription.startDate)}</Td>
-                        <Td>{formatDate(subscription.endDate)}</Td>
-                        <Td>
-                          <HStack spacing={2}>
-                            <Button
-                              size="sm"
-                              colorScheme="blue"
-                              onClick={() => handleViewDetails(subscription)}
-                            >
-                              التفاصيل
-                            </Button>
-                            {subscription.paymentStatus === 'pending' && (
-                              <Button
-                                size="sm"
-                                colorScheme="green"
-                                onClick={() => handleMarkAsPaid(subscription)}
-                              >
-                                قبول الدفع
-                              </Button>
-                            )}
-                          </HStack>
-                        </Td>
-                      </Tr>
-                    ))
-                  )}
-                </Tbody>
-              </Table>
-            </TableContainer>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي الاشتراكات
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                  {stats.total}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  اشتراك متاح
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, indigo.400, indigo.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:card-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
           </CardBody>
         </Card>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <HStack justify="center" spacing={4}>
-            <Button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  الاشتراكات النشطة
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                  {stats.active}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  اشتراك نشط
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, green.400, green.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:check-circle-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  الاشتراكات المنتهية
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="orange.600">
+                  {stats.expired}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  اشتراك منتهي
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, orange.400, orange.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:calendar-mark-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  المدفوعة
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                  {stats.paid}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  اشتراك مدفوع
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, green.400, green.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:wallet-money-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  قيد الانتظار
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="yellow.600">
+                  {stats.pending}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  اشتراك معلق
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, yellow.400, yellow.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:hourglass-line-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
+
+      {/* Filters Section */}
+      <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+        <CardBody>
+          <Flex direction={{ base: 'column', md: 'row' }} gap={4}>
+            <Select
+              w={{ base: '100%', md: '200px' }}
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              bg="white"
             >
-              السابق
-            </Button>
-            <Text>
-              صفحة {page} من {totalPages}
-            </Text>
-            <Button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
+              <option value="all">جميع الحالات</option>
+              <option value="active">نشط</option>
+              <option value="expired">منتهي</option>
+              <option value="cancelled">ملغي</option>
+              <option value="suspended">معلق</option>
+            </Select>
+            <Select
+              w={{ base: '100%', md: '200px' }}
+              value={paymentStatusFilter}
+              onChange={(e) => setPaymentStatusFilter(e.target.value)}
+              bg="white"
             >
-              التالي
-            </Button>
-          </HStack>
-        )}
-      </VStack>
+              <option value="all">جميع حالات الدفع</option>
+              <option value="pending">قيد الانتظار</option>
+              <option value="paid">مدفوع</option>
+              <option value="failed">فشل</option>
+              <option value="refunded">مسترد</option>
+            </Select>
+          </Flex>
+        </CardBody>
+      </Card>
+
+      {/* Table Section */}
+      <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+        <CardBody>
+          <TableContainer>
+            <Table colorScheme="gray" rounded={10}>
+              <Thead>
+                <Tr>
+                  <Th>المدرس</Th>
+                  <Th>الخطة</Th>
+                  <Th>المميزات</Th>
+                  <Th>السعر النهائي</Th>
+                  <Th>حالة الاشتراك</Th>
+                  <Th>حالة الدفع</Th>
+                  <Th>تاريخ البدء</Th>
+                  <Th>تاريخ الانتهاء</Th>
+                  <Th>الإجراءات</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <Tr key={idx}>
+                      {Array.from({ length: 9 }).map((_, i) => (
+                        <Td key={i}>
+                          <Skeleton height="20px" />
+                        </Td>
+                      ))}
+                    </Tr>
+                  ))
+                ) : subscriptions.length === 0 ? (
+                  <Tr>
+                    <Td colSpan={9} textAlign="center" py={8}>
+                      <VStack spacing={2}>
+                        <Icon icon="solar:card-bold-duotone" width="48" height="48" color="gray.300" />
+                        <Text color="gray.500" fontSize="sm" fontWeight="medium">
+                          لا توجد اشتراكات
+                        </Text>
+                      </VStack>
+                    </Td>
+                  </Tr>
+                ) : (
+                  subscriptions.map((subscription) => (
+                    <Tr key={subscription._id}>
+                      <Td>
+                        <VStack align="start" spacing={0}>
+                          <Text fontWeight="bold" fontSize="sm">
+                            {subscription.teacher.fullName}
+                          </Text>
+                          <Text fontSize="xs" color="gray.500">
+                            {subscription.teacher.email}
+                          </Text>
+                        </VStack>
+                      </Td>
+                      <Td fontSize="sm" fontWeight="medium">{getPlanLabel(subscription.plan)}</Td>
+                      <Td fontSize="sm" fontWeight="medium">
+                        {subscription.selectedFeatures.length} ميزة
+                      </Td>
+                      <Td fontWeight="bold" color="green.500" fontSize="sm">
+                        {formatCurrency(subscription.finalPrice)}
+                      </Td>
+                      <Td>{getStatusBadge(subscription.status)}</Td>
+                      <Td>{getPaymentStatusBadge(subscription.paymentStatus)}</Td>
+                      <Td fontSize="sm" fontWeight="medium">{formatDate(subscription.startDate)}</Td>
+                      <Td fontSize="sm" fontWeight="medium">{formatDate(subscription.endDate)}</Td>
+                      <Td>
+                        <HStack spacing={2}>
+                          <Button
+                            size="sm"
+                            fontWeight="medium"
+                            h={8}
+                            rounded={2}
+                            colorScheme="blue"
+                            onClick={() => handleViewDetails(subscription)}
+                          >
+                            التفاصيل
+                          </Button>
+                          {subscription.paymentStatus === 'pending' && (
+                            <Button
+                              size="sm"
+                              fontWeight="medium"
+                              h={8}
+                              rounded={2}
+                              colorScheme="green"
+                              onClick={() => handleMarkAsPaid(subscription)}
+                            >
+                              قبول الدفع
+                            </Button>
+                          )}
+                        </HStack>
+                      </Td>
+                    </Tr>
+                  ))
+                )}
+              </Tbody>
+            </Table>
+          </TableContainer>
+        </CardBody>
+      </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+          <CardBody>
+            <HStack justify="center" spacing={4}>
+              <Button
+                size="sm"
+                fontWeight="medium"
+                h={8}
+                rounded={2}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                isDisabled={page === 1}
+              >
+                السابق
+              </Button>
+              <Text fontSize="sm" fontWeight="medium">
+                صفحة {page} من {totalPages}
+              </Text>
+              <Button
+                size="sm"
+                fontWeight="medium"
+                h={8}
+                rounded={2}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                isDisabled={page === totalPages}
+              >
+                التالي
+              </Button>
+            </HStack>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Details Modal */}
       <Modal isOpen={isDetailsOpen} onClose={onDetailsClose} size="xl">
@@ -486,7 +758,7 @@ export default function AdminSubscriptions() {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Box>
+    </Stack>
   );
 }
 

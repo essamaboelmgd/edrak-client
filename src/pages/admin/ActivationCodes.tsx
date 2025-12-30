@@ -1,6 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Trash2, Download, Key } from 'lucide-react';
-import { useToast } from '@chakra-ui/react';
+import {
+    useToast,
+    Box,
+    Button,
+    Card,
+    CardBody,
+    Heading,
+    HStack,
+    Input,
+    InputGroup,
+    InputLeftElement,
+    Select,
+    Table,
+    TableContainer,
+    Tbody,
+    Td,
+    Text,
+    Th,
+    Thead,
+    Tr,
+    Badge,
+    IconButton,
+    SimpleGrid,
+    VStack,
+    Stack,
+    Flex,
+    Spacer,
+    Skeleton,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+} from '@chakra-ui/react';
+import { Icon } from '@iconify-icon/react';
 import {
     activationCodesService,
     IActivationCode,
@@ -143,213 +175,483 @@ export default function AdminActivationCodes() {
         return '-';
     };
 
+    // Calculate stats
+    const stats = {
+        total,
+        used: codes.filter((c) => c.isUsed).length,
+        unused: codes.filter((c) => !c.isUsed).length,
+        course: codes.filter((c) => c.targetType === 'course').length,
+        lesson: codes.filter((c) => c.targetType === 'lesson').length,
+    };
+
     return (
-        <div className="space-y-6" dir="rtl">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">أكواد التفعيل</h1>
-                    <p className="text-gray-500 mt-1">
-                        عرض وإدارة جميع أكواد التفعيل ({total} كود)
-                    </p>
-                </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={handleExport}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
-                    >
-                        <Download size={18} />
-                        <span>تصدير</span>
-                    </button>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                    >
-                        <Plus size={18} />
-                        <span>إنشاء أكواد جديدة</span>
-                    </button>
-                </div>
-            </div>
+        <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+            {/* Modern Hero Header */}
+            <Box
+                bgGradient="linear(135deg, teal.600 0%, cyan.500 50%, blue.400 100%)"
+                position="relative"
+                overflow="hidden"
+                borderRadius="2xl"
+                p={{ base: 6, md: 8 }}
+                color="white"
+                boxShadow="xl"
+            >
+                {/* Decorative Blobs */}
+                <Box
+                    position="absolute"
+                    top="-50%"
+                    right="-10%"
+                    width="400px"
+                    height="400px"
+                    bgGradient="radial(circle, whiteAlpha.200, transparent)"
+                    borderRadius="full"
+                    filter="blur(60px)"
+                />
 
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="ابحث بالكود..."
-                        value={searchTerm}
-                        onChange={(e) => {
-                            setSearchTerm(e.target.value);
-                            setPage(1);
-                        }}
-                        className="w-full pr-12 pl-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    />
-                </div>
-                <select
-                    value={targetTypeFilter}
-                    onChange={(e) => {
-                        setTargetTypeFilter(e.target.value);
-                        setPage(1);
-                    }}
-                    className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                <Flex
+                    position="relative"
+                    zIndex={1}
+                    direction={{ base: 'column', md: 'row' }}
+                    align={{ base: 'start', md: 'center' }}
+                    justify="space-between"
+                    gap={4}
                 >
-                    <option value="all">كل الأنواع</option>
-                    <option value="course">كورس</option>
-                    <option value="lesson">درس</option>
-                    <option value="courseSection">قسم كورسات</option>
-                    <option value="lessonSection">قسم دروس</option>
-                </select>
-                <select
-                    value={statusFilter}
-                    onChange={(e) => {
-                        setStatusFilter(e.target.value);
-                        setPage(1);
-                    }}
-                    className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                >
-                    <option value="all">الكل</option>
-                    <option value="used">مستخدم</option>
-                    <option value="unused">غير مستخدم</option>
-                </select>
-                <select
-                    value={teacherFilter}
-                    onChange={(e) => {
-                        setTeacherFilter(e.target.value);
-                        setPage(1);
-                    }}
-                    className="px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                >
-                    <option value="all">كل المدرسين</option>
-                    {teachers.map((teacher) => (
-                        <option key={teacher._id} value={teacher._id}>
-                            {teacher.fullName}
-                        </option>
-                    ))}
-                </select>
-            </div>
+                    <VStack align="start" spacing={2}>
+                        <HStack>
+                            <Icon icon="solar:key-bold-duotone" width={24} height={24} />
+                            <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                                إدارة المنصة
+                            </Text>
+                        </HStack>
+                        <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+                            أكواد التفعيل
+                        </Text>
+                        <Text fontSize="sm" opacity={0.95}>
+                            عرض وإدارة جميع أكواد التفعيل ({total} كود)
+                        </Text>
+                    </VStack>
+                    <HStack spacing={3}>
+                        <Button
+                            bg="whiteAlpha.200"
+                            color="white"
+                            _hover={{ bg: 'whiteAlpha.300', transform: 'translateY(-2px)', shadow: 'lg' }}
+                            onClick={handleExport}
+                            leftIcon={<Icon icon="solar:download-bold-duotone" width="20" height="20" />}
+                            size={{ base: 'md', md: 'lg' }}
+                            borderRadius="xl"
+                            shadow="md"
+                            transition="all 0.3s"
+                        >
+                            تصدير
+                        </Button>
+                        <Button
+                            bg="white"
+                            color="teal.600"
+                            _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+                            onClick={() => setShowCreateModal(true)}
+                            leftIcon={<Icon icon="solar:add-circle-bold-duotone" width="20" height="20" />}
+                            size={{ base: 'md', md: 'lg' }}
+                            borderRadius="xl"
+                            shadow="md"
+                            transition="all 0.3s"
+                        >
+                            إنشاء أكواد جديدة
+                        </Button>
+                    </HStack>
+                </Flex>
+            </Box>
 
-            {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الكود</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">النوع</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الهدف</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المدرس</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">السعر</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">تم الإنشاء بواسطة</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">تم الاستخدام بواسطة</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الإنشاء</th>
-                                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                                        جاري التحميل...
-                                    </td>
-                                </tr>
-                            ) : codes.length === 0 ? (
-                                <tr>
-                                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Key size={48} className="text-gray-300" />
-                                            <span>لا توجد أكواد تفعيل</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                codes.map((code) => (
-                                    <tr key={code._id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <span className="font-mono font-bold text-gray-900">{code.code}</span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">
-                                                {getTargetTypeLabel(code.targetType)}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-700">
-                                            {getTargetLabel(code)}
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-700">
-                                            {typeof code.teacher === 'object'
-                                                ? `${code.teacher.firstName} ${code.teacher.lastName}`
-                                                : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-700 font-medium">
-                                            {code.price.toLocaleString()} ج.م
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span
-                                                className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                                                    code.isUsed
-                                                        ? 'bg-red-100 text-red-700'
-                                                        : 'bg-green-100 text-green-700'
-                                                }`}
-                                            >
-                                                {code.isUsed ? 'مستخدم' : 'متاح'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600 text-sm">
-                                            {typeof code.createdBy === 'object'
-                                                ? `${code.createdBy.firstName} ${code.createdBy.lastName}`
-                                                : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600 text-sm">
-                                            {code.usedBy ? `${code.usedBy.firstName} ${code.usedBy.lastName}` : '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600 text-sm">
-                                            {new Date(code.createdAt).toLocaleDateString('ar-EG')}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <button
-                                                onClick={() => handleDelete(code._id, code.isUsed)}
-                                                disabled={code.isUsed}
-                                                className={`p-2 rounded-lg transition-colors ${
-                                                    code.isUsed
-                                                        ? 'text-gray-300 cursor-not-allowed'
-                                                        : 'text-red-600 hover:bg-red-50'
-                                                }`}
-                                                title={code.isUsed ? 'لا يمكن حذف كود مستخدم' : 'حذف'}
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            {/* Stats Cards */}
+            <SimpleGrid columns={{ base: 1, sm: 2, lg: 5 }} spacing={{ base: 4, md: 6 }}>
+                <Card
+                    borderRadius="2xl"
+                    border="1px"
+                    borderColor="gray.200"
+                    bg="white"
+                    transition="all 0.3s"
+                    _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                >
+                    <CardBody>
+                        <HStack justify="space-between">
+                            <VStack align="start" spacing={1}>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                    إجمالي الأكواد
+                                </Text>
+                                <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                                    {stats.total}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                    كود متاح
+                                </Text>
+                            </VStack>
+                            <Box
+                                p={4}
+                                borderRadius="xl"
+                                bgGradient="linear(135deg, teal.400, teal.600)"
+                                shadow="md"
+                            >
+                                <Icon
+                                    icon="solar:key-bold-duotone"
+                                    width="32"
+                                    height="32"
+                                    style={{ color: 'white' }}
+                                />
+                            </Box>
+                        </HStack>
+                    </CardBody>
+                </Card>
+
+                <Card
+                    borderRadius="2xl"
+                    border="1px"
+                    borderColor="gray.200"
+                    bg="white"
+                    transition="all 0.3s"
+                    _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                >
+                    <CardBody>
+                        <HStack justify="space-between">
+                            <VStack align="start" spacing={1}>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                    الأكواد المستخدمة
+                                </Text>
+                                <Text fontSize="3xl" fontWeight="bold" color="red.600">
+                                    {stats.used}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                    كود مستخدم
+                                </Text>
+                            </VStack>
+                            <Box
+                                p={4}
+                                borderRadius="xl"
+                                bgGradient="linear(135deg, red.400, red.600)"
+                                shadow="md"
+                            >
+                                <Icon
+                                    icon="solar:check-circle-bold-duotone"
+                                    width="32"
+                                    height="32"
+                                    style={{ color: 'white' }}
+                                />
+                            </Box>
+                        </HStack>
+                    </CardBody>
+                </Card>
+
+                <Card
+                    borderRadius="2xl"
+                    border="1px"
+                    borderColor="gray.200"
+                    bg="white"
+                    transition="all 0.3s"
+                    _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                >
+                    <CardBody>
+                        <HStack justify="space-between">
+                            <VStack align="start" spacing={1}>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                    الأكواد المتاحة
+                                </Text>
+                                <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                                    {stats.unused}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                    كود متاح
+                                </Text>
+                            </VStack>
+                            <Box
+                                p={4}
+                                borderRadius="xl"
+                                bgGradient="linear(135deg, green.400, green.600)"
+                                shadow="md"
+                            >
+                                <Icon
+                                    icon="solar:check-circle-bold-duotone"
+                                    width="32"
+                                    height="32"
+                                    style={{ color: 'white' }}
+                                />
+                            </Box>
+                        </HStack>
+                    </CardBody>
+                </Card>
+
+                <Card
+                    borderRadius="2xl"
+                    border="1px"
+                    borderColor="gray.200"
+                    bg="white"
+                    transition="all 0.3s"
+                    _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                >
+                    <CardBody>
+                        <HStack justify="space-between">
+                            <VStack align="start" spacing={1}>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                    أكواد الكورسات
+                                </Text>
+                                <Text fontSize="3xl" fontWeight="bold" color="blue.600">
+                                    {stats.course}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                    كود كورس
+                                </Text>
+                            </VStack>
+                            <Box
+                                p={4}
+                                borderRadius="xl"
+                                bgGradient="linear(135deg, blue.400, blue.600)"
+                                shadow="md"
+                            >
+                                <Icon
+                                    icon="solar:book-bookmark-bold-duotone"
+                                    width="32"
+                                    height="32"
+                                    style={{ color: 'white' }}
+                                />
+                            </Box>
+                        </HStack>
+                    </CardBody>
+                </Card>
+
+                <Card
+                    borderRadius="2xl"
+                    border="1px"
+                    borderColor="gray.200"
+                    bg="white"
+                    transition="all 0.3s"
+                    _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                >
+                    <CardBody>
+                        <HStack justify="space-between">
+                            <VStack align="start" spacing={1}>
+                                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                                    أكواد الدروس
+                                </Text>
+                                <Text fontSize="3xl" fontWeight="bold" color="purple.600">
+                                    {stats.lesson}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                    كود درس
+                                </Text>
+                            </VStack>
+                            <Box
+                                p={4}
+                                borderRadius="xl"
+                                bgGradient="linear(135deg, purple.400, purple.600)"
+                                shadow="md"
+                            >
+                                <Icon
+                                    icon="solar:document-text-bold-duotone"
+                                    width="32"
+                                    height="32"
+                                    style={{ color: 'white' }}
+                                />
+                            </Box>
+                        </HStack>
+                    </CardBody>
+                </Card>
+            </SimpleGrid>
+
+            {/* Filters Section */}
+            <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+                <CardBody>
+                    <Flex direction={{ base: 'column', md: 'row' }} gap={4} flexWrap="wrap">
+                        <InputGroup flex="1" minW="200px">
+                            <InputLeftElement pointerEvents="none">
+                                <Icon icon="solar:magnifer-bold-duotone" width="20" height="20" color="gray.400" />
+                            </InputLeftElement>
+                            <Input
+                                placeholder="ابحث بالكود..."
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setPage(1);
+                                }}
+                                bg="white"
+                            />
+                        </InputGroup>
+                        <Select
+                            w={{ base: '100%', md: '200px' }}
+                            value={targetTypeFilter}
+                            onChange={(e) => {
+                                setTargetTypeFilter(e.target.value);
+                                setPage(1);
+                            }}
+                            bg="white"
+                        >
+                            <option value="all">كل الأنواع</option>
+                            <option value="course">كورس</option>
+                            <option value="lesson">درس</option>
+                            <option value="courseSection">قسم كورسات</option>
+                            <option value="lessonSection">قسم دروس</option>
+                        </Select>
+                        <Select
+                            w={{ base: '100%', md: '200px' }}
+                            value={statusFilter}
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value);
+                                setPage(1);
+                            }}
+                            bg="white"
+                        >
+                            <option value="all">الكل</option>
+                            <option value="used">مستخدم</option>
+                            <option value="unused">غير مستخدم</option>
+                        </Select>
+                        <Select
+                            w={{ base: '100%', md: '200px' }}
+                            value={teacherFilter}
+                            onChange={(e) => {
+                                setTeacherFilter(e.target.value);
+                                setPage(1);
+                            }}
+                            bg="white"
+                        >
+                            <option value="all">كل المدرسين</option>
+                            {teachers.map((teacher) => (
+                                <option key={teacher._id} value={teacher._id}>
+                                    {teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim()}
+                                </option>
+                            ))}
+                        </Select>
+                    </Flex>
+                </CardBody>
+            </Card>
+
+            {/* Table Section */}
+            <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+                <CardBody>
+                    <TableContainer>
+                        <Table colorScheme="gray" rounded={10}>
+                            <Thead>
+                                <Tr>
+                                    <Th>الكود</Th>
+                                    <Th>النوع</Th>
+                                    <Th>الهدف</Th>
+                                    <Th>المدرس</Th>
+                                    <Th>السعر</Th>
+                                    <Th>الحالة</Th>
+                                    <Th>تم الإنشاء بواسطة</Th>
+                                    <Th>تم الاستخدام بواسطة</Th>
+                                    <Th>تاريخ الإنشاء</Th>
+                                    <Th>إجراءات</Th>
+                                </Tr>
+                            </Thead>
+                            <Tbody>
+                                {loading ? (
+                                    Array.from({ length: 5 }).map((_, idx) => (
+                                        <Tr key={idx}>
+                                            {Array.from({ length: 10 }).map((_, i) => (
+                                                <Td key={i}>
+                                                    <Skeleton height="20px" />
+                                                </Td>
+                                            ))}
+                                        </Tr>
+                                    ))
+                                ) : codes.length === 0 ? (
+                                    <Tr>
+                                        <Td colSpan={10} textAlign="center" py={8}>
+                                            <VStack spacing={2}>
+                                                <Icon icon="solar:key-bold-duotone" width="48" height="48" color="gray.300" />
+                                                <Text color="gray.500" fontSize="sm" fontWeight="medium">
+                                                    لا توجد أكواد تفعيل
+                                                </Text>
+                                            </VStack>
+                                        </Td>
+                                    </Tr>
+                                ) : (
+                                    codes.map((code) => (
+                                        <Tr key={code._id}>
+                                            <Td>
+                                                <Text fontFamily="mono" fontWeight="bold" fontSize="sm">
+                                                    {code.code}
+                                                </Text>
+                                            </Td>
+                                            <Td>
+                                                <Badge colorScheme="blue">
+                                                    {getTargetTypeLabel(code.targetType)}
+                                                </Badge>
+                                            </Td>
+                                            <Td fontSize="sm" fontWeight="medium">{getTargetLabel(code)}</Td>
+                                            <Td fontSize="sm" fontWeight="medium">
+                                                {typeof code.teacher === 'object'
+                                                    ? `${code.teacher.firstName} ${code.teacher.lastName}`
+                                                    : '-'}
+                                            </Td>
+                                            <Td fontSize="sm" fontWeight="medium">
+                                                {code.price.toLocaleString()} ج.م
+                                            </Td>
+                                            <Td>
+                                                <Badge colorScheme={code.isUsed ? 'red' : 'green'}>
+                                                    {code.isUsed ? 'مستخدم' : 'متاح'}
+                                                </Badge>
+                                            </Td>
+                                            <Td fontSize="sm" fontWeight="medium">
+                                                {typeof code.createdBy === 'object'
+                                                    ? `${code.createdBy.firstName} ${code.createdBy.lastName}`
+                                                    : '-'}
+                                            </Td>
+                                            <Td fontSize="sm" fontWeight="medium">
+                                                {code.usedBy ? `${code.usedBy.firstName} ${code.usedBy.lastName}` : '-'}
+                                            </Td>
+                                            <Td fontSize="sm" fontWeight="medium">
+                                                {new Date(code.createdAt).toLocaleDateString('ar-EG')}
+                                            </Td>
+                                            <Td>
+                                                <IconButton
+                                                    aria-label="حذف"
+                                                    icon={<Icon icon="solar:trash-bin-trash-bold-duotone" />}
+                                                    size="sm"
+                                                    colorScheme="red"
+                                                    variant="ghost"
+                                                    onClick={() => handleDelete(code._id, code.isUsed)}
+                                                    isDisabled={code.isUsed}
+                                                    rounded={2}
+                                                    h={8}
+                                                />
+                                            </Td>
+                                        </Tr>
+                                    ))
+                                )}
+                            </Tbody>
+                        </Table>
+                    </TableContainer>
+                </CardBody>
+            </Card>
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2">
-                    <button
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        السابق
-                    </button>
-                    <span className="px-4 py-2 text-gray-700">
-                        صفحة {page} من {totalPages}
-                    </span>
-                    <button
-                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={page === totalPages}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        التالي
-                    </button>
-                </div>
+                <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white">
+                    <CardBody>
+                        <HStack justify="center" spacing={4}>
+                            <Button
+                                size="sm"
+                                fontWeight="medium"
+                                h={8}
+                                rounded={2}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                isDisabled={page === 1}
+                            >
+                                السابق
+                            </Button>
+                            <Text fontSize="sm" fontWeight="medium">
+                                صفحة {page} من {totalPages}
+                            </Text>
+                            <Button
+                                size="sm"
+                                fontWeight="medium"
+                                h={8}
+                                rounded={2}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                isDisabled={page === totalPages}
+                            >
+                                التالي
+                            </Button>
+                        </HStack>
+                    </CardBody>
+                </Card>
             )}
 
             {/* Create Modal */}
@@ -358,7 +660,7 @@ export default function AdminActivationCodes() {
                 onClose={() => setShowCreateModal(false)}
                 onSuccess={fetchCodes}
             />
-        </div>
+        </Stack>
     );
 }
 

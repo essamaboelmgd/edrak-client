@@ -10,6 +10,8 @@ export { default as CreateTeacherModal } from './components/CreateTeacherModal';
 export { default as EditTeacherModal } from './components/EditTeacherModal';
 export { default as StudentsTable } from './components/StudentsTable';
 export { default as StudentDetailsModal } from './components/StudentDetailsModal';
+export { default as WalletManagementModal } from './components/WalletManagementModal';
+export { educationalLevelsService } from './services/educationalLevelsService';
 export { default as CreateStudentModal } from './components/CreateStudentModal';
 export { default as EditStudentModal } from './components/EditStudentModal';
 

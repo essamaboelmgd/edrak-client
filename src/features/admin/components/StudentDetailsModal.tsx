@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Mail, Phone, MapPin, CheckCircle2, XCircle } from 'lucide-react';
+import { Users, Mail, Phone, MapPin, CheckCircle2, XCircle, Wallet, Trophy, BarChart2 } from 'lucide-react';
 import {
   Modal,
   ModalOverlay,
@@ -26,6 +26,7 @@ interface StudentDetailsModalProps {
   onDelete?: (studentId: string) => void;
   onBlock?: (studentId: string) => void;
   onUnblock?: (studentId: string) => void;
+  onManageWallet?: (student: IStudentAdmin) => void;
 }
 
 export default function StudentDetailsModal({
@@ -36,6 +37,7 @@ export default function StudentDetailsModal({
   onDelete,
   onBlock,
   onUnblock,
+  onManageWallet,
 }: StudentDetailsModalProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -207,6 +209,80 @@ export default function StudentDetailsModal({
               </Box>
             )}
 
+            {/* Wallet & Gamification */}
+            <Box bg="gray.50" borderRadius="xl" p={6}>
+              <Text fontSize="lg" fontWeight="bold" color="gray.800" mb={4}>
+                المحفظة والإنجازات
+              </Text>
+              <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
+                <Box
+                  p={4}
+                  borderRadius="lg"
+                  bgGradient="linear(to-r, green.50, emerald.50)"
+                  border="1px solid"
+                  borderColor="green.200"
+                >
+                  <HStack spacing={3} mb={2}>
+                    <Wallet size={20} color="#16a34a" />
+                    <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                      رصيد المحفظة
+                    </Text>
+                  </HStack>
+                  <Text fontSize="xl" fontWeight="bold" color="green.700">
+                    {student.wallet?.amount?.toLocaleString() || 0} ج.م
+                  </Text>
+                  {onManageWallet && (
+                    <Button
+                      size="xs"
+                      mt={2}
+                      colorScheme="green"
+                      variant="outline"
+                      onClick={() => {
+                        onManageWallet(student);
+                        onClose();
+                      }}
+                    >
+                      إدارة المحفظة
+                    </Button>
+                  )}
+                </Box>
+                <Box
+                  p={4}
+                  borderRadius="lg"
+                  bgGradient="linear(to-r, yellow.50, amber.50)"
+                  border="1px solid"
+                  borderColor="yellow.200"
+                >
+                  <HStack spacing={3} mb={2}>
+                    <Trophy size={20} color="#f59e0b" />
+                    <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                      نقاط الترتيب
+                    </Text>
+                  </HStack>
+                  <Text fontSize="xl" fontWeight="bold" color="yellow.700">
+                    {student.leaderboardRank?.value?.toLocaleString() || 0} xp
+                  </Text>
+                </Box>
+                <Box
+                  p={4}
+                  borderRadius="lg"
+                  bgGradient="linear(to-r, blue.50, indigo.50)"
+                  border="1px solid"
+                  borderColor="blue.200"
+                >
+                  <HStack spacing={3} mb={2}>
+                    <BarChart2 size={20} color="#6366f1" />
+                    <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                      المستوى
+                    </Text>
+                  </HStack>
+                  <Text fontSize="xl" fontWeight="bold" color="blue.700">
+                    {student.level?.value?.toLocaleString() || 0} xp
+                  </Text>
+                </Box>
+              </Grid>
+            </Box>
+
             {/* Account Status */}
             <Box bg="gray.50" borderRadius="xl" p={6}>
               <Text fontSize="lg" fontWeight="bold" color="gray.800" mb={4}>
@@ -224,6 +300,40 @@ export default function StudentDetailsModal({
                     colorScheme={student.isActive ? 'green' : 'red'}
                   >
                     {student.isActive ? 'نعم' : 'لا'}
+                  </Badge>
+                </HStack>
+                {student.status && (
+                  <HStack justify="space-between">
+                    <Text color="gray.600">حالة الحساب</Text>
+                    <Badge
+                      px={3}
+                      py={1}
+                      borderRadius="full"
+                      fontSize="xs"
+                      fontWeight="semibold"
+                      colorScheme={
+                        student.status === 'active' ? 'green' : student.status === 'blocked' ? 'red' : 'yellow'
+                      }
+                    >
+                      {student.status === 'active'
+                        ? 'فعال'
+                        : student.status === 'blocked'
+                          ? 'محظور'
+                          : 'قيد المراجعة'}
+                    </Badge>
+                  </HStack>
+                )}
+                <HStack justify="space-between">
+                  <Text color="gray.600">السماح بالتعديل</Text>
+                  <Badge
+                    px={3}
+                    py={1}
+                    borderRadius="full"
+                    fontSize="xs"
+                    fontWeight="semibold"
+                    colorScheme={student.canUpdateInfo ? 'green' : 'gray'}
+                  >
+                    {student.canUpdateInfo ? 'نعم' : 'لا'}
                   </Badge>
                 </HStack>
                 <HStack justify="space-between">
@@ -252,6 +362,14 @@ export default function StudentDetailsModal({
                     {student.isMobileVerified ? 'نعم' : 'لا'}
                   </Badge>
                 </HStack>
+                {student.lastLogin && (
+                  <HStack justify="space-between">
+                    <Text color="gray.600">آخر تسجيل دخول</Text>
+                    <Text fontWeight="medium" color="gray.800">
+                      {new Date(student.lastLogin).toLocaleDateString('ar-EG')}
+                    </Text>
+                  </HStack>
+                )}
                 <HStack justify="space-between">
                   <Text color="gray.600">تاريخ الإنشاء</Text>
                   <Text fontWeight="medium" color="gray.800">
