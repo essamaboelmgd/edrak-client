@@ -210,13 +210,38 @@ class UserService {
      */
     async getAdminSummary(): Promise<ApiResponse<{
         result: {
+            total_teachers: number;
+            total_students: number;
+            total_courses: number;
+            active_subscriptions: number;
+            total_transactions_amount: number;
+            total_lessons: number;
+            total_exams: number;
+            total_homeworks: number;
+            total_lesson_views: number;
+            total_revenue: number;
+            top_teachers: Array<{
+                id: string;
+                name: string;
+                subject: string;
+                courses_count: number;
+                students_count: number;
+            }>;
+            recent_teachers: Array<{
+                id: string;
+                name: string;
+                subject: string;
+                photo: string;
+                is_active: boolean;
+                created_at: string;
+            }>;
+            // Backward compatibility fields
             total_courses_count: number;
             total_users_count: number;
             total_students_count: number;
             total_subscriptions_count: number;
             total_sales_amount: number;
             total_subscriptions_amount: number;
-            total_transactions_amount: number;
             top_ten_courses: Array<{
                 id: string;
                 title: string;
@@ -238,13 +263,38 @@ class UserService {
     }>> {
         const response = await axiosInstance.get<ApiResponse<{
             result: {
+                total_teachers: number;
+                total_students: number;
+                total_courses: number;
+                active_subscriptions: number;
+                total_transactions_amount: number;
+                total_lessons: number;
+                total_exams: number;
+                total_homeworks: number;
+                total_lesson_views: number;
+                total_revenue: number;
+                top_teachers: Array<{
+                    id: string;
+                    name: string;
+                    subject: string;
+                    courses_count: number;
+                    students_count: number;
+                }>;
+                recent_teachers: Array<{
+                    id: string;
+                    name: string;
+                    subject: string;
+                    photo: string;
+                    is_active: boolean;
+                    created_at: string;
+                }>;
+                // Backward compatibility fields
                 total_courses_count: number;
                 total_users_count: number;
                 total_students_count: number;
                 total_subscriptions_count: number;
                 total_sales_amount: number;
                 total_subscriptions_amount: number;
-                total_transactions_amount: number;
                 top_ten_courses: Array<{
                     id: string;
                     title: string;

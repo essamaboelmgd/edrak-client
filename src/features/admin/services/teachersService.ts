@@ -38,6 +38,7 @@ export interface ITeacherAdmin {
     whatsappNumber?: string;
     gender: string;
     governorate: string;
+    photo?: string;
     specialization?: string;
     yearsOfExperience?: number;
     platformName: string;
@@ -135,7 +136,7 @@ class TeachersService {
      */
     async createTeacher(data: {
         firstName: string;
-        middleName: string;
+        middleName?: string;
         lastName: string;
         email: string;
         password: string;
@@ -145,12 +146,59 @@ class TeachersService {
         specialization?: string;
         yearsOfExperience?: number;
         platformName: string;
-        subdomain: string;
+        subdomain?: string;
+        photo?: File;
     }): Promise<ApiResponse<{ teacher: ITeacherAdmin }>> {
+        // Always use FormData so multer can parse it on the backend
+        const formData = new FormData();
+
+        // Append all required fields explicitly
+        formData.append('firstName', data.firstName);
+        // Only append middleName if provided
+        if (data.middleName) {
+            formData.append('middleName', data.middleName);
+        }
+        formData.append('lastName', data.lastName);
+        formData.append('email', data.email);
+        formData.append('password', data.password);
+        formData.append('mobileNumber', data.mobileNumber);
+        formData.append('gender', data.gender);
+        formData.append('governorate', data.governorate);
+        formData.append('platformName', data.platformName);
+
+        if (data.subdomain) {
+            formData.append('subdomain', data.subdomain);
+        }
+
+        if (data.specialization) {
+            formData.append('specialization', data.specialization);
+        }
+
+        if (data.yearsOfExperience !== undefined && data.yearsOfExperience !== null) {
+            formData.append('yearsOfExperience', String(data.yearsOfExperience));
+        }
+
+        // Append photo if provided
+        if (data.photo) {
+            formData.append('photo', data.photo);
+        }
+
+        console.log('Making API call to:', this.BASE_PATH);
+        console.log('FormData entries:');
+        for (const [key, value] of formData.entries()) {
+            console.log(key, ':', value instanceof File ? `File: ${value.name}` : value);
+        }
+
         const response = await axiosInstance.post<ApiResponse<{ teacher: ITeacherAdmin }>>(
             this.BASE_PATH,
-            data
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
         );
+        console.log('API call successful:', response);
         return response.data;
     }
 

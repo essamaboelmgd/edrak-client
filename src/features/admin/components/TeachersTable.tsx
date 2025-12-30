@@ -1,5 +1,6 @@
 import { Icon } from '@iconify-icon/react';
 import { ITeacherAdmin } from '../services/teachersService';
+import { getImageUrl } from '@/lib/axios';
 import {
   Table,
   Thead,
@@ -140,8 +141,8 @@ export default function TeachersTable({ teachers, onViewDetails, onEdit, loading
                     >
                       <Avatar
                         name={teacher.fullName}
-                        width={25}
-                        height={25}
+                        src={teacher.photo ? getImageUrl(teacher.photo) : undefined}
+                        size="sm"
                         bg={teacher.isActive ? 'purple.500' : 'gray.400'}
                       />
                       <VStack align="start" spacing={0}>

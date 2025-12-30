@@ -1,48 +1,70 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
-
   Card,
   CardBody,
   Heading,
   HStack,
   Skeleton,
   Stack,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
   SimpleGrid,
   VStack,
-  Flex,
+  Text,
   Badge,
   Avatar,
-  Center,
+  Grid,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import { useAuth } from '@/contexts/AuthContext';
 import userService from '@/features/user/userService';
 import { getImageUrl } from '@/lib/axios';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminSummary {
-  total_courses_count: number;
-  total_users_count: number;
-  total_students_count: number;
-  total_subscriptions_count: number;
-  total_sales_amount: number;
-  total_subscriptions_amount: number;
+  total_teachers: number;
+  total_students: number;
+  total_courses: number;
+  active_subscriptions: number;
   total_transactions_amount: number;
-  top_ten_courses: Array<{
+  total_lessons: number;
+  total_exams: number;
+  total_homeworks: number;
+  total_lesson_views: number;
+  total_revenue: number;
+  top_teachers: Array<{
+    id: string;
+    name: string;
+    subject: string;
+    courses_count: number;
+    students_count: number;
+  }>;
+  recent_teachers: Array<{
+    id: string;
+    name: string;
+    subject: string;
+    photo: string;
+    is_active: boolean;
+    created_at: string;
+  }>;
+  // Backward compatibility
+  total_courses_count?: number;
+  total_users_count?: number;
+  total_students_count?: number;
+  total_subscriptions_count?: number;
+  total_sales_amount?: number;
+  total_subscriptions_amount?: number;
+  top_ten_courses?: Array<{
     id: string;
     title: string;
     subscribers_count: number;
     teacher: string;
   }>;
-  recent_users: Array<{
+  recent_users?: Array<{
     id: string;
     full_name: string;
     first_name: string;
@@ -66,17 +88,21 @@ const formatCurrency = (amount: number) => {
 
 export default function AdminHome() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<AdminSummary | null>(null);
 
   useEffect(() => {
     const fetchSummary = async () => {
       try {
         setLoading(true);
+        setError(null);
         const response = await userService.getAdminSummary();
         setSummary(response.data.result);
-      } catch (error) {
-        console.error('Failed to fetch admin summary', error);
+      } catch (err: any) {
+        console.error('Failed to fetch admin summary', err);
+        setError(err?.response?.data?.message || 'حدث خطأ أثناء تحميل البيانات');
       } finally {
         setLoading(false);
       }
@@ -85,358 +111,594 @@ export default function AdminHome() {
     fetchSummary();
   }, []);
 
+  // Enhanced stats with gradients and better icons
   const stats = [
     {
-      title: 'إجمالي الكورسات',
-      value: summary?.total_courses_count || 0,
-      icon: 'solar:book-bold-duotone',
+      label: 'إجمالي المعلمين',
+      value: loading ? '...' : String(summary?.total_teachers || 0),
+      icon: 'solar:user-id-bold-duotone',
       color: 'purple',
-      gradient: 'linear(135deg, purple.400, purple.600)',
-      bgGradient: 'linear(to-br, purple.50, purple.100)',
+      gradient: 'linear(to-r, purple.500, purple.600)',
+      link: '/admin/teachers',
+      change: '+5',
+      changeType: 'increase',
     },
     {
-      title: 'إجمالي المدرسين',
-      value: summary?.total_users_count || 0,
-      icon: 'solar:users-group-two-rounded-bold-duotone',
+      label: 'إجمالي الطلاب',
+      value: loading ? '...' : String(summary?.total_students || 0),
+      icon: 'solar:users-group-two-rounded-line-duotone',
       color: 'blue',
-      gradient: 'linear(135deg, blue.400, blue.600)',
-      bgGradient: 'linear(to-br, blue.50, blue.100)',
+      gradient: 'linear(to-r, blue.500, blue.600)',
+      link: '/admin/students',
+      change: '+12',
+      changeType: 'increase',
     },
     {
-      title: 'إجمالي الطلاب',
-      value: summary?.total_students_count || 0,
-      icon: 'solar:users-group-rounded-bold-duotone',
+      label: 'إجمالي الكورسات',
+      value: loading ? '...' : String(summary?.total_courses || 0),
+      icon: 'solar:inbox-archive-bold',
       color: 'green',
-      gradient: 'linear(135deg, green.400, green.600)',
-      bgGradient: 'linear(to-br, green.50, green.100)',
+      gradient: 'linear(to-r, green.500, green.600)',
+      link: '/admin/courses',
+      change: '+3',
+      changeType: 'increase',
     },
     {
-      title: 'عدد الاشتراكات',
-      value: summary?.total_subscriptions_count || 0,
-      icon: 'solar:confetti-minimalistic-bold',
-      color: 'orange',
-      gradient: 'linear(135deg, orange.400, orange.600)',
-      bgGradient: 'linear(to-br, orange.50, orange.100)',
-    },
-    {
-      title: 'مبيعات المرفقات',
-      value: formatCurrency(summary?.total_sales_amount || 0),
-      icon: 'solar:document-text-bold-duotone',
+      label: 'الاشتراكات النشطة',
+      value: loading ? '...' : String(summary?.active_subscriptions || 0),
+      icon: 'solar:check-circle-bold-duotone',
       color: 'teal',
-      gradient: 'linear(135deg, teal.400, teal.600)',
-      bgGradient: 'linear(to-br, teal.50, teal.100)',
+      gradient: 'linear(to-r, teal.500, teal.600)',
+      link: '/admin/subscriptions',
+      change: '+8',
+      changeType: 'increase',
     },
     {
-      title: 'إجمالي اشتراكات الكورسات',
-      value: formatCurrency(summary?.total_subscriptions_amount || 0),
-      icon: 'solar:playlist-bold-duotone',
+      label: 'إجمالي الإيرادات',
+      value: loading
+        ? '...'
+        : `EGP ${Number(summary?.total_revenue || 0).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
+      icon: 'solar:dollar-minimalistic-bold-duotone',
+      color: 'orange',
+      gradient: 'linear(to-r, orange.500, orange.600)',
+      link: '/admin/transactions',
+      change: '+15%',
+      changeType: 'increase',
+    },
+    {
+      label: 'المعاملات المالية',
+      value: loading
+        ? '...'
+        : `EGP ${Number(summary?.total_transactions_amount || 0).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
+      icon: 'solar:wallet-money-bold-duotone',
       color: 'cyan',
-      gradient: 'linear(135deg, cyan.400, cyan.600)',
-      bgGradient: 'linear(to-br, cyan.50, cyan.100)',
-    },
-    {
-      title: 'إجمالي المعاملات المالية',
-      value: formatCurrency(summary?.total_transactions_amount || 0),
-      icon: 'solar:card-bold-duotone',
-      color: 'pink',
-      gradient: 'linear(135deg, pink.400, pink.600)',
-      bgGradient: 'linear(to-br, pink.50, pink.100)',
+      gradient: 'linear(to-r, cyan.500, cyan.600)',
+      link: '/admin/transactions',
+      change: '+10%',
+      changeType: 'increase',
     },
   ];
 
+  const quickActions = [
+    {
+      title: 'إدارة المعلمين',
+      description: 'عرض وإدارة جميع المعلمين على المنصة',
+      icon: 'solar:user-id-bold-duotone',
+      color: 'purple',
+      link: '/admin/teachers',
+      gradient: 'linear(to-r, purple.500, purple.600)',
+    },
+    {
+      title: 'جميع الطلاب',
+      description: 'عرض وإدارة جميع الطلاب على المنصة',
+      icon: 'solar:users-group-two-rounded-line-duotone',
+      color: 'blue',
+      link: '/admin/students',
+      gradient: 'linear(to-r, blue.500, blue.600)',
+    },
+    {
+      title: 'التقارير والإحصائيات',
+      description: 'عرض تقارير شاملة للمنصة مع رسوم بيانية',
+      icon: 'solar:chart-2-bold-duotone',
+      color: 'green',
+      link: '/admin/reports',
+      gradient: 'linear(to-r, green.500, green.600)',
+    },
+    {
+      title: 'المعاملات المالية',
+      description: 'عرض جميع المعاملات المالية والمدفوعات',
+      icon: 'solar:wallet-money-bold-duotone',
+      color: 'orange',
+      link: '/admin/transactions',
+      gradient: 'linear(to-r, orange.500, orange.600)',
+    },
+  ];
+
+  const topTeachers = summary?.top_teachers || [];
+  const recentTeachers = summary?.recent_teachers || [];
+
+  // Loading state
+  if (loading) {
+    return (
+      <VStack p={6} spacing={4} justify="center" minH="400px">
+        <Spinner size="xl" color="purple.500" thickness="4px" />
+        <Text color="gray.600" fontSize="lg">
+          جاري تحميل البيانات...
+        </Text>
+      </VStack>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Stack p={6} spacing={6}>
+        <Alert status="error" borderRadius="lg" variant="left-accent">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>خطأ في تحميل البيانات</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Box>
+        </Alert>
+      </Stack>
+    );
+  }
+
   return (
     <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
-      {/* Modern Hero Header */}
+      {/* Welcome Section with Gradient */}
       <Box
-        bgGradient="linear(135deg, red.600 0%, orange.500 50%, pink.400 100%)"
-        position="relative"
-        overflow="hidden"
-        borderRadius="2xl"
-        p={{ base: 6, md: 8 }}
+        bgGradient="linear(to-r, purple.500, purple.600)"
+        borderRadius="xl"
+        p={{ base: 4, md: 6 }}
         color="white"
         boxShadow="xl"
       >
-        {/* Decorative Blobs */}
-        <Box
-          position="absolute"
-          top="-50%"
-          right="-10%"
-          width="400px"
-          height="400px"
-          bgGradient="radial(circle, whiteAlpha.200, transparent)"
-          borderRadius="full"
-          filter="blur(60px)"
-        />
-
-        <Flex
-          position="relative"
-          zIndex={1}
-          direction={{ base: 'column', md: 'row' }}
-          align={{ base: 'start', md: 'center' }}
-          justify="space-between"
-          gap={4}
-        >
-          <VStack align="start" spacing={2}>
-            <HStack>
-              <Icon icon="solar:chart-2-bold-duotone" width={24} height={24} />
-              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
-                لوحة التحكم
-              </Text>
-            </HStack>
-            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
-              لوحة تحكم المسؤول
+        <HStack spacing={4} flexWrap="wrap">
+          <VStack align="start" spacing={2} flex={1} minW="200px">
+            <Text fontSize="xs" color="whiteAlpha.800" fontWeight="medium">
+              مرحباً بك
             </Text>
-            <Text fontSize="sm" opacity={0.95}>
-              مرحباً، {user?.firstName || 'المسؤول'} - نظرة شاملة على إحصائيات المنصة
+            <Heading as="h1" size={{ base: 'md', md: 'lg' }} color="white">
+              لوحة تحكم المدير العام
+            </Heading>
+            <Text fontSize={{ base: 'sm', md: 'md' }} color="whiteAlpha.900">
+              إدارة شاملة للمنصة التعليمية - المعلمين، الطلاب، والإعدادات
             </Text>
           </VStack>
-        </Flex>
-      </Box>
-
-      {/* Statistics Cards */}
-      <Box>
-        <HStack spacing={2} mb={4}>
-          <Icon
-            icon="solar:graph-up-bold-duotone"
-            width="24"
-            height="24"
-            style={{ color: 'var(--chakra-colors-purple-500)' }}
-          />
-          <Heading size="md" color="gray.800">
-            الإحصائيات الرئيسية
-          </Heading>
+          <Box
+            display={{ base: 'none', md: 'block' }}
+            p={4}
+            bg="whiteAlpha.200"
+            borderRadius="xl"
+            backdropFilter="blur(10px)"
+          >
+            <Icon icon="solar:widget-5-bold-duotone" width="80" height="80" style={{ color: 'white' }} />
+          </Box>
         </HStack>
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={4}>
-          {stats.map((stat, idx) => (
-            <Card
-              key={idx}
-              borderRadius="xl"
-              boxShadow="md"
-              border="1px"
-              borderColor="gray.200"
-              bgGradient={stat.bgGradient}
-              _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
-              transition="all 0.2s"
-            >
-              <CardBody>
-                <HStack spacing={4} justify="space-between">
-                  <VStack align="start" spacing={1} flex={1}>
-                    <Text fontSize="2xl" fontWeight="bold" color={`${stat.color}.700`}>
-                      {typeof stat.value === 'string' ? (
-                        stat.value
-                      ) : (
-                        stat.value.toLocaleString('ar-EG')
-                      )}
-                    </Text>
-                    <Text color="gray.600" fontSize="sm" fontWeight="medium">
-                      {stat.title}
-                    </Text>
-                  </VStack>
-                  <Center
-                    w={14}
-                    h={14}
-                    borderRadius="xl"
-                    bgGradient={stat.gradient}
-                    color="white"
-                    boxShadow="md"
-                  >
-                    <Icon icon={stat.icon} width="28" height="28" />
-                  </Center>
-                </HStack>
-              </CardBody>
-            </Card>
-          ))}
-        </SimpleGrid>
       </Box>
 
-      {/* Top Courses Chart */}
-      <Card borderRadius="2xl" boxShadow="sm" border="1px" borderColor="gray.200">
-        <CardBody>
-          <HStack spacing={2} mb={4}>
-            <Icon
-              icon="solar:chart-2-bold-duotone"
-              width="24"
-              height="24"
-              style={{ color: 'var(--chakra-colors-purple-500)' }}
+      {/* Main Stats Grid */}
+      <SimpleGrid columns={{ base: 1, sm: 2, lg: 3, xl: 6 }} spacing={{ base: 4, md: 6 }}>
+        {stats.map((stat, index) => (
+          <Card
+            key={index}
+            bgGradient={stat.gradient}
+            color="white"
+            borderRadius="xl"
+            boxShadow="lg"
+            _hover={{
+              transform: 'translateY(-8px)',
+              boxShadow: '2xl',
+              cursor: 'pointer',
+            }}
+            transition="all 0.3s"
+            onClick={() => navigate(stat.link)}
+            position="relative"
+            overflow="hidden"
+          >
+            {/* Decorative background */}
+            <Box
+              position="absolute"
+              top="-50%"
+              right="-50%"
+              width="200%"
+              height="200%"
+              bg="whiteAlpha.100"
+              borderRadius="full"
+              opacity={0.3}
             />
-            <Heading size="md" color="gray.800">
-              أكثر الكورسات نشاطاً
-            </Heading>
-          </HStack>
-          <Stack>
-            {loading ? (
-              Array.from({ length: 4 }).map((_, index) => (
-                <Stack
-                  key={index}
-                  direction={{ base: 'column', lg: 'row' }}
-                  alignItems={{ base: 'flex-start', lg: 'center' }}
-                >
-                  <Skeleton
-                    w={{ base: undefined, lg: (4 / 12) * 100 + '%' }}
-                    bg="gray.50"
-                    h={4}
-                    rounded={2}
-                  />
-                  <Skeleton
-                    w={{ base: '100%', lg: (8 / 12) * 100 + '%' }}
-                    bg="gray.50"
-                    h={4}
-                    rounded={2}
-                  />
-                </Stack>
-              ))
-            ) : summary?.top_ten_courses && summary.top_ten_courses.length > 0 ? (
-              <Box position="relative" h="400px" w="100%">
-                <SimpleGrid columns={1} spacing={2}>
-                  {summary.top_ten_courses.map((course) => {
-                    const maxSubscribers = Math.max(
-                      ...summary.top_ten_courses.map((c) => c.subscribers_count),
-                      1
-                    );
-                    const percentage = (course.subscribers_count / maxSubscribers) * 100;
-                    return (
-                      <Box key={course.id} mb={2}>
-                        <HStack justify="space-between" mb={1}>
-                          <Text fontSize="sm" fontWeight="medium" color="gray.700" noOfLines={1}>
-                            {course.title}
-                          </Text>
-                          <Badge colorScheme="purple" borderRadius="full" px={2}>
-                            {course.subscribers_count} مشترك
-                          </Badge>
-                        </HStack>
-                        <Box
-                          w="100%"
-                          h="8"
-                          bg="gray.100"
-                          borderRadius="md"
-                          overflow="hidden"
-                          position="relative"
-                        >
-                          <Box
-                            w={`${percentage}%`}
-                            h="100%"
-                            bgGradient="linear(135deg, purple.400, purple.600)"
-                            borderRadius="md"
-                            transition="width 0.5s ease"
-                          />
-                        </Box>
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                          المدرس: {course.teacher}
-                        </Text>
-                      </Box>
-                    );
-                  })}
-                </SimpleGrid>
-              </Box>
-            ) : (
-              <Center py={12}>
-                <VStack spacing={4}>
-                  <Box mx="auto" color="gray">
-                    <Icon icon="solar:inbox-archive-bold" width="60" height="60" />
-                  </Box>
-                  <Heading as="h2" fontSize="large" fontWeight="bold" textAlign="center">
-                    لا توجد بيانات للعرض
-                  </Heading>
-                </VStack>
-              </Center>
-            )}
-          </Stack>
-        </CardBody>
-      </Card>
 
-      {/* Recent Students Table */}
-      <Card borderRadius="2xl" boxShadow="sm" border="1px" borderColor="gray.200">
-        <CardBody>
-          <HStack spacing={2} mb={4}>
-            <Icon
-              icon="solar:users-group-two-rounded-bold-duotone"
-              width="24"
-              height="24"
-              style={{ color: 'var(--chakra-colors-purple-500)' }}
-            />
-            <Heading size="md" color="gray.800">
-              أحدث الطلاب
-            </Heading>
-          </HStack>
-          <TableContainer>
-            <Table variant="simple" size="md">
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th color="gray.700" fontWeight="semibold">#</Th>
-                  <Th color="gray.700" fontWeight="semibold">الاسم</Th>
-                  <Th color="gray.700" fontWeight="semibold">البريد الإلكتروني</Th>
-                  <Th color="gray.700" fontWeight="semibold">رقم الموبايل</Th>
-                  <Th color="gray.700" fontWeight="semibold">تاريخ الانضمام</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {loading
-                  ? Array.from({ length: 6 }).map((_, idx) => (
-                      <Tr key={idx}>
-                        {Array.from({ length: 5 }).map((_, index) => (
-                          <Td key={index}>
-                            <Skeleton h={4} rounded={3} />
-                          </Td>
-                        ))}
-                      </Tr>
-                    ))
-                  : summary?.recent_users && summary.recent_users.length > 0
-                    ? summary.recent_users.map((user) => (
-                        <Tr
-                          key={user.id}
-                          _hover={{ bg: 'gray.50' }}
-                          transition="background-color 0.2s"
-                        >
-                          <Td>
-                            <Badge colorScheme="purple" borderRadius="full" px={2}>
-                              {user.id}
-                            </Badge>
-                          </Td>
-                          <Td>
-                            <HStack spacing={3}>
-                              <Avatar
-                                name={user.full_name}
-                                src={user.photo ? getImageUrl(user.photo) : undefined}
-                                size="sm"
-                              />
-                              <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                                {user.full_name}
-                              </Text>
-                            </HStack>
-                          </Td>
-                          <Td>
-                            <Text fontSize="sm" color="gray.600" noOfLines={1}>
-                              {user.email || 'غير محدد'}
-                            </Text>
-                          </Td>
-                          <Td>
-                            <Text fontSize="sm" color="gray.600" noOfLines={1}>
-                              {user.mobile || 'غير محدد'}
-                            </Text>
-                          </Td>
-                          <Td>
-                            <Badge colorScheme="gray" fontSize="xs" px={2} py={1} borderRadius="md">
-                              {new Date(user.created_at).toLocaleDateString('ar-EG', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </Badge>
-                          </Td>
-                        </Tr>
-                      ))
-                    : !loading && (
-                        <Tr>
-                          <Td colSpan={5} textAlign="center">
-                            لا توجد بيانات للعرض
-                          </Td>
-                        </Tr>
-                      )}
-              </Tbody>
-            </Table>
-          </TableContainer>
-        </CardBody>
-      </Card>
+            <CardBody position="relative" zIndex={1}>
+              <VStack spacing={3} align="start">
+                <HStack spacing={3} justify="space-between" w="full">
+                  <Box
+                    p={3}
+                    borderRadius="xl"
+                    bg="whiteAlpha.200"
+                    backdropFilter="blur(10px)"
+                  >
+                    <Icon icon={stat.icon} width="28" height="28" style={{ color: 'white' }} />
+                  </Box>
+                  {stat.change && (
+                    <Badge
+                      bg="whiteAlpha.300"
+                      color="white"
+                      borderRadius="full"
+                      px={2}
+                      py={1}
+                      fontSize="xs"
+                    >
+                      {stat.changeType === 'increase' ? '↑' : '↓'} {stat.change}
+                    </Badge>
+                  )}
+                </HStack>
+                <VStack align="start" spacing={0}>
+                  <Text fontSize="xs" color="whiteAlpha.800" fontWeight="medium">
+                    {stat.label}
+                  </Text>
+                  <Text fontSize={{ base: 'xl', md: '2xl' }} fontWeight="bold" color="white">
+                    {stat.value}
+                  </Text>
+                </VStack>
+              </VStack>
+            </CardBody>
+          </Card>
+        ))}
+      </SimpleGrid>
+
+      {/* Two Column Layout: Quick Actions & Top Teachers */}
+      <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={{ base: 4, md: 6 }}>
+        {/* Quick Actions */}
+        <Card borderRadius="xl" boxShadow="lg" border="1px" borderColor="gray.100">
+          <CardBody>
+            <HStack mb={4} justify="space-between">
+              <Heading as="h2" size="md" color="gray.800">
+                الإجراءات السريعة
+              </Heading>
+              <Icon
+                icon="solar:bolt-bold-duotone"
+                width="24"
+                height="24"
+                style={{ color: 'var(--chakra-colors-purple-500)' }}
+              />
+            </HStack>
+            <Stack spacing={3}>
+              {quickActions.map((action, index) => (
+                <Box
+                  key={index}
+                  p={4}
+                  borderRadius="lg"
+                  bg="gray.50"
+                  border="1px"
+                  borderColor="gray.200"
+                  _hover={{
+                    bg: `${action.color}.50`,
+                    borderColor: `${action.color}.300`,
+                    transform: 'translateX(-4px)',
+                    cursor: 'pointer',
+                    boxShadow: 'md',
+                  }}
+                  transition="all 0.3s"
+                  onClick={() => navigate(action.link)}
+                >
+                  <HStack spacing={4}>
+                    <Box
+                      p={2.5}
+                      borderRadius="lg"
+                      bgGradient={action.gradient}
+                      boxShadow="sm"
+                    >
+                      <Icon
+                        icon={action.icon}
+                        width="24"
+                        height="24"
+                        style={{ color: 'white' }}
+                      />
+                    </Box>
+                    <Stack spacing={0.5} flex={1}>
+                      <Text fontWeight="bold" fontSize="sm" color="gray.800">
+                        {action.title}
+                      </Text>
+                      <Text fontSize="xs" color="gray.600">
+                        {action.description}
+                      </Text>
+                    </Stack>
+                    <Icon
+                      icon="solar:arrow-left-line-duotone"
+                      width="20"
+                      height="20"
+                      style={{ color: 'var(--chakra-colors-gray-400)' }}
+                    />
+                  </HStack>
+                </Box>
+              ))}
+            </Stack>
+          </CardBody>
+        </Card>
+
+        {/* Top Teachers */}
+        <Card borderRadius="xl" boxShadow="lg" border="1px" borderColor="gray.100">
+          <CardBody>
+            <HStack mb={4} justify="space-between">
+              <Heading as="h2" size="md" color="gray.800">
+                أفضل المعلمين
+              </Heading>
+              <Icon
+                icon="solar:cup-star-bold-duotone"
+                width="24"
+                height="24"
+                style={{ color: 'var(--chakra-colors-yellow-500)' }}
+              />
+            </HStack>
+            <Stack spacing={3}>
+              {topTeachers.length > 0 ? (
+                topTeachers.slice(0, 5).map((teacher: any, index: number) => (
+                  <HStack
+                    key={teacher.id || index}
+                    p={3}
+                    borderRadius="lg"
+                    bg="gray.50"
+                    border="1px"
+                    borderColor="gray.200"
+                    _hover={{
+                      bg: 'purple.50',
+                      borderColor: 'purple.300',
+                      cursor: 'pointer',
+                    }}
+                    transition="all 0.2s"
+                    onClick={() => navigate(`/admin/teachers/${teacher.id}`)}
+                  >
+                    <HStack spacing={3} flex={1}>
+                      <Badge
+                        colorScheme={
+                          index === 0
+                            ? 'yellow'
+                            : index === 1
+                              ? 'gray'
+                              : index === 2
+                                ? 'orange'
+                                : 'gray'
+                        }
+                        fontSize="sm"
+                        p={1}
+                        borderRadius="md"
+                        minW="32px"
+                        textAlign="center"
+                      >
+                        #{index + 1}
+                      </Badge>
+                      <VStack align="start" spacing={0} flex={1}>
+                        <Text fontWeight="bold" fontSize="sm" color="gray.800">
+                          {teacher.name || 'غير معروف'}
+                        </Text>
+                        <Text fontSize="xs" color="gray.600">
+                          {teacher.subject || ''}
+                        </Text>
+                      </VStack>
+                    </HStack>
+                    <VStack align="end" spacing={0}>
+                      <Text fontSize="xs" fontWeight="bold" color="purple.600">
+                        {teacher.students_count || 0} طالب
+                      </Text>
+                      <Text fontSize="xs" color="gray.500">
+                        {teacher.courses_count || 0} كورس
+                      </Text>
+                    </VStack>
+                  </HStack>
+                ))
+              ) : (
+                <Text color="gray.500" textAlign="center" py={4} fontSize="sm">
+                  لا يوجد معلمين بعد
+                </Text>
+              )}
+            </Stack>
+          </CardBody>
+        </Card>
+      </Grid>
+
+      {/* Additional Stats Row */}
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={{ base: 4, md: 6 }}>
+        <Card
+          borderRadius="xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
+          transition="all 0.2s"
+          cursor="pointer"
+          onClick={() => navigate('/admin/courses')}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي الدروس
+                </Text>
+                <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                  {summary?.total_lessons || 0}
+                </Text>
+              </VStack>
+              <Box p={3} borderRadius="lg" bg="cyan.50">
+                <Icon
+                  icon="solar:play-circle-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'var(--chakra-colors-cyan-500)' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
+          transition="all 0.2s"
+          cursor="pointer"
+          onClick={() => navigate('/admin/exams')}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي الامتحانات
+                </Text>
+                <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                  {summary?.total_exams || 0}
+                </Text>
+              </VStack>
+              <Box p={3} borderRadius="lg" bg="red.50">
+                <Icon
+                  icon="solar:document-text-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'var(--chakra-colors-red-500)' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
+          transition="all 0.2s"
+          cursor="pointer"
+          onClick={() => navigate('/admin/homeworks')}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي الواجبات
+                </Text>
+                <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                  {summary?.total_homeworks || 0}
+                </Text>
+              </VStack>
+              <Box p={3} borderRadius="lg" bg="yellow.50">
+                <Icon
+                  icon="solar:clipboard-list-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'var(--chakra-colors-yellow-500)' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          _hover={{ boxShadow: 'lg', transform: 'translateY(-2px)' }}
+          transition="all 0.2s"
+          cursor="pointer"
+          onClick={() => navigate('/admin/reports')}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي المشاهدات
+                </Text>
+                <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                  {summary?.total_lesson_views
+                    ? Number(summary.total_lesson_views).toLocaleString()
+                    : 0}
+                </Text>
+              </VStack>
+              <Box p={3} borderRadius="lg" bg="pink.50">
+                <Icon
+                  icon="solar:eye-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'var(--chakra-colors-pink-500)' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
+
+      {/* Recent Teachers */}
+      {recentTeachers.length > 0 && (
+        <Card borderRadius="xl" boxShadow="lg" border="1px" borderColor="gray.100">
+          <CardBody>
+            <HStack mb={4} justify="space-between">
+              <Heading as="h2" size="md" color="gray.800">
+                المعلمين الجدد
+              </Heading>
+              <Icon
+                icon="solar:user-plus-bold-duotone"
+                width="24"
+                height="24"
+                style={{ color: 'var(--chakra-colors-green-500)' }}
+              />
+            </HStack>
+            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} spacing={4}>
+              {recentTeachers.slice(0, 5).map((teacher: any, index: number) => (
+                <Box
+                  key={teacher.id || index}
+                  p={4}
+                  borderRadius="lg"
+                  bg="gray.50"
+                  border="1px"
+                  borderColor="gray.200"
+                  textAlign="center"
+                  _hover={{
+                    bg: 'purple.50',
+                    borderColor: 'purple.300',
+                    cursor: 'pointer',
+                    transform: 'translateY(-4px)',
+                    boxShadow: 'md',
+                  }}
+                  transition="all 0.3s"
+                  onClick={() => navigate(`/admin/teachers/${teacher.id}`)}
+                >
+                  <Avatar
+                    size="md"
+                    name={teacher.name}
+                    src={teacher.photo ? getImageUrl(teacher.photo) : undefined}
+                    mb={2}
+                    bg="purple.500"
+                    color="white"
+                  />
+                  <Text fontWeight="bold" fontSize="sm" color="gray.800" noOfLines={1}>
+                    {teacher.name || 'غير معروف'}
+                  </Text>
+                  <Text fontSize="xs" color="gray.600" noOfLines={1} mt={1}>
+                    {teacher.subject || ''}
+                  </Text>
+                  <Badge
+                    mt={2}
+                    colorScheme={teacher.is_active ? 'green' : 'gray'}
+                    fontSize="xs"
+                    borderRadius="full"
+                  >
+                    {teacher.is_active ? 'نشط' : 'غير نشط'}
+                  </Badge>
+                </Box>
+              ))}
+            </SimpleGrid>
+          </CardBody>
+        </Card>
+      )}
     </Stack>
   );
 }
