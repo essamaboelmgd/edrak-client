@@ -266,6 +266,52 @@ class UserService {
         }>>(`${this.BASE_PATH}/admin/summary`);
         return response.data;
     }
+
+    /**
+     * Get student summary/analytics (Student only)
+     */
+    async getStudentSummary(): Promise<ApiResponse<{
+        result: {
+            total_subscriptions_count: number;
+            total_attachments: number;
+            total_lessons_views: number;
+            wallet_amount: number;
+            recent_viewed_lessons: Array<{
+                id: string;
+                lesson: {
+                    id: string;
+                    title: string;
+                    poster: string;
+                };
+                views: number;
+                total_views: number;
+                subscription_id?: string;
+                updated_at: string;
+            }>;
+        };
+    }>> {
+        const response = await axiosInstance.get<ApiResponse<{
+            result: {
+                total_subscriptions_count: number;
+                total_attachments: number;
+                total_lessons_views: number;
+                wallet_amount: number;
+                recent_viewed_lessons: Array<{
+                    id: string;
+                    lesson: {
+                        id: string;
+                        title: string;
+                        poster: string;
+                    };
+                    views: number;
+                    total_views: number;
+                    subscription_id?: string;
+                    updated_at: string;
+                }>;
+            };
+        }>>(`${this.BASE_PATH}/student/summary`);
+        return response.data;
+    }
 }
 
 // Export singleton instance

@@ -1,224 +1,479 @@
-import { useState, useRef } from 'react';
-import { usePlatformSections, useMyCourses } from '@/features/student/hooks/useStudentCourses';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Icon } from '@iconify-icon/react';
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  Center,
+  Grid,
+  GridItem,
+  Heading,
+  HStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Select,
+  SimpleGrid,
+  Spacer,
+  Stack,
+  Text,
+  VStack,
+  Flex,
+  FormControl,
+  Skeleton,
+} from '@chakra-ui/react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAllCourses, useMyCourses, usePlatformSections } from '@/features/student/hooks/useStudentCourses';
 import { CourseCard } from '@/features/student/components/CourseCard';
-import { Box, Heading, Text, Flex, Container, VStack, Center, Spinner } from '@chakra-ui/react';
-import { CoursesHero } from './components/CoursesHero';
-import { CoursesFilters } from './components/CoursesFilters';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-
-// Reuse the Row component logic, maybe extract later
-const CourseSectionRow = ({ section, index }: { section: any, index: number }) => {
-    const courses = section.courses || [];
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollContainerRef.current) {
-            const scrollAmount = direction === 'left' ? -300 : 300;
-            scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-    };
-
-    if (courses.length === 0) return null;
-
-    const bgProps = index % 2 === 0 ? { bg: 'transparent' } : { bg: 'gray.50', py: 8, borderRadius: '2xl', my: 4 };
-
-    return (
-        <Box {...bgProps} className="group" position="relative" px={index % 2 === 0 ? 0 : 4}>
-             <Flex align="center" gap={3} mb={6}>
-                 <Box w="6px" h="24px" bg="blue.500" borderRadius="full" />
-                 <Heading size="lg" fontWeight="bold" color="gray.800">
-                     {section.title || section.name}
-                 </Heading>
-             </Flex>
-
-             <Box position="relative">
-                 {/* Scroll Buttons */}
-                 <Flex 
-                     position="absolute" 
-                     left="-20px" 
-                     top="50%" 
-                     transform="translateY(-50%)" 
-                     zIndex={2}
-                     opacity={0}
-                     _groupHover={{ opacity: 1 }}
-                     transition="all 0.3s"
-                 >
-                      <Box
-                         as="button"
-                         onClick={() => scroll('left')}
-                         bg="white"
-                         w="40px" 
-                         h="40px"
-                         borderRadius="full"
-                         boxShadow="lg"
-                         display="flex"
-                         alignItems="center"
-                         justifyContent="center"
-                         color="gray.600"
-                         _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'scale(1.1)' }}
-                         transition="all 0.2s"
-                     >
-                         <ChevronRight size={24} />
-                     </Box>
-                 </Flex>
-
-                 <Flex 
-                     position="absolute" 
-                     right="-20px" 
-                     top="50%" 
-                     transform="translateY(-50%)" 
-                     zIndex={2}
-                     opacity={0}
-                     _groupHover={{ opacity: 1 }}
-                     transition="all 0.3s"
-                 >
-                     <Box
-                         as="button"
-                         onClick={() => scroll('right')}
-                         bg="white"
-                         w="40px" 
-                         h="40px"
-                         borderRadius="full"
-                         boxShadow="lg"
-                         display="flex"
-                         alignItems="center"
-                         justifyContent="center"
-                         color="gray.600"
-                         _hover={{ bg: 'blue.50', color: 'blue.600', transform: 'scale(1.1)' }}
-                         transition="all 0.2s"
-                     >
-                         <ChevronLeft size={24} />
-                     </Box>
-                 </Flex>
-
-                 <Flex 
-                     ref={scrollContainerRef}
-                     gap={6} 
-                     overflowX="auto" 
-                     pb={8}
-                     pt={2}
-                     px={2}
-                     sx={{
-                         scrollbarWidth: 'none',
-                         '::-webkit-scrollbar': { display: 'none' }
-                     }}
-                 >
-                     {courses.map((course: any) => (
-                         <Box 
-                             key={course._id} 
-                             minW={{ base: "280px", md: "300px" }} 
-                             maxW={{ base: "280px", md: "300px" }}
-                             transition="transform 0.3s ease"
-                             _hover={{ transform: 'translateY(-8px)' }}
-                         >
-                             <CourseCard course={course} />
-                         </Box>
-                     ))}
-                 </Flex>
-             </Box>
-        </Box>
-    );
-};
+import { axiosInstance } from '@/lib/axios';
 
 export default function StudentCourses() {
-    // Filters State
-    const [searchValue, setSearchValue] = useState('');
-    const [levelValue, setLevelValue] = useState('');
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams({ page: '1' });
+  const [searchTerm, setSearchTerm] = useState(params.get('search') || '');
+  const [educationalLevel, setEducationalLevel] = useState(params.get('educationalLevel') || '');
+  const [educationalLevels, setEducationalLevels] = useState<any[]>([]);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Fetch Data
-    const { data: sectionsData, isLoading: isLoadingSections } = usePlatformSections(); // We should update hook to accept filters if needed, or filter client side for smooth UX if data is small
-    const { data: myCoursesData, isLoading: isLoadingMyCourses } = useMyCourses();
+  // Fetch data
+  const { data: allCoursesData, isLoading: loadingCourses } = useAllCourses();
+  const { data: myCoursesData, isLoading: loadingMyCourses } = useMyCourses();
+  const { data: sectionsData, isLoading: loadingSections } = usePlatformSections();
 
-    // NOTE for Senior Dev:
-    // Ideally, we pass filters to the API. 
-    // `usePlatformSections` is currently using cached data without params. 
-    // To implement real server-side filtering, we would need to pass params to `usePlatformSections({ educationalLevel: levelValue })`.
-    // For now, let's implement CLIENT-SIDE filtering for the 'search' on sections, 
-    // assuming 'educationalLevel' might come from the API later.
-    
-    // Derived Data
-    const myCourses = myCoursesData?.courses || [];
-    const allSections = sectionsData?.sections || [];
-    
-    // Filter Logic
-    const filteredSections = allSections.map((section: any) => {
-        // Filter courses inside section
-        const filteredCourses = (section.courses || []).filter((c: any) => {
-            const matchesSearch = c.title.toLowerCase().includes(searchValue.toLowerCase());
-            // const matchesLevel = levelValue ? c.educationalLevel?._id === levelValue : true;
-            return matchesSearch;
-        });
-        return { ...section, courses: filteredCourses };
-    }).filter((section: any) => section.courses.length > 0);
+  const allCourses = allCoursesData?.courses || [];
+  const myCourses = myCoursesData?.courses || [];
+  const sections = sectionsData?.sections || [];
 
-    const totalCourses = allSections.reduce((acc: number, sec: any) => acc + (sec.courses?.length || 0), 0);
+  // Fetch educational levels
+  useEffect(() => {
+    const fetchEducationalLevels = async () => {
+      try {
+        const response = await axiosInstance.get('/educational-levels');
+        const educationalLevelsData = response.data?.data?.educationalLevels;
+        let levels: any[] = [];
 
-    const isLoading = isLoadingSections || isLoadingMyCourses;
+        if (educationalLevelsData) {
+          if (educationalLevelsData.primary) {
+            levels = [...levels, ...educationalLevelsData.primary];
+          }
+          if (educationalLevelsData.preparatory) {
+            levels = [...levels, ...educationalLevelsData.preparatory];
+          }
+          if (educationalLevelsData.secondary) {
+            levels = [...levels, ...educationalLevelsData.secondary];
+          }
+        } else {
+          levels = response.data?.data?.educationalLevels ||
+            response.data?.data ||
+            response.data?.educationalLevels ||
+            response.data || [];
+          levels = Array.isArray(levels) ? levels : [];
+        }
 
-    if (isLoading) {
-        return (
-             <Center h="80vh">
-                 <Spinner size="xl" color="blue.500" thickness="4px" />
-             </Center>
-        );
+        setEducationalLevels(levels);
+      } catch (error) {
+        console.error('Failed to fetch educational levels:', error);
+        setEducationalLevels([]);
+      }
+    };
+    fetchEducationalLevels();
+  }, []);
+
+  // Filter courses
+  const filteredCourses = allCourses.filter((course: any) => {
+    const matchesSearch = !searchTerm || course.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLevel = !educationalLevel || course.educationalLevel?._id === educationalLevel;
+    return matchesSearch && matchesLevel;
+  });
+
+  const total = filteredCourses.length;
+  const isLoading = loadingCourses || loadingMyCourses || loadingSections;
+
+  // Calculate stats
+  const stats = {
+    total,
+    enrolled: myCourses.length,
+    available: total - myCourses.length,
+    free: filteredCourses.filter((c: any) => !c.price || c.price === 0).length,
+    paid: filteredCourses.filter((c: any) => c.price && c.price > 0).length,
+  };
+
+  const handleSearch = useCallback((value: string) => {
+    setSearchTerm(value);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
+    searchTimeoutRef.current = setTimeout(() => {
+      const newParams = new URLSearchParams(params);
+      if (value) {
+        newParams.set('search', value);
+      } else {
+        newParams.delete('search');
+      }
+      newParams.set('page', '1');
+      setParams(newParams);
+    }, 500);
+  }, [params, setParams]);
 
-    return (
-        <Box minH="100vh" bg="gray.50" pb={20}>
-            {/* Main Content Container - constrained width */}
-            <Container maxW="container.xl" pt={8} px={{ base: 4, md: 8 }}>
-                
-                <CoursesHero 
-                    totalCourses={totalCourses}
-                    enrolledCount={myCourses.length}
-                    availableCount={totalCourses} // Should technically be total - enrolled, but for now Total is fine
+  return (
+    <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
+      {/* Modern Hero Header */}
+      <Box
+        bgGradient="linear(135deg, blue.500 0%, teal.400 50%, purple.500 100%)"
+        position="relative"
+        overflow="hidden"
+        borderRadius="2xl"
+        p={{ base: 6, md: 8 }}
+        color="white"
+        boxShadow="xl"
+      >
+        {/* Decorative Blobs */}
+        <Box
+          position="absolute"
+          top="-50%"
+          right="-10%"
+          width="400px"
+          height="400px"
+          bgGradient="radial(circle, whiteAlpha.200, transparent)"
+          borderRadius="full"
+          filter="blur(60px)"
+        />
+
+        <Flex
+          position="relative"
+          zIndex={1}
+          direction={{ base: 'column', md: 'row' }}
+          align={{ base: 'start', md: 'center' }}
+          justify="space-between"
+          gap={4}
+        >
+          <VStack align="start" spacing={2}>
+            <HStack>
+              <Icon icon="solar:book-bold-duotone" width={24} height={24} />
+              <Text fontSize="xs" opacity={0.9} fontWeight="medium">
+                استكشف الكورسات
+              </Text>
+            </HStack>
+            <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold">
+              جميع الكورسات
+            </Text>
+            <Text fontSize="sm" opacity={0.95}>
+              عرض {total} كورس متاح على المنصة
+            </Text>
+          </VStack>
+        </Flex>
+      </Box>
+
+      {/* Stats Cards */}
+      <SimpleGrid columns={{ base: 2, sm: 3, lg: 5 }} spacing={{ base: 4, md: 6 }}>
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  إجمالي الكورسات
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+                  {stats.total}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  كورس متاح
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, blue.400, blue.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:book-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
                 />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
 
-                <CoursesFilters 
-                    searchValue={searchValue}
-                    onSearchChange={setSearchValue}
-                    levelValue={levelValue}
-                    onLevelChange={setLevelValue}
-                    levels={[]} // TODO: Fetch levels properly
-                    onClearFilters={() => { setSearchValue(''); setLevelValue(''); }}
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  مسجل
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="green.600">
+                  {stats.enrolled}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  كورس مسجل
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, green.400, green.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:check-circle-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
                 />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
 
-                <VStack spacing={12} align="stretch">
-                    {/* My Courses Section */}
-                    {myCourses.length > 0 && !searchValue && (
-                         <Box>
-                             <Flex align="center" gap={3} mb={6}>
-                                 <Box w="6px" h="24px" bg="green.500" borderRadius="full" />
-                                 <Heading size="lg" fontWeight="bold" color="gray.800">
-                                     كورساتي
-                                 </Heading>
-                             </Flex>
-                             {/* Reusing Row for My Courses? Or Grid? Legacy used Category Grouping. */}
-                             {/* Let's use a single row for 'My Courses' for now for consistency */}
-                             <CourseSectionRow section={{ title: 'كورساتي', courses: myCourses }} index={1} />
-                         </Box>
-                    )}
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  متاح
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="blue.600">
+                  {stats.available}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  كورس متاح
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, blue.400, blue.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:gift-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
 
-                    {/* Catalog Sections */}
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  مجاني
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="purple.600">
+                  {stats.free}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  كورس مجاني
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, purple.400, purple.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:gift-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+
+        <Card
+          borderRadius="2xl"
+          border="1px"
+          borderColor="gray.200"
+          bg="white"
+          transition="all 0.3s"
+          _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+        >
+          <CardBody>
+            <HStack justify="space-between">
+              <VStack align="start" spacing={1}>
+                <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                  مدفوع
+                </Text>
+                <Text fontSize="3xl" fontWeight="bold" color="orange.600">
+                  {stats.paid}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  كورس مدفوع
+                </Text>
+              </VStack>
+              <Box
+                p={4}
+                borderRadius="xl"
+                bgGradient="linear(135deg, orange.400, orange.600)"
+                shadow="md"
+              >
+                <Icon
+                  icon="solar:wallet-money-bold-duotone"
+                  width="32"
+                  height="32"
+                  style={{ color: 'white' }}
+                />
+              </Box>
+            </HStack>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
+
+      {/* Search Filters */}
+      <Card
+        borderRadius="2xl"
+        border="1px"
+        borderColor="gray.200"
+        bg="white"
+        boxShadow="xl"
+      >
+        <CardBody>
+          <Flex
+            direction={{ base: 'column', md: 'row' }}
+            gap={4}
+            align={{ base: 'stretch', md: 'center' }}
+            wrap="wrap"
+          >
+            <InputGroup flex={1} minW={{ base: '100%', md: '300px' }}>
+              <InputLeftElement pointerEvents="none">
+                <Icon icon="solar:magnifer-bold-duotone" width="18" height="18" />
+              </InputLeftElement>
+              <Input
+                type="search"
+                placeholder="اكتب عنوان \ وصف الكورس هنا .."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                bg="white"
+              />
+            </InputGroup>
+
+            <FormControl minWidth={{ base: '100%', md: '200px' }}>
+              <Select
+                placeholder="جميع المراحل الدراسية"
+                bg="white"
+                value={educationalLevel}
+                onChange={(e) => {
+                  setEducationalLevel(e.target.value);
+                  const newParams = new URLSearchParams(params);
+                  if (e.target.value) {
+                    newParams.set('educationalLevel', e.target.value);
+                  } else {
+                    newParams.delete('educationalLevel');
+                  }
+                  newParams.set('page', '1');
+                  setParams(newParams);
+                }}
+              >
+                {educationalLevels.map((level) => (
+                  <option key={level._id} value={level._id}>
+                    {level.name || level.nameArabic || level.title || level._id}
+                  </option>
+                ))}
+              </Select>
+            </FormControl>
+          </Flex>
+        </CardBody>
+      </Card>
+
+      {/* Results Count */}
+      <HStack justify="space-between" px={2}>
+        <Text fontSize="sm" color="gray.600">
+          عرض {filteredCourses.length} من {total} كورس
+        </Text>
+      </HStack>
+
+      {/* Courses Grid */}
+      <Grid templateColumns="repeat(auto-fill, minmax(17rem, 1fr))" gap={3}>
+        {isLoading ? (
+          Array.from({ length: 4 }).fill(0).map((_, index) => (
+            <GridItem key={index}>
+              <Card borderRadius="xl" border="1px" borderColor="gray.200">
+                <CardBody>
+                  <VStack spacing={3}>
+                    <Skeleton h="150px" w="100%" borderRadius="lg" />
+                    <Skeleton h="20px" w="100%" />
+                    <Skeleton h="16px" w="80%" />
+                  </VStack>
+                </CardBody>
+              </Card>
+            </GridItem>
+          ))
+        ) : filteredCourses.length === 0 ? (
+          <GridItem colSpan="full">
+            <Card borderRadius="xl" border="1px" borderColor="gray.200" bg="white" boxShadow="xl">
+              <CardBody>
+                <Center py={12}>
+                  <VStack spacing={4}>
                     <Box>
-                        {filteredSections.length > 0 ? (
-                            filteredSections.map((section: any, index: number) => (
-                                <CourseSectionRow 
-                                    key={section._id} 
-                                    section={section} 
-                                    index={index} 
-                                />
-                            ))
-                        ) : (
-                             <Center py={20} flexDirection="column">
-                                 <Text fontSize="xl" fontWeight="bold" color="gray.400">لا توجد كورسات مطابقة للبحث</Text>
-                             </Center>
-                        )}
+                      <Icon icon="solar:inbox-archive-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
                     </Box>
-                </VStack>
-
-            </Container>
-        </Box>
-    );
+                    <VStack spacing={2}>
+                      <Heading as="h2" fontSize="xl" fontWeight="bold" textAlign="center">
+                        لا توجد بيانات للعرض
+                      </Heading>
+                      <Text textAlign="center" color="gray.500" fontSize="sm">
+                        {searchTerm || educationalLevel
+                          ? 'لا توجد نتائج مطابقة للبحث'
+                          : 'لا توجد كورسات متاحة حالياً'}
+                      </Text>
+                    </VStack>
+                  </VStack>
+                </Center>
+              </CardBody>
+            </Card>
+          </GridItem>
+        ) : (
+          filteredCourses.map((course: any) => (
+            <GridItem key={course._id || course.id}>
+              <Box
+                transition="transform 0.3s ease"
+                _hover={{ transform: 'translateY(-8px)' }}
+              >
+                <CourseCard course={course} />
+              </Box>
+            </GridItem>
+          ))
+        )}
+      </Grid>
+    </Stack>
+  );
 }
-
