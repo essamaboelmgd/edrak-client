@@ -2,7 +2,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Icon } from '@iconify-icon/react';
 import {
   Box,
-  Button,
   Card,
   CardBody,
   Center,
@@ -25,13 +24,12 @@ import {
   Badge,
   Divider,
 } from '@chakra-ui/react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAllCourses, useMyCourses, usePlatformSections } from '@/features/student/hooks/useStudentCourses';
 import { CourseCard } from '@/features/student/components/CourseCard';
 import { axiosInstance } from '@/lib/axios';
 
 export default function StudentCourses() {
-  const navigate = useNavigate();
   const [params, setParams] = useSearchParams({ page: '1' });
   const [searchTerm, setSearchTerm] = useState(params.get('search') || '');
   const [educationalLevel, setEducationalLevel] = useState(params.get('educationalLevel') || '');
@@ -447,7 +445,7 @@ export default function StudentCourses() {
         /* Filtered View - Flat Grid */
         <Grid templateColumns="repeat(auto-fill, minmax(17rem, 1fr))" gap={3}>
            {filteredCourses.length === 0 ? (
-            <GridItem colSpan="full">
+            <Box gridColumn="1 / -1">
               <Card borderRadius="xl" border="1px" borderColor="gray.200" bg="white" boxShadow="xl">
                 <CardBody>
                   <Center py={12}>
@@ -467,7 +465,7 @@ export default function StudentCourses() {
                   </Center>
                 </CardBody>
               </Card>
-            </GridItem>
+            </Box>
           ) : (
             filteredCourses.map((course: any) => (
               <GridItem key={course._id || course.id}>

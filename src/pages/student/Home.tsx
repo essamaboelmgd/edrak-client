@@ -11,7 +11,6 @@ import {
   Image,
   Progress,
   SimpleGrid,
-  Spacer,
   Stack,
   Stat,
   StatLabel,
@@ -44,7 +43,7 @@ export default function StudentHome() {
   // Fetch data using hooks
   const { data: allCoursesData, isLoading: loadingCourses } = useAllCourses();
   const { data: myCoursesData, isLoading: loadingMyCourses } = useMyCourses();
-  const { data: subscriptionsData, isLoading: loadingSubscriptions } = useStudentSubscriptions();
+  const { isLoading: loadingSubscriptions } = useStudentSubscriptions();
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -63,7 +62,6 @@ export default function StudentHome() {
   }, []);
 
   const loading = loadingSummary || loadingCourses || loadingMyCourses || loadingSubscriptions;
-  const subscriptions = subscriptionsData?.subscriptions || [];
   const myCourses = myCoursesData?.courses || [];
   const allCourses = allCoursesData?.courses || [];
   

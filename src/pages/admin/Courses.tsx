@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify-icon/react';
 import {
     useToast,
@@ -10,7 +11,6 @@ import {
     Select,
     Button,
     Text,
-  
     Box,
     SimpleGrid,
     Card,
@@ -20,10 +20,15 @@ import {
     Spacer,
     Tooltip,
     IconButton,
+    Image,
+    Badge,
+    Switch,
 } from '@chakra-ui/react';
 import { coursesService, ICourseAdmin } from '@/features/admin/services/coursesService';
 import { teachersService } from '@/features/admin/services/teachersService';
+import { getImageUrl } from '@/lib/axios';
 import CoursesTable from '@/features/admin/components/CoursesTable';
+import SectionsTable from '@/features/admin/components/SectionsTable';
 import CourseCard from '@/features/admin/components/CourseCard';
 import CourseDetailsModal from '@/features/admin/components/CourseDetailsModal';
 import CreateCourseModal from '@/features/admin/components/CreateCourseModal';
@@ -32,6 +37,7 @@ import CreateCourseSectionModal from '@/features/admin/components/CreateCourseSe
 
 export default function AdminCourses() {
     const toast = useToast();
+    const navigate = useNavigate();
     const [courses, setCourses] = useState<ICourseAdmin[]>([]);
     const [teachers, setTeachers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -60,23 +66,34 @@ export default function AdminCourses() {
         }
     };
 
+    const [sections, setSections] = useState<any[]>([]);
+
     const fetchCourses = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await coursesService.getAllCourses({
+            const response = await coursesService.getCoursesWithSections({
                 page,
                 limit: 20,
-                search: searchTerm || undefined,
                 teacher: teacherFilter !== 'all' ? teacherFilter : undefined,
                 status: statusFilter !== 'all' ? statusFilter : undefined,
             });
 
             if (response.success && response.data) {
-                setCourses(response.data.courses || []);
+                // Filter courses by search term on client side if needed
+                let filteredCourses = response.data.courses || [];
+                if (searchTerm) {
+                    filteredCourses = filteredCourses.filter((course: ICourseAdmin) =>
+                        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        course.description?.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
+                setCourses(filteredCourses);
+                setSections(response.data.sections || []);
                 setTotalPages(response.data.totalPages || 1);
                 setTotal(response.data.total || 0);
             } else {
                 setCourses([]);
+                setSections([]);
                 setTotalPages(1);
                 setTotal(0);
             }
@@ -90,6 +107,7 @@ export default function AdminCourses() {
                 });
             }
             setCourses([]);
+            setSections([]);
             setTotalPages(1);
             setTotal(0);
         } finally {
@@ -135,9 +153,7 @@ export default function AdminCourses() {
     }, [page, searchTerm, teacherFilter, statusFilter, fetchCourses]);
 
     const handleViewDetails = (course: ICourseAdmin) => {
-        setSelectedCourse(course);
-        setShowDetailsModal(true);
-        setShowEditModal(false);
+        navigate(`/admin/courses/${course._id}`);
     };
 
     const handleEdit = async (course: ICourseAdmin) => {
@@ -173,6 +189,60 @@ export default function AdminCourses() {
             toast({
                 status: 'error',
                 description: error.response?.data?.message || 'حدث خطأ أثناء حذف الكورس',
+            });
+        }
+    };
+
+    const handleToggleCourseStatus = async (courseId: string, currentStatus: string) => {
+        try {
+            const newStatus = currentStatus === 'active' ? 'draft' : 'active';
+            await coursesService.updateCourse(courseId, { status: newStatus });
+            toast({
+                status: 'success',
+                description: `تم تغيير حالة الكورس إلى ${newStatus === 'active' ? 'نشط' : 'مسودة'}`,
+            });
+            fetchCourses();
+        } catch (error: any) {
+            toast({
+                status: 'error',
+                description: error.response?.data?.message || 'حدث خطأ أثناء تحديث حالة الكورس',
+            });
+        }
+    };
+
+    const handleToggleSectionStatus = async (sectionId: string, currentStatus: string) => {
+        try {
+            const newStatus = currentStatus === 'active' ? 'draft' : 'active';
+            // Get section first to update it
+            const section = sections.find((s: any) => s._id === sectionId);
+            if (section) {
+                const formData = new FormData();
+                formData.append('status', newStatus);
+                // Include other required fields if they exist
+                if (section.title) formData.append('title', section.title);
+                if (section.description) formData.append('description', section.description || '');
+                if (section.educationalLevel) {
+                    const eduLevelId = typeof section.educationalLevel === 'string' 
+                        ? section.educationalLevel 
+                        : section.educationalLevel._id;
+                    if (eduLevelId) formData.append('educationalLevel', eduLevelId);
+                }
+                // Include poster if it exists (as file path/URL)
+                if (section.poster && typeof section.poster === 'string') {
+                    formData.append('poster', section.poster);
+                }
+                
+                await coursesService.updateCourseSection(sectionId, formData);
+                toast({
+                    status: 'success',
+                    description: `تم تغيير حالة القسم إلى ${newStatus === 'active' ? 'نشط' : 'مسودة'}`,
+                });
+                fetchCourses();
+            }
+        } catch (error: any) {
+            toast({
+                status: 'error',
+                description: error.response?.data?.message || 'حدث خطأ أثناء تحديث حالة القسم',
             });
         }
     };
@@ -580,7 +650,7 @@ export default function AdminCourses() {
             {/* Results Count */}
             <HStack justify="space-between" px={2}>
                 <Text fontSize="sm" color="gray.600">
-                    عرض {courses.length} من {total} كورس
+                    عرض {courses.length} كورس و {sections.length} قسم
                 </Text>
                 {totalPages > 0 && (
                     <Text fontSize="sm" color="gray.600">
@@ -589,53 +659,177 @@ export default function AdminCourses() {
                 )}
             </HStack>
 
-            {/* Content */}
-            {viewMode === 'table' ? (
-                <CoursesTable
-                    courses={courses}
-                    onViewDetails={handleViewDetails}
-                    onEdit={handleEdit}
-                    loading={loading}
-                />
-            ) : (
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
-                    {loading ? (
-                        <Box gridColumn="1 / -1" textAlign="center" py={12}>
-                            <Text color="gray.500">جاري التحميل...</Text>
-                        </Box>
-                    ) : courses.length === 0 ? (
-                        <Card borderRadius="xl" border="1px" borderColor="gray.200">
-                            <CardBody>
-                                <VStack py={12} spacing={4}>
-                                    <Icon
-                                        icon="solar:inbox-line-bold-duotone"
-                                        width="64"
-                                        height="64"
-                                        style={{ color: 'var(--chakra-colors-gray-300)' }}
-                                    />
-                                    <Text fontSize="lg" color="gray.500" fontWeight="medium">
-                                        لا توجد كورسات
-                                    </Text>
-                                    <Text fontSize="sm" color="gray.400">
-                                        {searchTerm || teacherFilter !== 'all' || statusFilter !== 'all'
-                                            ? 'لا توجد نتائج مطابقة للبحث'
-                                            : 'ابدأ بإضافة كورس جديد'}
-                                    </Text>
-                                </VStack>
-                            </CardBody>
-                        </Card>
-                    ) : (
-                        courses.map((course) => (
-                            <CourseCard
-                                key={course._id}
-                                course={course}
+            {/* Sections Display */}
+            {sections.length > 0 && (
+                <Card borderRadius="xl" border="1px" borderColor="gray.200">
+                    <CardBody>
+                        <Stack spacing={4}>
+                            <HStack justify="space-between">
+                                <Text fontSize="lg" fontWeight="bold">
+                                    الأقسام ({sections.length})
+                                </Text>
+                            </HStack>
+                            {viewMode === 'table' ? (
+                                <SectionsTable
+                                    sections={sections}
+                                    onToggleStatus={handleToggleSectionStatus}
+                                    loading={loading}
+                                />
+                            ) : (
+                                <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={4}>
+                                    {sections.map((section: any) => (
+                                        <Card
+                                            key={section._id}
+                                            borderRadius="xl"
+                                            border="1px"
+                                            borderColor="gray.200"
+                                            bg="white"
+                                            transition="all 0.3s"
+                                            _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }}
+                                            cursor="pointer"
+                                            onClick={() => navigate(`/admin/sections/${section._id}`)}
+                                        >
+                                            <CardBody>
+                                                <Stack spacing={3}>
+                                                    <Box position="relative">
+                                                        {section.poster ? (
+                                                            <Image
+                                                                src={getImageUrl(section.poster)}
+                                                                alt={section.title}
+                                                                borderRadius="lg"
+                                                                objectFit="cover"
+                                                                h="120px"
+                                                                w="full"
+                                                                fallbackSrc="https://via.placeholder.com/400x200"
+                                                            />
+                                                        ) : (
+                                                            <Box
+                                                                h="120px"
+                                                                w="full"
+                                                                borderRadius="lg"
+                                                                bgGradient="linear(to-br, green.400, teal.500)"
+                                                                display="flex"
+                                                                alignItems="center"
+                                                                justifyContent="center"
+                                                            >
+                                                                <Icon
+                                                                    icon="solar:book-bold-duotone"
+                                                                    width="40"
+                                                                    height="40"
+                                                                    style={{ color: 'white' }}
+                                                                />
+                                                            </Box>
+                                                        )}
+                                                        <HStack
+                                                            position="absolute"
+                                                            top={2}
+                                                            right={2}
+                                                            bg="whiteAlpha.900"
+                                                            p={1}
+                                                            borderRadius="md"
+                                                            shadow="sm"
+                                                            spacing={2}
+                                                        >
+                                                            <Switch
+                                                                size="sm"
+                                                                colorScheme="green"
+                                                                isChecked={section.status === 'active'}
+                                                                onChange={() => handleToggleSectionStatus(section._id, section.status)}
+                                                            />
+                                                            <Badge
+                                                                colorScheme={section.status === 'active' ? 'green' : 'orange'}
+                                                                fontSize="xs"
+                                                                px={2}
+                                                                py={1}
+                                                                borderRadius="full"
+                                                            >
+                                                                {section.status === 'active' ? 'نشط' : 'مسودة'}
+                                                            </Badge>
+                                                        </HStack>
+                                                    </Box>
+                                                    <Box>
+                                                        <Text fontSize="md" fontWeight="bold" mb={1} noOfLines={1}>
+                                                            {section.title}
+                                                        </Text>
+                                                        <Text fontSize="sm" color="gray.600" noOfLines={2}>
+                                                            {section.description || 'لا يوجد وصف'}
+                                                        </Text>
+                                                    </Box>
+                                                    <HStack spacing={2} fontSize="sm" color="gray.500">
+                                                        <Icon icon="solar:book-bold-duotone" width="16" height="16" />
+                                                        <Text>{section.stats?.totalCourses || 0} كورس</Text>
+                                                    </HStack>
+                                                </Stack>
+                                            </CardBody>
+                                        </Card>
+                                    ))}
+                                </SimpleGrid>
+                            )}
+                        </Stack>
+                    </CardBody>
+                </Card>
+            )}
+
+            {/* Courses Display */}
+            <Card borderRadius="xl" border="1px" borderColor="gray.200">
+                <CardBody>
+                    <Stack spacing={4}>
+                        <HStack justify="space-between">
+                            <Text fontSize="lg" fontWeight="bold">
+                                الكورسات ({courses.length})
+                            </Text>
+                        </HStack>
+                        {viewMode === 'table' ? (
+                            <CoursesTable
+                                courses={courses}
                                 onViewDetails={handleViewDetails}
                                 onEdit={handleEdit}
+                                onToggleStatus={handleToggleCourseStatus}
+                                loading={loading}
                             />
-                        ))
-                    )}
-                </SimpleGrid>
-            )}
+                        ) : (
+                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+                                {loading ? (
+                                    <Box gridColumn="1 / -1" textAlign="center" py={12}>
+                                        <Text color="gray.500">جاري التحميل...</Text>
+                                    </Box>
+                                ) : courses.length === 0 ? (
+                                    <Card borderRadius="xl" border="1px" borderColor="gray.200">
+                                        <CardBody>
+                                            <VStack py={12} spacing={4}>
+                                                <Icon
+                                                    icon="solar:inbox-line-bold-duotone"
+                                                    width="64"
+                                                    height="64"
+                                                    style={{ color: 'var(--chakra-colors-gray-300)' }}
+                                                />
+                                                <Text fontSize="lg" color="gray.500" fontWeight="medium">
+                                                    لا توجد كورسات
+                                                </Text>
+                                                <Text fontSize="sm" color="gray.400">
+                                                    {searchTerm || teacherFilter !== 'all' || statusFilter !== 'all'
+                                                        ? 'لا توجد نتائج مطابقة للبحث'
+                                                        : 'ابدأ بإضافة كورس جديد'}
+                                                </Text>
+                                            </VStack>
+                                        </CardBody>
+                                    </Card>
+                                ) : (
+                                    courses.map((course) => (
+                                        <CourseCard
+                                            key={course._id}
+                                            course={course}
+                                            onViewDetails={handleViewDetails}
+                                            onEdit={handleEdit}
+                                            onToggleStatus={handleToggleCourseStatus}
+                                        />
+                                    ))
+                                )}
+                            </SimpleGrid>
+                        )}
+                    </Stack>
+                </CardBody>
+            </Card>
 
             {/* Pagination */}
             {totalPages > 1 && (

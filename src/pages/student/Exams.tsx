@@ -2,12 +2,10 @@ import {
   Avatar,
   Badge,
   Box,
-  Button,
   Card,
   CardBody,
   Center,
   Heading,
-  HStack,
   Input,
   InputGroup,
   InputLeftElement,
@@ -24,7 +22,7 @@ import {
   Tr,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
-import { KeyboardEvent, useState, useEffect } from 'react';
+import { KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getImageUrl } from '@/lib/axios';
 import { useStudentExams } from '@/features/student/hooks/useStudentExams';

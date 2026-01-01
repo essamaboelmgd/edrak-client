@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify-icon/react';
 import {
     useToast,
@@ -29,6 +30,7 @@ import CreateTeacherModal from '@/features/admin/components/CreateTeacherModal';
 import EditTeacherModal from '@/features/admin/components/EditTeacherModal';
 
 export default function AdminTeachers() {
+    const navigate = useNavigate();
     const toast = useToast();
     const [teachers, setTeachers] = useState<ITeacherAdmin[]>([]);
     const [loading, setLoading] = useState(true);
@@ -86,9 +88,7 @@ export default function AdminTeachers() {
     }, [searchTerm, statusFilter]);
 
     const handleViewDetails = (teacher: ITeacherAdmin) => {
-        setSelectedTeacher(teacher);
-        setShowDetailsModal(true);
-        setShowEditModal(false);
+        navigate(`/admin/teachers/${teacher._id}`);
     };
 
     const handleEdit = (teacher: ITeacherAdmin) => {

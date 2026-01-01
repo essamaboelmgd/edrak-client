@@ -16,13 +16,10 @@ import {
   HStack,
   Text,
   useToast,
-  Box,
   Avatar,
-  IconButton,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import { teachersService } from '../services/teachersService';
-import { getImageUrl } from '@/lib/axios';
 
 interface CreateTeacherModalProps {
   isOpen: boolean;

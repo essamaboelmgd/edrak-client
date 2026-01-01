@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Button, Container, Flex, Heading, Text, VStack, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, Badge, Icon, Skeleton, useToast, Image, Tabs, TabList, TabPanels, Tab, TabPanel, Avatar, HStack } from '@chakra-ui/react';
-import { PlayCircle, Clock, FileText, Lock, CheckCircle, GraduationCap, ShoppingCart } from 'lucide-react';
+import { PlayCircle, Clock, FileText, Lock, GraduationCap, ShoppingCart } from 'lucide-react';
 import { useCourseDetails, useSubscribeToCourse, useLessonSections, useLessonsByCourse, useStudentSubscriptions, useSubscribeToLesson, useSubscribeToLessonSection, useSubscribeToMultipleLessons } from '@/features/student/hooks/useStudentCourses';
 import { useMemo, useState } from 'react';
 import { getImageUrl } from '@/lib/axios';

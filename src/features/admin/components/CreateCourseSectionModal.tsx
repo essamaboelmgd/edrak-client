@@ -37,6 +37,8 @@ interface SectionFormData {
   teacher: string;
   order: number;
   status: string;
+  price: number;
+  discount: number;
 }
 
 interface EducationalLevel {
@@ -66,6 +68,7 @@ export default function CreateCourseSectionModal({ callback, editing }: CreateCo
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    watch,
   } = useForm<SectionFormData>({
     defaultValues: {
       title: "",
@@ -74,6 +77,8 @@ export default function CreateCourseSectionModal({ callback, editing }: CreateCo
       teacher: "",
       order: 1,
       status: "active",
+      price: 0,
+      discount: 0,
     },
   });
 
@@ -148,6 +153,8 @@ export default function CreateCourseSectionModal({ callback, editing }: CreateCo
         teacher: editing.teacher?._id || editing.teacher || "",
         order: editing.order || 1,
         status: editing.status || "active",
+        price: editing.price || 0,
+        discount: editing.discount || 0,
       });
       if (editing.poster) {
         setImagePreview(getImageUrl(editing.poster));
@@ -160,6 +167,8 @@ export default function CreateCourseSectionModal({ callback, editing }: CreateCo
         teacher: "",
         order: 1,
         status: "active",
+        price: 0,
+        discount: 0,
       });
       setSelectedImage(null);
       setImagePreview(null);
@@ -193,6 +202,8 @@ export default function CreateCourseSectionModal({ callback, editing }: CreateCo
       formData.append("educationalLevel", values.educationalLevel);
       formData.append("teacher", values.teacher);
       formData.append("order", values.order.toString());
+      formData.append("price", values.price.toString());
+      formData.append("discount", values.discount.toString());
       if (values.status) formData.append("status", values.status);
       if (selectedImage) {
         formData.append("poster", selectedImage);
@@ -348,6 +359,34 @@ export default function CreateCourseSectionModal({ callback, editing }: CreateCo
                     </Box>
                   )}
                 </FormControl>
+                <Stack direction="row" spacing={4}>
+                  <FormControl isInvalid={!!errors.price}>
+                    <FormLabel>السعر</FormLabel>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      step="0.01"
+                      {...register("price", { valueAsNumber: true, min: 0 })}
+                    />
+                    <FormErrorMessage>{errors.price?.message}</FormErrorMessage>
+                  </FormControl>
+                  <FormControl isInvalid={!!errors.discount}>
+                    <FormLabel>الخصم %</FormLabel>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      step="1"
+                      max={100}
+                      {...register("discount", { valueAsNumber: true, min: 0, max: 100 })}
+                    />
+                    <FormErrorMessage>{errors.discount?.message}</FormErrorMessage>
+                  </FormControl>
+                </Stack>
+                {watch("price") > 0 && watch("discount") > 0 && (
+                  <Text fontSize="sm" color="green.600">
+                    السعر النهائي: {(watch("price") - (watch("price") * watch("discount") / 100)).toFixed(2)} ج.م
+                  </Text>
+                )}
                 <FormControl isInvalid={!!errors.order}>
                   <FormLabel>الترتيب</FormLabel>
                   <Input

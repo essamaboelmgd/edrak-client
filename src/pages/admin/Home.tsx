@@ -5,7 +5,6 @@ import {
   CardBody,
   Heading,
   HStack,
-  Skeleton,
   Stack,
   SimpleGrid,
   VStack,
@@ -20,7 +19,6 @@ import {
   AlertDescription,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
-import { useAuth } from '@/contexts/AuthContext';
 import userService from '@/features/user/userService';
 import { getImageUrl } from '@/lib/axios';
 import { useNavigate } from 'react-router-dom';
@@ -77,17 +75,7 @@ interface AdminSummary {
   }>;
 }
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('ar-EG', {
-    style: 'currency',
-    currency: 'EGP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
-
 export default function AdminHome() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -158,9 +146,9 @@ export default function AdminHome() {
       value: loading
         ? '...'
         : `EGP ${Number(summary?.total_revenue || 0).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
       icon: 'solar:dollar-minimalistic-bold-duotone',
       color: 'orange',
       gradient: 'linear(to-r, orange.500, orange.600)',
@@ -173,9 +161,9 @@ export default function AdminHome() {
       value: loading
         ? '...'
         : `EGP ${Number(summary?.total_transactions_amount || 0).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`,
       icon: 'solar:wallet-money-bold-duotone',
       color: 'cyan',
       gradient: 'linear(to-r, cyan.500, cyan.600)',

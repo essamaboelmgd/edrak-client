@@ -7,9 +7,10 @@ interface CourseCardProps {
   course: ICourseAdmin;
   onViewDetails?: (course: ICourseAdmin) => void;
   onEdit?: (course: ICourseAdmin) => void;
+  onToggleStatus?: (courseId: string, currentStatus: string) => void;
 }
 
-export default function CourseCard({ course, onViewDetails, onEdit }: CourseCardProps) {
+export default function CourseCard({ course, onViewDetails, onEdit, onToggleStatus }: CourseCardProps) {
   const getStatusBadge = () => {
     if (course.status === 'active' || course.status === 'published') {
       return (
@@ -51,7 +52,18 @@ export default function CourseCard({ course, onViewDetails, onEdit }: CourseCard
             <BookOpen className="text-white" size={40} />
           </div>
         )}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg shadow-sm">
+          {onToggleStatus && (
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={course.status === 'active'}
+                onChange={() => onToggleStatus(course._id, course.status)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            </label>
+          )}
           {getStatusBadge()}
         </div>
       </div>

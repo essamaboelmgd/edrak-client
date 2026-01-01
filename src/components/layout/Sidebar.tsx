@@ -12,10 +12,9 @@ import {
     useDisclosure,
     IconButton,
     VStack,
-    Divider,
     Badge,
 } from "@chakra-ui/react";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState } from "react";
 import { Icon } from "@iconify-icon/react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
@@ -35,7 +34,7 @@ interface SimpleSidebarProps {
 }
 
 export default function Sidebar({ children, isOpen: externalIsOpen, onClose: externalOnClose }: SimpleSidebarProps) {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen, onClose } = useDisclosure();
     const { role } = useAuth();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -51,6 +50,7 @@ export default function Sidebar({ children, isOpen: externalIsOpen, onClose: ext
                 { path: "/admin/teachers", name: "المدرسين", icon: "solar:user-id-bold-duotone" },
                 { path: "/admin/students", name: "الطلاب", icon: "solar:users-group-rounded-bold-duotone" },
                 { path: "/admin/courses", name: "الكورسات", icon: "solar:book-bookmark-bold-duotone" },
+                { path: "/admin/lessons", name: "الدروس", icon: "solar:play-circle-bold-duotone" },
                 { path: "/admin/question-bank", name: "بنك الأسئلة", icon: "solar:question-circle-bold-duotone" },
                 { path: "/admin/exams", name: "الامتحانات", icon: "solar:document-text-bold-duotone" },
                 { path: "/admin/homeworks", name: "الواجبات", icon: "solar:notebook-bold-duotone" },

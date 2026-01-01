@@ -44,7 +44,7 @@ import CreateExam from '@/features/exams/components/CreateExam';
 export default function AdminExams() {
   const [searchParams, setSearchParams] = useSearchParams({ page: '1' });
   const toast = useToast();
-  
+
   const [exams, setExams] = useState<IExamResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -172,7 +172,8 @@ export default function AdminExams() {
     <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
       {/* Modern Hero Header */}
       <Box
-        bgGradient="linear(135deg, blue.600 0%, indigo.500 50%, purple.400 100%)"
+        bg="purple.600"
+        bgGradient="linear(135deg, purple.600 0%, blue.500 50%, teal.400 100%)"
         position="relative"
         overflow="hidden"
         borderRadius="2xl"
@@ -219,7 +220,7 @@ export default function AdminExams() {
             trigger={
               <Button
                 bg="white"
-                color="blue.600"
+                color="purple.600"
                 _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
                 leftIcon={<Icon icon="solar:add-circle-bold-duotone" width="20" height="20" />}
                 size={{ base: 'md', md: 'lg' }}

@@ -17,16 +17,18 @@ import {
   CardBody,
   Image,
   Box,
+  Switch,
 } from '@chakra-ui/react';
 
 interface CoursesTableProps {
   courses: ICourseAdmin[];
   onViewDetails?: (course: ICourseAdmin) => void;
   onEdit?: (course: ICourseAdmin) => void;
+  onToggleStatus?: (courseId: string, currentStatus: string) => void;
   loading?: boolean;
 }
 
-export default function CoursesTable({ courses, onViewDetails, onEdit, loading }: CoursesTableProps) {
+export default function CoursesTable({ courses, onViewDetails, onEdit, onToggleStatus, loading }: CoursesTableProps) {
   const getStatusBadge = (course: ICourseAdmin) => {
     if (course.status === 'active' || course.status === 'published') {
       return (
@@ -165,7 +167,19 @@ export default function CoursesTable({ courses, onViewDetails, onEdit, loading }
                       {course.educationalLevel?.name || course.educationalLevel?.shortName || '-'}
                     </Text>
                   </Td>
-                  <Td>{getStatusBadge(course)}</Td>
+                  <Td>
+                    <HStack spacing={2}>
+                      {onToggleStatus && (
+                        <Switch
+                          size="sm"
+                          colorScheme="green"
+                          isChecked={course.status === 'active'}
+                          onChange={() => onToggleStatus(course._id, course.status)}
+                        />
+                      )}
+                      {getStatusBadge(course)}
+                    </HStack>
+                  </Td>
                   <Td>
                     <HStack spacing={1}>
                       <Icon
