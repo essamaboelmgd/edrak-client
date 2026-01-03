@@ -82,6 +82,7 @@ export interface IStudentExam {
     _id: string;
     title: string;
   };
+  lesson?: string | any;
   questionsCount: number;
   startDate?: string;
   endDate?: string;
@@ -136,6 +137,7 @@ export interface IStudentHomework {
     _id: string;
     title: string;
   };
+  lesson?: string | any;
   dueDate?: string;
   pdfUrl?: string; // Teacher's homework file
   totalMarks: number;

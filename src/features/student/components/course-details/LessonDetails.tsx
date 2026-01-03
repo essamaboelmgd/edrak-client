@@ -1,7 +1,8 @@
 import { Box, Card, CardBody, CardHeader, Heading, Stack, Text, Button, Icon, HStack, Link } from "@chakra-ui/react";
 import { Lock, FileText, Download } from "lucide-react";
-import { IStudentLesson, IStudentCourse } from "../../types";
+import { IStudentLesson, IStudentCourse, IStudentExam } from "../../types";
 import { useNavigate } from "react-router-dom";
+import DisplayLessonExams from "./DisplayLessonExams";
 
 // Simple fallback mock if VideoPlayer doesn't exist
 const DefaultVideoPlayer = ({ url }: { url: string }) => (
@@ -12,9 +13,10 @@ interface LessonDetailsProps {
     lesson: IStudentLesson;
     course: IStudentCourse;
     isSubscribed: boolean;
+    exams?: IStudentExam[];
 }
 
-export default function LessonDetails({ lesson, course, isSubscribed }: LessonDetailsProps) {
+export default function LessonDetails({ lesson, course, isSubscribed, exams = [] }: LessonDetailsProps) {
     const navigate = useNavigate();
     const isLocked = !isSubscribed && !lesson.isFree;
 
@@ -112,6 +114,15 @@ export default function LessonDetails({ lesson, course, isSubscribed }: LessonDe
                                     ))}
                                 </Stack>
                             </Box>
+                        )}
+
+                        {/* Linked Exams */}
+                        {exams && exams.length > 0 && (
+                            <DisplayLessonExams 
+                                exams={exams} 
+                                lessonId={lesson._id} 
+                                isSubscribed={isSubscribed} 
+                            />
                         )}
                     </Stack>
                 </CardBody>

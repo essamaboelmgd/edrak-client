@@ -1,5 +1,5 @@
-import { Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, List, ListItem, HStack, Stack, Center, Badge, Icon, Flex, Box } from "@chakra-ui/react";
-import { PlayCircle, Lock, Clock, FileText, CheckCircle, GraduationCap, PenTool, AlertCircle } from "lucide-react";
+import { Text, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, List, ListItem, HStack, Stack, Center, Badge, Icon, Box } from "@chakra-ui/react";
+import { PlayCircle, Lock, FileText, CheckCircle, GraduationCap, PenTool } from "lucide-react";
 import { IStudentCourseSection } from "../../types";
 
 interface LessonListProps {
@@ -31,27 +31,15 @@ export default function LessonList({ sections, selectedContentId, onContentClick
         }
     };
 
-    const getItemColor = (type: string, isLocked: boolean, isCompleted: boolean, isSelected: boolean) => {
-        if (isLocked) return "gray.500";
-        if (isCompleted) return "green.500";
-        if (isSelected) return "blue.500";
-        if (type === 'exam') return "orange.500";
-        return "gray.500";
-    };
 
-    const getItemBg = (type: string, isLocked: boolean, isCompleted: boolean, isSelected: boolean) => {
-        if (isLocked) return "gray.100";
-        if (isCompleted) return "green.100";
-        if (isSelected) return "blue.100";
-        if (type === 'exam') return "orange.100";
-        return "gray.100";
-    };
 
     return (
         <Accordion allowMultiple defaultIndex={[0]} bg="white" borderRadius="lg" overflow="hidden" boxShadow="sm" border="1px" borderColor="gray.200">
             {sections.map((section) => {
                 // Determine items source: Unified 'items' or legacy 'lessons'
-                const items: any[] = (section.items && section.items.length > 0) ? section.items : (section.lessons || []);
+                // Filter to show ONLY lessons in the sidebar (Legacy Parity)
+                const allItems: any[] = (section.items && section.items.length > 0) ? section.items : (section.lessons || []);
+                const items = allItems.filter((i: any) => i.type === 'lesson' || !i.type);
                 
                 return (
                     <AccordionItem key={section._id} border="none" borderBottom="1px" borderColor="gray.100" _last={{ borderBottom: "none" }}>
@@ -84,63 +72,70 @@ export default function LessonList({ sections, selectedContentId, onContentClick
                                     return (
                                         <ListItem
                                             key={item._id}
-                                            p={4}
+                                            mb={2}
                                             cursor={isLocked ? "not-allowed" : "pointer"}
-                                            bg={isSelected ? "blue.50" : (isExam ? "orange.50" : "white")} // Highlight exams slightly
-                                            _hover={{ bg: isLocked ? "white" : (isSelected ? "blue.50" : "gray.50") }}
-                                            onClick={() => !isLocked && onContentClick(item)}
-                                            borderLeft={isSelected ? "4px solid" : "4px solid transparent"}
-                                            borderColor={isSelected ? "blue.500" : "transparent"}
-                                            transition="all 0.2s"
-                                            opacity={isLocked ? 0.7 : 1}
                                         >
-                                            <HStack spacing={3} align="start">
-                                                <Center
-                                                    boxSize="24px"
-                                                    borderRadius="full"
-                                                    bg={getItemBg(item.type || 'lesson', isLocked, isCompleted, isSelected)}
-                                                    color={getItemColor(item.type || 'lesson', isLocked, isCompleted, isSelected)}
-                                                    flexShrink={0}
-                                                >
-                                                    <Icon as={getItemIcon(item.type || 'lesson', isLocked, isCompleted)} boxSize={3.5} />
-                                                </Center>
-                                                
-                                                <Stack spacing={1} flex="1">
-                                                    <Flex justify="space-between" align="start">
-                                                        <Text 
-                                                            fontWeight={isSelected ? "bold" : "medium"} 
-                                                            fontSize="sm" 
-                                                            color={isSelected ? "blue.700" : "gray.700"}
-                                                            noOfLines={2}
-                                                        >
-                                                            {item.title}
-                                                        </Text>
-                                                        {item.isFree && !isSubscribed && (
-                                                            <Badge colorScheme="green" fontSize="xs" px={1.5}>مجاني</Badge>
+                                            <Box
+                                                as="button"
+                                                w="100%"
+                                                textAlign="start"
+                                                onClick={() => !isLocked && onContentClick(item)}
+                                                p={3}
+                                                rounded="md" // rounded={5}
+                                                bg={isSelected ? "blue.50" : "gray.50"}
+                                                border={isSelected ? "2px solid" : "1px solid"}
+                                                borderColor={isSelected ? "blue.300" : "gray.300"}
+                                                _hover={{ bg: isLocked ? "gray.50" : (isSelected ? "blue.50" : "gray.100") }}
+                                                transition="all 0.2s"
+                                                position="relative"
+                                                opacity={isLocked ? 0.7 : 1}
+                                            >
+                                                <HStack spacing={3} align="center">
+                                                    <Box
+                                                       color={isSelected ? "blue.500" : "gray.500"}
+                                                    >
+                                                        <Icon as={getItemIcon(item.type || 'lesson', isLocked, isCompleted)} boxSize={6} />
+                                                    </Box>
+                                                    
+                                                    <Text 
+                                                        fontWeight="medium" 
+                                                        fontSize="sm" 
+                                                        color="gray.800"
+                                                        noOfLines={1}
+                                                        flex={1}
+                                                    >
+                                                        {item.title}
+                                                    </Text>
+
+                                                    {/* Right side: Duration or Progress */}
+                                                    <Stack align="end" spacing={0}>
+                                                         {item.isFree && !isSubscribed && (
+                                                            <Badge colorScheme="green" fontSize="xs" px={1.5} mb={1}>مجاني</Badge>
                                                         )}
                                                          {isExam && item.isMandatory && (
-                                                            <Badge colorScheme="red" fontSize="xs" px={1.5}>إلزامي</Badge>
+                                                            <Badge colorScheme="red" fontSize="xs" px={1.5} mb={1}>إلزامي</Badge>
                                                         )}
-                                                    </Flex>
-                                                    
-                                                    <HStack fontSize="xs" color="gray.500">
-                                                        {item.type === 'lesson' && (
-                                                            <>
-                                                                <Icon as={Clock} boxSize={3} />
+                                                        <HStack fontSize="xs" color="gray.500">
+                                                            {item.type === 'lesson' && (
                                                                 <Text>{item.duration || 0} دقيقة</Text>
-                                                            </>
-                                                        )}
-                                                        {item.type === 'exam' && (
-                                                            <>
-                                                                <Icon as={FileText} boxSize={3} />
-                                                                <Text>{item.settings?.duration || 0} دقيقة</Text>
-                                                                <Text mx={1}>|</Text>
+                                                            )}
+                                                             {item.type === 'exam' && (
                                                                 <Text>{item.questionsCount || 0} سؤال</Text>
-                                                            </>
-                                                        )}
-                                                    </HStack>
-                                                </Stack>
-                                            </HStack>
+                                                            )}
+                                                        </HStack>
+                                                    </Stack>
+                                                </HStack>
+
+                                                {/* Lock Overlay */}
+                                                {isLocked && (
+                                                    <Center position="absolute" inset={0} bg="whiteAlpha.600" rounded="md">
+                                                       <Badge colorScheme="orange" py={1} px={2} rounded="md" display="flex" alignItems="center" gap={1}>
+                                                            <Icon as={Lock} boxSize={3} />
+                                                            يجب الاشتراك
+                                                       </Badge>
+                                                    </Center>
+                                                )}
+                                            </Box>
                                         </ListItem>
                                     );
                                 })}

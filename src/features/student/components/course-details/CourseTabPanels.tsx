@@ -1,4 +1,4 @@
-import { TabPanel, TabPanels, Box, Grid, Text, Center, Stack, Icon } from "@chakra-ui/react";
+import { TabPanel, TabPanels, Box, Text, Center, Stack, Icon, SimpleGrid } from "@chakra-ui/react";
 import { BookOpen } from "lucide-react";
 import LessonDetails from "./LessonDetails";
 import LessonList from "./LessonList";
@@ -32,9 +32,9 @@ export default function CourseTabPanels({
             {/* Lessons Tab - Unified Curriculum */}
             <TabPanel px={0}>
                 {hasContent ? (
-                    <Grid templateColumns={{ base: "1fr", lg: "350px 1fr" }} gap={6}>
-                        {/* Sidebar (List) - Right Side in RTL */}
-                        <Box order={{ base: 2, lg: 1 }}>
+                    <Stack direction={{ base: "column-reverse", lg: "row" }} spacing={6} align="start">
+                        {/* Sidebar (List) */}
+                        <Box w={{ base: "100%", lg: "300px" }} flexShrink={0}>
                             <LessonList 
                                 sections={sections} 
                                 selectedContentId={selectedContent?._id}
@@ -43,8 +43,8 @@ export default function CourseTabPanels({
                             />
                         </Box>
 
-                        {/* Main Content (Video/Exam/etc) - Left Side in RTL */}
-                        <Box order={{ base: 1, lg: 2 }}>
+                        {/* Main Content (Video/Exam/etc) */}
+                        <Box flex={1} w="100%">
                             {selectedContent ? (
                                 <>
                                     {selectedContent.type === 'lesson' && (
@@ -52,6 +52,7 @@ export default function CourseTabPanels({
                                             lesson={selectedContent} 
                                             course={course} 
                                             isSubscribed={isSubscribed} 
+                                            exams={exams}
                                         />
                                     )}
                                     {selectedContent.type === 'exam' && (
@@ -84,7 +85,7 @@ export default function CourseTabPanels({
                                 </Center>
                             )}
                         </Box>
-                    </Grid>
+                    </Stack>
                 ) : (
                      <Center py={12}>
                         <Stack spacing={4} textAlign="center">
@@ -97,11 +98,11 @@ export default function CourseTabPanels({
             {/* Exams Tab */}
             <TabPanel>
                 {exams && exams.length > 0 ? (
-                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr", xl: "1fr 1fr 1fr" }} gap={6}>
+                    <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={6}>
                         {exams.map((exam: any) => (
                             <ExamCard key={exam._id} exam={exam} isSubscribed={isSubscribed} />
                         ))}
-                    </Grid>
+                    </SimpleGrid>
                 ) : (
                     <Center py={12}>
                         <Stack spacing={4} textAlign="center">
