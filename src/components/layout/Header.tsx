@@ -9,9 +9,12 @@ import {
   MenuList,
   Stack,
   Text,
+  Button
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import HeaderNotifications from "./HeaderNotifications";
 
 interface HeaderProps {
   onOpen: () => void;
@@ -45,6 +48,33 @@ export default function Header({ onOpen }: HeaderProps) {
 
         {/* Spacer */}
         <Box flex={1} />
+
+        {/* Action Buttons */}
+        <HStack spacing={3}>
+           {/* Notifications */}
+           <HeaderNotifications />
+
+           {/* Wallet */}
+           <Button
+               as={Link}
+               to="/transactions" // Assuming route exists or will exist
+               variant="ghost"
+               colorScheme="blue"
+               bg="blue.50"
+               rounded="full"
+               px={4}
+               h={10}
+               gap={2}
+               display="flex"
+               alignItems="center"
+               _hover={{ bg: "blue.100" }}
+           >
+               <Icon icon="solar:wallet-money-line-duotone" width="22" height="22" />
+               <Text fontWeight="bold" fontSize="sm" color="blue.600">
+                   {new Intl.NumberFormat('ar-EG', { style: 'currency', currency: 'EGP' }).format(0)}
+               </Text>
+           </Button>
+        </HStack>
 
         {/* User menu */}
         <HStack spacing={3}>

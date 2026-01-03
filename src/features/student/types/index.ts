@@ -143,9 +143,13 @@ export interface IStudentHomework {
   totalMarks: number;
   status: 'published' | 'draft' | 'archived';
   isSubmitted?: boolean;
+  submissions?: any[];
+  homeworkSolutionVideo?: string;
+  solutionFile?: string;
+  allowShowSolutionAlways?: boolean;
   submission?: {
       _id: string;
-      status: 'pending' | 'submitted' | 'graded';
+      status: 'pending' | 'submitted' | 'graded' | 'accepted' | 'rejected' | 'late';
       score?: number;
       feedback?: string;
       submittedAt: string;

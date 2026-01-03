@@ -1,25 +1,18 @@
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
-    Box, 
     Container, 
     Skeleton, 
     Stack, 
     Text, 
-    Center, 
-    Tabs, 
-    Button, 
-    HStack
+    Center
 } from '@chakra-ui/react';
 import { useCourseContent, useStudentSubscriptions } from '@/features/student/hooks/useStudentCourses';
-import { useMemo, useState, useEffect } from 'react';
-import CourseHeader from './course-details/CourseHeader';
-import CourseTabs from './course-details/CourseTabs';
-import CourseTabPanels from './course-details/CourseTabPanels';
-import SubscriptionSelector from './SubscriptionSelector';
+import { useMemo } from 'react';
+import PrePurchaseCourseDetails from './course-details/PrePurchaseCourseDetails';
+import SubscribedCourseDetails from './course-details/subscribed/SubscribedCourseDetails';
 
 const StudentCourseDetails = () => {
     const { courseId } = useParams<{ courseId: string }>();
-    const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     
     // Data fetching
@@ -31,42 +24,8 @@ const StudentCourseDetails = () => {
     const sections = useMemo(() => courseData?.months || [], [courseData]); // Legacy "months" are "sections"
     const lessons = useMemo(() => courseData?.lessons || [], [courseData]);
     const exams = useMemo(() => courseData?.exams || [], [courseData]);
-    // const homeworks = useMemo(() => courseData?.homeworks || [], [courseData]); // Unused
+    const homeworks = useMemo(() => courseData?.homeworks || [], [courseData]);
     const lessonSubscriptions = useMemo(() => courseData?.lesson_subscriptions || [], [courseData]);
-
-    const [activeTab, setActiveTab] = useState(0);
-
-    const [selectedContent, setSelectedContent] = useState<any | null>(null);
-
-    // Initial Content Selection from URL
-    useEffect(() => {
-        const contentId = searchParams.get('lesson') || searchParams.get('content');
-        if (contentId && sections.length > 0) {
-            // Find in sections.items (Preferred)
-            for (const section of sections) {
-                if (section.items && section.items.length > 0) {
-                     const foundItem = section.items.find((i: any) => i._id === contentId);
-                     if (foundItem) {
-                         setSelectedContent(foundItem);
-                         return;
-                     }
-                }
-                // Fallback for older structure
-                if (section.lessons) {
-                    const foundLesson = section.lessons.find((l: any) => l._id === contentId);
-                    if (foundLesson) {
-                        setSelectedContent({ ...foundLesson, type: 'lesson' });
-                        return;
-                    }
-                }
-            }
-             // Fallback for flat lessons list if not in sections
-            const foundLesson = lessons.find((l: any) => l._id === contentId);
-            if (foundLesson) {
-                setSelectedContent({ ...foundLesson, type: 'lesson' });
-            }
-        }
-    }, [searchParams, lessons, sections]);
 
     // Derived State: Sections with Content (Backend provides items, we ensure it's passed)
     const sectionsWithContent = useMemo(() => {
@@ -104,12 +63,8 @@ const StudentCourseDetails = () => {
         return false;
     }, [subscriptions, courseId, course, lessonSubscriptions]);
 
-    // Handler: Content Click
-    const handleContentClick = (content: any) => {
-        if (content.isLocked) return;
-        setSelectedContent(content);
-        setSearchParams({ lesson: content._id }); // Keep 'lesson' param for compatibility or use 'content'
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleSubscribe = () => {
+        navigate(`/student/courses/${courseId}/subscribe`);
     };
 
     if (isLoadingCourse || isLoadingSubscriptions) {
@@ -136,85 +91,32 @@ const StudentCourseDetails = () => {
         );
     }
 
+    // Unsubscribed / Pre-purchase View - Legacy Design
+    if (!isSubscribed && !course.isFree) {
+        return (
+            <PrePurchaseCourseDetails 
+                course={course}
+                sections={sections}
+                lessons={lessons}
+                homeworks={homeworks}
+                exams={exams}
+                onSubscribe={handleSubscribe}
+            />
+        );
+    }
+
+    // Subscribed View
     return (
         <Container maxW="container.xl" py={8}>
-            <Stack spacing={6}>
-                {/* Header */}
-                <CourseHeader course={course} isSubscribed={isSubscribed} />
-
-                {/* Subscription Options for Non-Subscribers */}
-                {!isSubscribed && !course.isFree && (
-                   <SubscriptionOptionsSection course={course} />
-                )}
-
-                {/* Content */}
-                <Box>
-                    <Tabs index={activeTab} onChange={setActiveTab} variant="unstyled" isLazy>
-                        <CourseTabs 
-                            lessonsCount={course.stats?.totalLessons || 0}
-                            examsCount={course.stats?.totalExams || 0}
-                            homeworksCount={course.stats?.totalHomeworks || 0}
-                            livesCount={0} 
-                            isSubscribed={isSubscribed}
-                        />
-                        
-                        <Box mt={6}>
-                            <CourseTabPanels 
-                                course={course}
-                                sections={sectionsWithContent}
-                                selectedContent={selectedContent}
-                                onContentClick={handleContentClick}
-                                isSubscribed={isSubscribed}
-                                exams={exams}
-                            />
-                        </Box>
-                    </Tabs>
-                </Box>
-            </Stack>
-        </Container>
-    );
-};
-
-const SubscriptionOptionsSection = ({ course }: { course: any }) => {
-    const navigate = useNavigate();
-    const [subscriptionType, setSubscriptionType] = useState<'course' | 'section' | 'custom'>('course');
-    const [selectedSection, setSelectedSection] = useState<string>("");
-    const [selectedLessons, setSelectedLessons] = useState<string[]>([]);
-    const [computedPrice, setComputedPrice] = useState<number>(0);
-
-    const handleSubscribe = () => {
-        navigate(`/student/courses/${course._id}/subscribe`, {
-            state: {
-                type: subscriptionType,
-                selectedSection,
-                selectedLessons
-            }
-        });
-    };
-
-    return (
-        <Box bg="white" p={6} rounded="xl" shadow="sm" border="1px" borderColor="gray.100">
-            <SubscriptionSelector 
-                courseId={course._id}
-                coursePrice={course.price}
-                courseFinalPrice={course.finalPrice}
-                onChange={(state: any) => {
-                    setSubscriptionType(state.type);
-                    setSelectedSection(state.selectedSection);
-                    setSelectedLessons(state.selectedLessons);
-                    setComputedPrice(state.price);
-                }}
+            <SubscribedCourseDetails 
+                course={course}
+                sections={sectionsWithContent}
+                lessons={lessons}
+                exams={exams}
+                homeworks={homeworks}
+                isSubscribed={isSubscribed}
             />
-            <HStack mt={6} justify="flex-end">
-                 <Box textAlign="right" mr={4}>
-                     <Text fontSize="sm" color="gray.500">مشالي الاشتراك</Text>
-                     <Text fontSize="xl" fontWeight="bold" color="blue.600">{computedPrice} ج.م</Text>
-                 </Box>
-                 <Button colorScheme="blue" size="lg" px={8} onClick={handleSubscribe}>
-                     متابعة للدفع
-                 </Button>
-            </HStack>
-        </Box>
+        </Container>
     );
 };
 

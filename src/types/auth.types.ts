@@ -70,6 +70,8 @@ export interface IUserResponse {
     isActive: boolean;
     isEmailVerified: boolean;
     isMobileVerified: boolean;
+    image?: string;
+    photo?: string;
     createdAt: Date;
     updatedAt: Date;
 }

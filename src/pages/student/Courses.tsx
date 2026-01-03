@@ -7,16 +7,16 @@ import {
   Stack,
   Text,
   VStack,
-  Flex,
-  FormControl,
-  SimpleGrid,
+  // Flex,
+  // FormControl,
+  // SimpleGrid,
   Grid,
   GridItem,
   Heading,
-  Input,
-  InputGroup,
-  InputLeftElement,
-  Select,
+  // Input,
+  // InputGroup,
+  // InputLeftElement,
+  // Select,
   HStack 
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
@@ -91,7 +91,7 @@ export default function StudentCourses() {
       queryKey: ['educational-levels'],
       queryFn: () => studentService.getEducationalLevels(),
   });
-  const educationalLevels = levelsData?.levels || [];
+  // const educationalLevels = levelsData?.levels || [];
 
   // Helper: Group courses by category
   const groupCoursesByCategory = (courses: any[]) => {
@@ -216,16 +216,16 @@ export default function StudentCourses() {
   const isLoading = myCoursesLoading || allCoursesLoading;
   
   // Calculate Stats
-  const stats = useMemo(() => {
-      const all = [...enrolledCourses, ...availableCourses];
-      return {
-          total: all.length,
-          enrolled: enrolledCourses.length,
-          available: availableCourses.length,
-          free: all.filter(c => c.isFree).length,
-          paid: all.filter(c => !c.isFree).length
-      };
-  }, [enrolledCourses, availableCourses]);
+  // const stats = useMemo(() => {
+  //     const all = [...enrolledCourses, ...availableCourses];
+  //     return {
+  //         total: all.length,
+  //         enrolled: enrolledCourses.length,
+  //         available: availableCourses.length,
+  //         free: all.filter(c => c.isFree).length,
+  //         paid: all.filter(c => !c.isFree).length
+  //     };
+  // }, [enrolledCourses, availableCourses]);
 
   // Extract unique teachers from all courses for the filter
   const teachers = useMemo(() => {
@@ -240,7 +240,7 @@ export default function StudentCourses() {
   }, [myCoursesData, allCoursesData]);
 
   // Total count
-  const total = stats.total;
+  // const total = stats.total;
 
   return (
     <Box
@@ -290,7 +290,7 @@ export default function StudentCourses() {
         )}
 
         {/* Header Stats Title */}
-        {!isLoading && (
+        {/* {!isLoading && (
         <Box mb={8}>
             <Flex
               position="relative"
@@ -316,10 +316,10 @@ export default function StudentCourses() {
               </VStack>
             </Flex>
           </Box>
-        )}
+        )} */}
 
       {/* Stats Cards */}
-      {!isLoading && (
+      {/* {!isLoading && (
       <SimpleGrid columns={{ base: 2, sm: 3, lg: 5 }} spacing={{ base: 4, md: 6 }} mb={8}>
         <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white" _hover={{ shadow: 'lg', transform: 'translateY(-4px)' }} transition="all 0.3s">
           <CardBody>
@@ -396,10 +396,10 @@ export default function StudentCourses() {
           </CardBody>
         </Card>
       </SimpleGrid>
-      )}
+      )} */}
 
       {/* Search Filters */}
-      <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white" boxShadow="xl" mb={6}>
+      {/* <Card borderRadius="2xl" border="1px" borderColor="gray.200" bg="white" boxShadow="xl" mb={6}>
         <CardBody>
           <Flex direction={{ base: 'column', md: 'row' }} gap={4} align={{ base: 'stretch', md: 'center' }} wrap="wrap">
             <InputGroup flex={1} minW={{ base: '100%', md: '300px' }}>
@@ -431,7 +431,7 @@ export default function StudentCourses() {
             </FormControl>
           </Flex>
         </CardBody>
-      </Card>
+      </Card> */}
 
       {/* Results Count & View Toggle */}
       <HStack justify="space-between" px={2} mb={4}>
