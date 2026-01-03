@@ -34,6 +34,7 @@ interface Section {
   course: string;
   order?: number;
   image?: string;
+  price?: number;
 }
 
 interface CourseSectionsManagerProps {
@@ -44,7 +45,9 @@ interface SectionFormData {
   title: string;
   description: string;
   order: number;
+  price: number;
 }
+
 
 export default function CourseSectionsManager({}: CourseSectionsManagerProps) {
   const { courseId } = useParams();
@@ -64,7 +67,9 @@ export default function CourseSectionsManager({}: CourseSectionsManagerProps) {
       title: "",
       description: "",
       order: 0,
+      price: 0,
     },
+
   });
 
   useEffect(() => {
@@ -79,13 +84,16 @@ export default function CourseSectionsManager({}: CourseSectionsManagerProps) {
         title: editing.title || "",
         description: editing.description || "",
         order: editing.order || 0,
+        price: (editing as any).price || 0,
       });
     } else {
       reset({
         title: "",
         description: "",
         order: 0,
+        price: 0,
       });
+
     }
   }, [editing, reset]);
 
@@ -214,6 +222,11 @@ export default function CourseSectionsManager({}: CourseSectionsManagerProps) {
                       <Badge ml="auto" colorScheme="purple">
                         قسم
                       </Badge>
+                      {s.price > 0 && (
+                          <Badge ml={2} colorScheme="green">
+                              {s.price} ج.م
+                          </Badge>
+                      )}
                     </HStack>
                     {s.description && (
                       <Text color="gray.600" fontSize="sm" noOfLines={2}>
@@ -285,6 +298,15 @@ export default function CourseSectionsManager({}: CourseSectionsManagerProps) {
                     {...register("order", { valueAsNumber: true, min: 0 })}
                   />
                   <FormErrorMessage>{errors.order?.message}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.price}>
+                  <FormLabel>السعر</FormLabel>
+                   <Input
+                    type="number"
+                    placeholder="0"
+                    {...register("price", { valueAsNumber: true, min: 0 })}
+                  />
+                  <FormErrorMessage>{errors.price?.message}</FormErrorMessage>
                 </FormControl>
                 <Button
                   type="submit"

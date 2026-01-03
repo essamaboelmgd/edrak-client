@@ -28,6 +28,14 @@ export interface IStudentCourse {
     progress?: number;
     updatedAt?: string;
     createdAt?: string;
+    startDate?: string;
+    endDate?: string;
+    type?: 'regular' | 'monthly' | 'final';
+    stats?: {
+        totalLessons: number;
+        totalExams: number;
+        totalStudents: number;
+    };
 }
 
 export interface IStudentLesson {
@@ -42,6 +50,7 @@ export interface IStudentLesson {
     price: number;
     finalPrice: number;
     type: 'video' | 'quiz' | 'file'; // inferred field for UI
+    attachments?: { name: string; url: string; size?: number; path?: string }[];
 }
 
 export interface IStudentCourseSection {
@@ -71,6 +80,18 @@ export interface IStudentExam {
   endDate?: string;
   status: 'published' | 'draft' | 'archived';
   isAttempted?: boolean;
+  isFree?: boolean;
+  settings?: {
+    duration: number;
+    passingScore: number;
+    allowRetake: boolean;
+    maxAttempts: number;
+    showResults: boolean; // Add other settings as needed
+    showCorrectAnswers: boolean;
+    requireAll: boolean;
+  };
+  myAttempts?: number;
+  canTakeExam?: boolean;
 }
 
 export interface IQuestion {
@@ -87,9 +108,9 @@ export interface IQuestion {
 
 export interface IExamAttempt {
   _id: string;
-  exam: string;
+  exam: string | IStudentExam | any; // Allow populated exam
   student: string;
-  startTime: string;
+  startedAt: string;
   endTime?: string;
   status: 'in_progress' | 'completed' | 'timeout';
   answers: {

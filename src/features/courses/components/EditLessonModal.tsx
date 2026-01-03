@@ -46,7 +46,9 @@ interface LessonFormData {
   videoUrl: string;
   lessonSection: string;
   videoProvider: string;
+  price: number;
 }
+
 
 export default function EditLessonModal({ lesson, callback, trigger }: EditLessonModalProps) {
   const toast = useToast();
@@ -70,6 +72,7 @@ export default function EditLessonModal({ lesson, callback, trigger }: EditLesso
       videoUrl: "",
       lessonSection: "",
       videoProvider: "youtube",
+      price: 0,
     },
   });
 
@@ -84,6 +87,7 @@ export default function EditLessonModal({ lesson, callback, trigger }: EditLesso
         videoUrl: lesson?.videoUrl || "",
         lessonSection: lesson?.lessonSection?._id || lesson?.lessonSection || "",
         videoProvider: lesson?.videoProvider || "youtube",
+        price: lesson?.price || 0,
       });
       if (lesson.poster) {
         setImagePreview(getImageUrl(lesson.poster));
@@ -129,16 +133,13 @@ export default function EditLessonModal({ lesson, callback, trigger }: EditLesso
       formData.append("description", values.description);
       formData.append("videoUrl", values.videoUrl || "");
       formData.append("videoProvider", values.videoProvider || "youtube");
+      formData.append("price", values.price?.toString() || "0");
       if (values.lessonSection) formData.append("lessonSection", values.lessonSection);
       if (selectedImage) {
         formData.append("poster", selectedImage);
       }
       
-      const response = await axiosInstance.put(`/courses/lessons/${lesson._id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axiosInstance.put(`/courses/lessons/${lesson._id}`, formData);
       toast({
         status: "success",
         description: response.data?.message || "تم تحديث الدرس بنجاح",
@@ -243,6 +244,16 @@ export default function EditLessonModal({ lesson, callback, trigger }: EditLesso
                       {...register("description", { required: "الوصف مطلوب" })}
                     />
                     <FormErrorMessage>{errors.description?.message}</FormErrorMessage>
+                  </FormControl>
+
+                  <FormControl isInvalid={!!errors.price}>
+                      <FormLabel>السعر</FormLabel>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        {...register("price", { valueAsNumber: true, min: 0 })}
+                      />
+                      <FormErrorMessage>{errors.price?.message}</FormErrorMessage>
                   </FormControl>
 
                   <FormControl>

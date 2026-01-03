@@ -1,0 +1,67 @@
+
+import { Box, Card, CardBody, Heading, Text, Badge, Button, Flex, Icon, Stack, SimpleGrid } from '@chakra-ui/react';
+import { Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { IStudentExam } from '../../types';
+import { useNavigate } from 'react-router-dom';
+
+interface ExamCardProps {
+    exam: IStudentExam;
+    isSubscribed?: boolean;
+}
+
+export const ExamCard = ({ exam, isSubscribed = true }: ExamCardProps) => {
+    const navigate = useNavigate();
+
+    return (
+        <Card boxShadow="md" borderRadius="xl" overflow="hidden" _hover={{ transform: 'translateY(-4px)', transition: 'all 0.2s' }}>
+            <Box bg={exam.status === 'published' ? 'blue.500' : 'gray.500'} h="6px" />
+            <CardBody>
+                <Stack spacing={4}>
+                    <Flex justify="space-between" align="start">
+                        <Badge colorScheme="purple" px={2} py={1} borderRadius="full">
+                            {exam.course?.title || 'عام'}
+                        </Badge>
+                        {exam.isAttempted && (
+                            <Badge colorScheme="green" display="flex" alignItems="center" gap={1}>
+                                <Icon as={CheckCircle} size={12} />
+                                مكتمل
+                            </Badge>
+                        )}
+                    </Flex>
+
+                    <Box>
+                        <Heading size="md" mb={2} noOfLines={2}>{exam.title}</Heading>
+                        <Text fontSize="sm" color="gray.500" noOfLines={2}>{exam.description}</Text>
+                    </Box>
+
+                    <SimpleGrid columns={2} gap={3} fontSize="sm" color="gray.600">
+                        <Flex align="center" gap={2}>
+                            <Icon as={Clock} size={16} />
+                            <Text>{exam.duration} دقيقة</Text>
+                        </Flex>
+                        <Flex align="center" gap={2}>
+                            <Icon as={AlertCircle} size={16} />
+                            <Text>{exam.totalMarks} درجة</Text>
+                        </Flex>
+                    </SimpleGrid>
+
+                    <Button 
+                        colorScheme={(exam.myAttempts && exam.myAttempts > 0) ? 'green' : 'blue'}
+                        variant={(exam.myAttempts && exam.myAttempts > 0) ? 'outline' : 'solid'}
+                        width="full"
+                        isDisabled={(!isSubscribed && !exam.isFree)}
+                        onClick={() => {
+                            if (exam.myAttempts && exam.myAttempts > 0) {
+                                navigate(`/student/exams/${exam._id}/results`);
+                            } else {
+                                navigate(`/student/exams/${exam._id}/start`);
+                            }
+                        }}
+                    >
+                        {!isSubscribed && !exam.isFree ? 'اشترك الان' : ((exam.myAttempts && exam.myAttempts > 0) ? 'عرض النتائج' : 'ابدأ الاختبار')}
+                    </Button>
+                </Stack>
+            </CardBody>
+        </Card>
+    );
+};

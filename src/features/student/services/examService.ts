@@ -6,7 +6,7 @@ class ExamService {
      * Get available exams for student
      */
     async getMyExams() {
-        const response = await axiosInstance.get<{ data: { exams: IStudentExam[] } }>('/exams/my-exams');
+        const response = await axiosInstance.get<{ data: { availableExams: IStudentExam[], total: number } }>('/exams/my-exams');
         return response.data.data;
     }
 
@@ -14,7 +14,7 @@ class ExamService {
      * Start an exam attempt
      */
     async startExam(examId: string) {
-        const response = await axiosInstance.post<{ data: { attempt: IExamAttempt, questions: any[] } }>('/exams/attempt/start', { examId });
+        const response = await axiosInstance.post<{ data: { attempt: IExamAttempt, exam: any } }>('/exams/attempt/start', { examId });
         return response.data.data;
     }
 
@@ -32,8 +32,8 @@ class ExamService {
     /**
      * Finish/Submit exam
      */
-    async submitExam(attemptId: string) {
-        const response = await axiosInstance.post(`/exams/attempt/${attemptId}/submit`);
+    async submitExam(attemptId: string, data: { answers: { questionId: string; selectedAnswers?: string[]; writtenAnswer?: string; timeSpent?: number }[] }) {
+        const response = await axiosInstance.post(`/exams/attempt/${attemptId}/submit`, data);
         return response.data;
     }
 
@@ -43,6 +43,14 @@ class ExamService {
     async getExamResults(examId: string) {
         const response = await axiosInstance.get<{ data: any }>(`/exams/${examId}/my-results`);
         return response.data.data;
+    }
+
+    /**
+     * Get specific attempt details
+     */
+    async getAttemptDetails(attemptId: string) {
+        const response = await axiosInstance.get<{ data: { attempt: any } }>(`/exams/attempt/${attemptId}`);
+        return response.data.data.attempt;
     }
 }
 
