@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Users, BookOpen, Coins, CheckCircle2, XCircle, Clock, Crown } from 'lucide-react';
 import { ITeacherAdmin } from '../services/teachersService';
+import { getImageUrl } from '@/lib/axios';
 
 interface TeacherCardProps {
   teacher: ITeacherAdmin;
@@ -84,7 +85,7 @@ export default function TeacherCard({ teacher, onViewDetails, onEdit }: TeacherC
       className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all group"
     >
       {/* Header */}
-      <div className="h-32 bg-gradient-to-br from-red-500 to-orange-500 relative">
+      <div className="h-32 bg-gradient-to-br from-purple-500 to-blue-500 relative">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="absolute bottom-4 right-4 left-4">
           <div className="flex items-center justify-between">
@@ -97,12 +98,23 @@ export default function TeacherCard({ teacher, onViewDetails, onEdit }: TeacherC
       {/* Content */}
       <div className="p-6">
         {/* Teacher Info */}
-        <div className="mb-4">
-          <h3 className="font-bold text-lg text-gray-800 mb-1">{teacher.fullName}</h3>
-          <p className="text-sm text-gray-500">{teacher.platformName}</p>
-          {teacher.specialization && (
-            <p className="text-sm text-gray-600 mt-1">تخصص: {teacher.specialization}</p>
+        <div className="mb-4 flex items-start gap-4">
+          {teacher.photo && (
+            <div className="flex-shrink-0">
+              <img
+                src={getImageUrl(teacher.photo)}
+                alt={teacher.fullName}
+                className="w-16 h-16 rounded-full object-cover border-2 border-purple-200"
+              />
+            </div>
           )}
+          <div className="flex-1">
+            <h3 className="font-bold text-lg text-gray-800 mb-1">{teacher.fullName}</h3>
+            <p className="text-sm text-gray-500">{teacher.platformName}</p>
+            {teacher.specialization && (
+              <p className="text-sm text-gray-600 mt-1">تخصص: {teacher.specialization}</p>
+            )}
+          </div>
         </div>
 
         {/* Stats */}
@@ -160,7 +172,7 @@ export default function TeacherCard({ teacher, onViewDetails, onEdit }: TeacherC
         <div className="flex gap-2">
           <button
             onClick={() => onViewDetails?.(teacher)}
-            className="flex-1 py-2 px-4 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors"
+            className="flex-1 py-2 px-4 bg-purple-50 text-purple-600 rounded-lg font-medium hover:bg-purple-100 transition-colors"
           >
             عرض التفاصيل
           </button>

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify-icon/react';
 import {
     useToast,
@@ -10,12 +11,6 @@ import {
     Select,
     Button,
     Text,
-    Menu,
-    MenuButton,
-    MenuList,
-    MenuOptionGroup,
-    MenuItemOption,
-    Badge,
     Box,
     SimpleGrid,
     Card,
@@ -23,6 +18,13 @@ import {
     Stack,
     Flex,
     Spacer,
+    AlertDialog,
+    AlertDialogBody,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogContent,
+    AlertDialogOverlay,
+    useDisclosure,
 } from '@chakra-ui/react';
 import { studentsService, IStudentAdmin } from '@/features/admin/services/studentsService';
 import { teachersService } from '@/features/admin/services/teachersService';
@@ -34,6 +36,7 @@ import EditStudentModal from '@/features/admin/components/EditStudentModal';
 import WalletManagementModal from '@/features/admin/components/WalletManagementModal';
 
 export default function AdminStudents() {
+    const navigate = useNavigate();
     const toast = useToast();
     const [students, setStudents] = useState<IStudentAdmin[]>([]);
     const [teachers, setTeachers] = useState<any[]>([]);
@@ -50,9 +53,11 @@ export default function AdminStudents() {
     const [showWalletModal, setShowWalletModal] = useState(false);
     const [teacherFilter, setTeacherFilter] = useState<string>('all');
     const [educationalLevelFilter, setEducationalLevelFilter] = useState<string>('all');
-    const [statusFilters, setStatusFilters] = useState<string[]>([]);
     const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
     const [exporting, setExporting] = useState(false);
+    const [studentToDelete, setStudentToDelete] = useState<IStudentAdmin | null>(null);
+    const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+    const cancelRef = useRef<HTMLButtonElement>(null);
 
     const fetchTeachers = async () => {
         try {
@@ -90,15 +95,6 @@ export default function AdminStudents() {
             if (response.success && response.data) {
                 let filteredStudents = response.data.students;
 
-                // Apply status filters on frontend (since backend doesn't support multi-status filter yet)
-                if (statusFilters.length > 0) {
-                    filteredStudents = filteredStudents.filter((student) => {
-                        if (statusFilters.includes('active') && student.status === 'active') return true;
-                        if (statusFilters.includes('blocked') && student.status === 'blocked') return true;
-                        if (statusFilters.includes('reviewing') && student.status === 'reviewing') return true;
-                        return false;
-                    });
-                }
 
                 setStudents(filteredStudents);
                 setTotalPages(response.data.pagination.totalPages);
@@ -134,12 +130,11 @@ export default function AdminStudents() {
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [searchTerm, teacherFilter, educationalLevelFilter, statusFilters]);
+    }, [searchTerm, teacherFilter, educationalLevelFilter]);
 
     const handleViewDetails = (student: IStudentAdmin) => {
-        setSelectedStudent(student);
-        setShowDetailsModal(true);
-        setShowEditModal(false); // Ensure edit modal is closed
+        // Navigate to student details page
+        navigate(`/admin/students/${student._id}`);
     };
 
     const handleEdit = async (student: IStudentAdmin) => {
@@ -165,19 +160,67 @@ export default function AdminStudents() {
         }
     };
 
-    const handleDelete = async (studentId: string) => {
+    const handleDeleteClick = (student: IStudentAdmin) => {
+        setStudentToDelete(student);
+        onDeleteOpen();
+    };
+
+    const handleDelete = async () => {
+        if (!studentToDelete) return;
+        
         try {
-            await studentsService.deleteStudent(studentId);
+            await studentsService.deleteStudent(studentToDelete._id);
             toast({
                 status: 'success',
                 description: 'تم حذف الطالب بنجاح',
             });
             fetchStudents();
             setShowDetailsModal(false);
+            onDeleteClose();
+            setStudentToDelete(null);
         } catch (error: any) {
             toast({
                 status: 'error',
                 description: error.response?.data?.message || 'حدث خطأ أثناء حذف الطالب',
+            });
+        }
+    };
+
+
+    const handleManageWallet = (student: IStudentAdmin) => {
+        setSelectedStudent(student);
+        setShowWalletModal(true);
+    };
+
+
+    const handleAllowModifications = async (studentId: string) => {
+        try {
+            await studentsService.allowModifications(studentId);
+            toast({
+                status: 'success',
+                description: 'تم تحديث صلاحية التعديل بنجاح',
+            });
+            fetchStudents();
+        } catch (error: any) {
+            toast({
+                status: 'error',
+                description: error.response?.data?.message || 'حدث خطأ أثناء التحديث',
+            });
+        }
+    };
+
+    const handleToggleActivation = async (studentId: string) => {
+        try {
+            await studentsService.changeUserActivation(studentId);
+            toast({
+                status: 'success',
+                description: 'تم تغيير حالة التنشيط بنجاح',
+            });
+            fetchStudents();
+        } catch (error: any) {
+            toast({
+                status: 'error',
+                description: error.response?.data?.message || 'حدث خطأ أثناء التحديث',
             });
         }
     };
@@ -210,91 +253,6 @@ export default function AdminStudents() {
             toast({
                 status: 'error',
                 description: error.response?.data?.message || 'حدث خطأ أثناء إلغاء حظر الطالب',
-            });
-        }
-    };
-
-    const handleManageWallet = (student: IStudentAdmin) => {
-        setSelectedStudent(student);
-        setShowWalletModal(true);
-    };
-
-    const handleResetLevel = async (studentId: string) => {
-        try {
-            await studentsService.resetLevel(studentId);
-            toast({
-                status: 'success',
-                description: 'تم إعادة تعيين المستوى بنجاح',
-            });
-            fetchStudents();
-        } catch (error: any) {
-            toast({
-                status: 'error',
-                description: error.response?.data?.message || 'حدث خطأ أثناء إعادة تعيين المستوى',
-            });
-        }
-    };
-
-    const handleResetRank = async (studentId: string) => {
-        try {
-            await studentsService.resetRank(studentId);
-            toast({
-                status: 'success',
-                description: 'تم إعادة تعيين الترتيب بنجاح',
-            });
-            fetchStudents();
-        } catch (error: any) {
-            toast({
-                status: 'error',
-                description: error.response?.data?.message || 'حدث خطأ أثناء إعادة تعيين الترتيب',
-            });
-        }
-    };
-
-    const handleChangeStatus = async (studentId: string) => {
-        try {
-            await studentsService.changeUserStatus(studentId);
-            toast({
-                status: 'success',
-                description: 'تم تغيير حالة الحساب بنجاح',
-            });
-            fetchStudents();
-        } catch (error: any) {
-            toast({
-                status: 'error',
-                description: error.response?.data?.message || 'حدث خطأ أثناء تغيير الحالة',
-            });
-        }
-    };
-
-    const handleAllowModifications = async (studentId: string) => {
-        try {
-            await studentsService.allowModifications(studentId);
-            toast({
-                status: 'success',
-                description: 'تم تحديث صلاحية التعديل بنجاح',
-            });
-            fetchStudents();
-        } catch (error: any) {
-            toast({
-                status: 'error',
-                description: error.response?.data?.message || 'حدث خطأ أثناء التحديث',
-            });
-        }
-    };
-
-    const handleToggleActivation = async (studentId: string) => {
-        try {
-            await studentsService.changeUserActivation(studentId);
-            toast({
-                status: 'success',
-                description: 'تم تغيير حالة التنشيط بنجاح',
-            });
-            fetchStudents();
-        } catch (error: any) {
-            toast({
-                status: 'error',
-                description: error.response?.data?.message || 'حدث خطأ أثناء التحديث',
             });
         }
     };
@@ -344,7 +302,6 @@ export default function AdminStudents() {
             const blob = await studentsService.exportStudents({
                 user_type: 'user',
                 search: searchTerm || undefined,
-                status: statusFilters.length > 0 ? statusFilters.join(',') : undefined,
                 educational_level: educationalLevelFilter !== 'all' ? educationalLevelFilter : undefined,
                 teacher_id: teacherFilter !== 'all' ? teacherFilter : undefined,
             });
@@ -654,33 +611,6 @@ export default function AdminStudents() {
                             ))}
                         </Select>
 
-                        <Menu closeOnSelect={false}>
-                            <MenuButton
-                                as={Button}
-                                bg="white"
-                                variant="outline"
-                                size="sm"
-                                rightIcon={<Icon icon="mdi:chevron-down" width={16} height={16} />}
-                            >
-                                حالة الحساب
-                                {statusFilters.length > 0 && (
-                                    <Badge ml={2} colorScheme="blue">
-                                        {statusFilters.length}
-                                    </Badge>
-                                )}
-                            </MenuButton>
-                            <MenuList minWidth="240px">
-                                <MenuOptionGroup
-                                    type="checkbox"
-                                    value={statusFilters}
-                                    onChange={(values) => setStatusFilters(values as string[])}
-                                >
-                                    <MenuItemOption value="active">نشط</MenuItemOption>
-                                    <MenuItemOption value="blocked">محظور</MenuItemOption>
-                                    <MenuItemOption value="reviewing">قيد المراجعة</MenuItemOption>
-                                </MenuOptionGroup>
-                            </MenuList>
-                        </Menu>
 
                         <Spacer />
 
@@ -720,7 +650,6 @@ export default function AdminStudents() {
                                 setSearchTerm('');
                                 setTeacherFilter('all');
                                 setEducationalLevelFilter('all');
-                                setStatusFilters([]);
                             }}
                             leftIcon={<Icon icon="solar:restart-bold-duotone" width="16" height="16" />}
                         >
@@ -748,9 +677,6 @@ export default function AdminStudents() {
                 onViewDetails={handleViewDetails}
                 onEdit={handleEdit}
                 onManageWallet={handleManageWallet}
-                onResetLevel={handleResetLevel}
-                onResetRank={handleResetRank}
-                onChangeStatus={handleChangeStatus}
                 onAllowModifications={handleAllowModifications}
                 onToggleActivation={handleToggleActivation}
                 selectedStudents={selectedStudents}
@@ -815,7 +741,12 @@ export default function AdminStudents() {
                     setShowDetailsModal(false);
                     handleEdit(student);
                 }}
-                onDelete={handleDelete}
+                onDelete={(studentId) => {
+                    const student = students.find(s => s._id === studentId);
+                    if (student) {
+                        handleDeleteClick(student);
+                    }
+                }}
                 onBlock={(studentId) => {
                     handleBlock(studentId);
                     setShowDetailsModal(false);
@@ -854,6 +785,55 @@ export default function AdminStudents() {
                 currentBalance={selectedStudent?.wallet?.amount || 0}
                 onSuccess={fetchStudents}
             />
+
+            {/* Delete Confirmation Modal */}
+            <AlertDialog
+                isOpen={isDeleteOpen}
+                leastDestructiveRef={cancelRef}
+                onClose={onDeleteClose}
+                isCentered
+            >
+                <AlertDialogOverlay>
+                    <AlertDialogContent>
+                        <AlertDialogHeader fontSize="lg" fontWeight="bold" color="red.600">
+                            حذف الطالب
+                        </AlertDialogHeader>
+
+                        <AlertDialogBody>
+                            <VStack align="start" spacing={3}>
+                                <Text>
+                                    هل أنت متأكد من حذف الطالب <strong>{studentToDelete?.fullName}</strong>؟
+                                </Text>
+                                <Text fontSize="sm" color="red.600" fontWeight="medium">
+                                    ⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه
+                                </Text>
+                                <Text fontSize="sm" color="gray.600">
+                                    سيتم حذف جميع بيانات الطالب بما في ذلك:
+                                </Text>
+                                <Box as="ul" fontSize="sm" color="gray.600" pl={4}>
+                                    <li>معلومات الحساب الشخصية</li>
+                                    <li>جميع الاشتراكات</li>
+                                    <li>الدرجات والنتائج</li>
+                                    <li>سجل المدفوعات</li>
+                                    <li>جميع البيانات المرتبطة بالطالب</li>
+                                </Box>
+                                <Text fontSize="sm" color="gray.500" fontStyle="italic">
+                                    إذا كنت تريد بالتأكيد الحذف، قم بالنقر على "حذف" أدناه.
+                                </Text>
+                            </VStack>
+                        </AlertDialogBody>
+
+                        <AlertDialogFooter>
+                            <Button ref={cancelRef} onClick={onDeleteClose}>
+                                إلغاء
+                            </Button>
+                            <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                                حذف
+                            </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
+            </AlertDialog>
         </Stack>
     );
 }

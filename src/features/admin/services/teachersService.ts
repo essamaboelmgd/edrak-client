@@ -38,6 +38,7 @@ export interface ITeacherAdmin {
     whatsappNumber?: string;
     gender: string;
     governorate: string;
+    photo?: string;
     specialization?: string;
     yearsOfExperience?: number;
     platformName: string;
@@ -135,7 +136,7 @@ class TeachersService {
      */
     async createTeacher(data: {
         firstName: string;
-        middleName: string;
+        middleName?: string;
         lastName: string;
         email: string;
         password: string;
@@ -145,12 +146,59 @@ class TeachersService {
         specialization?: string;
         yearsOfExperience?: number;
         platformName: string;
-        subdomain: string;
+        subdomain?: string;
+        photo?: File;
     }): Promise<ApiResponse<{ teacher: ITeacherAdmin }>> {
+        // Always use FormData so multer can parse it on the backend
+        const formData = new FormData();
+
+        // Append all required fields explicitly
+        formData.append('firstName', data.firstName);
+        // Only append middleName if provided
+        if (data.middleName) {
+            formData.append('middleName', data.middleName);
+        }
+        formData.append('lastName', data.lastName);
+        formData.append('email', data.email);
+        formData.append('password', data.password);
+        formData.append('mobileNumber', data.mobileNumber);
+        formData.append('gender', data.gender);
+        formData.append('governorate', data.governorate);
+        formData.append('platformName', data.platformName);
+
+        if (data.subdomain) {
+            formData.append('subdomain', data.subdomain);
+        }
+
+        if (data.specialization) {
+            formData.append('specialization', data.specialization);
+        }
+
+        if (data.yearsOfExperience !== undefined && data.yearsOfExperience !== null) {
+            formData.append('yearsOfExperience', String(data.yearsOfExperience));
+        }
+
+        // Append photo if provided
+        if (data.photo) {
+            formData.append('photo', data.photo);
+        }
+
+        console.log('Making API call to:', this.BASE_PATH);
+        console.log('FormData entries:');
+        for (const [key, value] of formData.entries()) {
+            console.log(key, ':', value instanceof File ? `File: ${value.name}` : value);
+        }
+
         const response = await axiosInstance.post<ApiResponse<{ teacher: ITeacherAdmin }>>(
             this.BASE_PATH,
-            data
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
         );
+        console.log('API call successful:', response);
         return response.data;
     }
 
@@ -195,6 +243,106 @@ class TeachersService {
     async unblockUser(userId: string): Promise<ApiResponse<any>> {
         const response = await axiosInstance.post<ApiResponse<any>>(
             `/users/${userId}/unblock`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher overview/statistics (Admin only)
+     */
+    async getTeacherOverview(teacherId: string): Promise<ApiResponse<{ overview: any }>> {
+        const response = await axiosInstance.get<ApiResponse<{ overview: any }>>(
+            `${this.BASE_PATH}/${teacherId}/overview`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher courses (Admin only)
+     */
+    async getTeacherCourses(teacherId: string): Promise<ApiResponse<{ courses: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ courses: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/courses`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher lessons (Admin only)
+     */
+    async getTeacherLessons(teacherId: string): Promise<ApiResponse<{ lessons: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ lessons: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/lessons`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher sections (Admin only)
+     */
+    async getTeacherSections(teacherId: string): Promise<ApiResponse<{ sections: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ sections: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/sections`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher homeworks (Admin only)
+     */
+    async getTeacherHomeworks(teacherId: string): Promise<ApiResponse<{ homeworks: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ homeworks: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/homeworks`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher exams (Admin only)
+     */
+    async getTeacherExams(teacherId: string): Promise<ApiResponse<{ exams: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ exams: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/exams`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher subscriptions as student (Admin only)
+     */
+    async getTeacherSubscriptionsAsStudent(teacherId: string): Promise<ApiResponse<{ subscriptions: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ subscriptions: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/subscriptions-as-student`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher subscription plan and features (Admin only)
+     */
+    async getTeacherSubscriptionPlan(teacherId: string): Promise<ApiResponse<{ subscription: any; selectedFeatures: any[] }>> {
+        const response = await axiosInstance.get<ApiResponse<{ subscription: any; selectedFeatures: any[] }>>(
+            `${this.BASE_PATH}/${teacherId}/subscription-plan`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher subscription history (Admin only)
+     */
+    async getTeacherSubscriptionHistory(teacherId: string): Promise<ApiResponse<{ subscriptions: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ subscriptions: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/subscription-history`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get teacher payment history (Admin only)
+     */
+    async getTeacherPayments(teacherId: string): Promise<ApiResponse<{ payments: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ payments: any[]; total: number }>>(
+            `${this.BASE_PATH}/${teacherId}/payments`
         );
         return response.data;
     }

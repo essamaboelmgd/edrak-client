@@ -19,6 +19,10 @@ import {
   useToast,
   Box,
   Image,
+  Switch,
+  HStack,
+  NumberInput,
+  NumberInputField,
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
 import { AxiosError } from "axios";
@@ -45,6 +49,8 @@ interface LessonFormData {
   lessonSection: string;
   videoProvider: string;
   price: number;
+  discount: number;
+  isFree: boolean;
 }
 
 
@@ -57,12 +63,18 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const [selectedAttachments, setSelectedAttachments] = useState<File[]>([]);
+  const [isFree, setIsFree] = useState<boolean>(false);
+  const [price, setPrice] = useState<number>(0);
+  const [discount, setDiscount] = useState<number>(0);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<LessonFormData>({
     defaultValues: {
       title: "",
@@ -71,6 +83,8 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
       lessonSection: "",
       videoProvider: "youtube",
       price: 0,
+      discount: 0,
+      isFree: false,
     },
   });
 
@@ -80,6 +94,10 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
       reset();
       setSelectedImage(null);
       setImagePreview(null);
+      setSelectedAttachments([]);
+      setIsFree(false);
+      setPrice(0);
+      setDiscount(0);
     }
   }, [isOpen, courseId, reset]);
   
@@ -100,6 +118,26 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
         });
       }
     }
+  };
+
+  const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const pdfFiles = Array.from(files).filter(file => file.type === 'application/pdf');
+      if (pdfFiles.length !== files.length) {
+        toast({
+          status: "warning",
+          description: "تم تجاهل الملفات غير PDF",
+        });
+      }
+      if (pdfFiles.length > 0) {
+        setSelectedAttachments(prev => [...prev, ...pdfFiles]);
+      }
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setSelectedAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const fetchSections = async () => {
@@ -123,9 +161,16 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
       formData.append("price", values.price?.toString() || "0");
       if (values.lessonSection) formData.append("lessonSection", values.lessonSection);
       if (courseId) formData.append("course", courseId);
+      formData.append("price", price.toString());
+      formData.append("discount", discount.toString());
+      formData.append("isFree", isFree.toString());
       if (selectedImage) {
         formData.append("poster", selectedImage);
       }
+      // Append attachment files
+      selectedAttachments.forEach((file) => {
+        formData.append("attachments", file);
+      });
       
       const response = await axiosInstance.post(`/courses/${courseId}/lessons`, formData);
       toast({
@@ -135,6 +180,10 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
       reset();
       setSelectedImage(null);
       setImagePreview(null);
+      setSelectedAttachments([]);
+      setIsFree(false);
+      setPrice(0);
+      setDiscount(0);
       onClose();
       callback();
     } catch (error) {
@@ -254,6 +303,67 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
                   </FormControl>
 
                   <FormControl>
+                    <FormLabel>السعر</FormLabel>
+                    <HStack spacing={4}>
+                      <Box flex={1}>
+                        <NumberInput
+                          value={price}
+                          onChange={(_, value) => {
+                            setPrice(isNaN(value) ? 0 : value);
+                            setValue('price', isNaN(value) ? 0 : value);
+                          }}
+                          min={0}
+                        >
+                          <NumberInputField placeholder="السعر بالجنيه" />
+                        </NumberInput>
+                      </Box>
+                      <Box flex={1}>
+                        <NumberInput
+                          value={discount}
+                          onChange={(_, value) => {
+                            setDiscount(isNaN(value) ? 0 : Math.min(100, Math.max(0, value)));
+                            setValue('discount', isNaN(value) ? 0 : Math.min(100, Math.max(0, value)));
+                          }}
+                          min={0}
+                          max={100}
+                        >
+                          <NumberInputField placeholder="الخصم %" />
+                        </NumberInput>
+                      </Box>
+                    </HStack>
+                    {price > 0 && discount > 0 && (
+                      <Text fontSize="sm" color="green.600" mt={2}>
+                        السعر النهائي: {(price - (price * discount / 100)).toFixed(2)} ج.م
+                      </Text>
+                    )}
+                  </FormControl>
+
+                  <FormControl>
+                    <HStack justify="space-between">
+                      <FormLabel mb={0}>درس مجاني</FormLabel>
+                      <Switch
+                        isChecked={isFree}
+                        onChange={(e) => {
+                          setIsFree(e.target.checked);
+                          setValue('isFree', e.target.checked);
+                          if (e.target.checked) {
+                            setPrice(0);
+                            setDiscount(0);
+                            setValue('price', 0);
+                            setValue('discount', 0);
+                          }
+                        }}
+                        colorScheme="green"
+                      />
+                    </HStack>
+                    {isFree && (
+                      <Text fontSize="sm" color="blue.600" mt={1}>
+                        عند تفعيل الدرس المجاني، سيتم تعيين السعر إلى 0
+                      </Text>
+                    )}
+                  </FormControl>
+
+                  <FormControl>
                     <FormLabel>صورة الدرس (اختياري)</FormLabel>
                     <Input
                       ref={fileInputRef}
@@ -298,6 +408,60 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
                         />
                       </Box>
                     )}
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>مرفقات PDF (اختياري)</FormLabel>
+                    <Input
+                      ref={attachmentInputRef}
+                      type="file"
+                      accept="application/pdf"
+                      multiple
+                      onChange={handleAttachmentChange}
+                      display="none"
+                    />
+                    <Stack spacing={2}>
+                      <Button
+                        size="sm"
+                        onClick={() => attachmentInputRef.current?.click()}
+                        type="button"
+                        leftIcon={<Icon icon="solar:document-add-bold-duotone" width="16" height="16" />}
+                      >
+                        إضافة ملف PDF
+                      </Button>
+                      {selectedAttachments.length > 0 && (
+                        <Stack spacing={2}>
+                          {selectedAttachments.map((file, index) => (
+                            <HStack
+                              key={index}
+                              p={2}
+                              bg="gray.50"
+                              borderRadius="md"
+                              justify="space-between"
+                            >
+                              <HStack spacing={2}>
+                                <Icon icon="solar:document-bold-duotone" width="20" height="20" color="red.500" />
+                                <Text fontSize="sm" noOfLines={1} maxW="200px">
+                                  {file.name}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                  ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                </Text>
+                              </HStack>
+                              <Button
+                                size="xs"
+                                colorScheme="red"
+                                variant="ghost"
+                                onClick={() => removeAttachment(index)}
+                                type="button"
+                              >
+                                إزالة
+                              </Button>
+                            </HStack>
+                          ))}
+                        </Stack>
+                      )}
+                    </Stack>
                   </FormControl>
                 </Stack>
               </Stack>

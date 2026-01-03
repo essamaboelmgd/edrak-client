@@ -37,6 +37,7 @@ interface CreateHomeworkProps {
     onClose: () => void;
     onSuccess: () => void;
     isAdmin?: boolean; // If true, show teacher selection
+    initialLessonId?: string; // Pre-select lesson if provided
 }
 
 interface HomeworkFormValues {
@@ -285,14 +286,14 @@ function SelectTeacher({ selectedTeacher, onSelectTeacher }: SelectTeacherProps)
     );
 }
 
-export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = false }: CreateHomeworkProps) {
+export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = false, initialLessonId }: CreateHomeworkProps) {
     const toast = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formValues, setFormValues] = useState<HomeworkFormValues>({
         title: '',
         description: '',
         homeworkType: 'lesson',
-        lesson: undefined,
+        lesson: initialLessonId,
         course: undefined,
         solutionVideoUrl: '',
         settings: {
@@ -313,7 +314,7 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                 title: '',
                 description: '',
                 homeworkType: 'lesson',
-                lesson: undefined,
+                lesson: initialLessonId,
                 course: undefined,
                 solutionVideoUrl: '',
                 settings: {
@@ -326,8 +327,15 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                 },
                 teacher: undefined,
             });
+        } else if (initialLessonId) {
+            // Set lesson when modal opens with initialLessonId
+            setFormValues(prev => ({
+                ...prev,
+                lesson: initialLessonId,
+                homeworkType: 'lesson',
+            }));
         }
-    }, [isOpen]);
+    }, [isOpen, initialLessonId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

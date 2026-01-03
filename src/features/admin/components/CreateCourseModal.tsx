@@ -17,6 +17,8 @@ import {
     useToast,
     Box,
     Image,
+    Switch,
+    HStack,
 } from "@chakra-ui/react";
 import { Icon } from "@iconify-icon/react";
 import { AxiosError } from "axios";
@@ -44,6 +46,7 @@ interface CourseFormData {
     description: string;
     price: number;
     discount: number;
+    isFree: boolean;
     educationalLevel: string;
     courseSection: string;
     teacher: string;
@@ -73,6 +76,7 @@ export default function CreateCourseModal({ isOpen, onClose, onSuccess }: Create
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isFree, setIsFree] = useState<boolean>(false);
 
     const {
         register,
@@ -80,12 +84,14 @@ export default function CreateCourseModal({ isOpen, onClose, onSuccess }: Create
         formState: { errors },
         reset,
         watch,
+        setValue,
     } = useForm<CourseFormData>({
         defaultValues: {
             title: "",
             description: "",
             price: 0,
             discount: 0,
+            isFree: false,
             educationalLevel: "",
             courseSection: "",
             teacher: "",
@@ -105,6 +111,7 @@ export default function CreateCourseModal({ isOpen, onClose, onSuccess }: Create
             reset();
             setSelectedImage(null);
             setImagePreview(null);
+            setIsFree(false);
         }
     }, [isOpen, reset]);
 
@@ -204,8 +211,9 @@ export default function CreateCourseModal({ isOpen, onClose, onSuccess }: Create
             formData.append("description", values.description);
             formData.append("educationalLevel", values.educationalLevel);
             formData.append("teacher", values.teacher);
-            formData.append("price", values.price.toString());
-            formData.append("discount", values.discount.toString());
+            formData.append("price", isFree ? "0" : values.price.toString());
+            formData.append("discount", isFree ? "0" : values.discount.toString());
+            formData.append("isFree", isFree.toString());
             formData.append("status", values.status);
             if (values.courseSection) formData.append("courseSection", values.courseSection);
             if (values.startDate) formData.append("startDate", values.startDate);
@@ -386,6 +394,29 @@ export default function CreateCourseModal({ isOpen, onClose, onSuccess }: Create
                                     )}
                                 </FormControl>
 
+                                <FormControl>
+                                    <HStack justify="space-between">
+                                        <FormLabel mb={0}>كورس مجاني</FormLabel>
+                                        <Switch
+                                            isChecked={isFree}
+                                            onChange={(e) => {
+                                                setIsFree(e.target.checked);
+                                                setValue('isFree', e.target.checked);
+                                                if (e.target.checked) {
+                                                    setValue('price', 0);
+                                                    setValue('discount', 0);
+                                                }
+                                            }}
+                                            colorScheme="green"
+                                        />
+                                    </HStack>
+                                    {isFree && (
+                                        <Text fontSize="sm" color="blue.600" mt={1}>
+                                            عند تفعيل الكورس المجاني، سيتم تعيين السعر إلى 0
+                                        </Text>
+                                    )}
+                                </FormControl>
+
                                 <Stack direction="row">
                                     <FormControl isInvalid={!!errors.price}>
                                         <FormLabel>السعر</FormLabel>
@@ -393,21 +424,29 @@ export default function CreateCourseModal({ isOpen, onClose, onSuccess }: Create
                                             type="number"
                                             placeholder="0.00"
                                             step="0.00"
+                                            isDisabled={isFree}
                                             {...register("price", { valueAsNumber: true, min: 0 })}
                                         />
                                         <FormErrorMessage>{errors.price?.message}</FormErrorMessage>
                                     </FormControl>
                                     <FormControl isInvalid={!!errors.discount}>
-                                        <FormLabel>الخصم</FormLabel>
+                                        <FormLabel>الخصم %</FormLabel>
                                         <Input
                                             type="number"
-                                            placeholder="0.00"
-                                            step="0.00"
-                                            {...register("discount", { valueAsNumber: true, min: 0 })}
+                                            placeholder="0"
+                                            step="1"
+                                            max={100}
+                                            isDisabled={isFree}
+                                            {...register("discount", { valueAsNumber: true, min: 0, max: 100 })}
                                         />
                                         <FormErrorMessage>{errors.discount?.message}</FormErrorMessage>
                                     </FormControl>
                                 </Stack>
+                                {!isFree && watch("price") > 0 && watch("discount") > 0 && (
+                                    <Text fontSize="sm" color="green.600">
+                                        السعر النهائي: {(watch("price") - (watch("price") * watch("discount") / 100)).toFixed(2)} ج.م
+                                    </Text>
+                                )}
 
                                 <FormControl>
                                     <FormLabel>الحالة</FormLabel>

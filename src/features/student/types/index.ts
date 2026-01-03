@@ -53,6 +53,12 @@ export interface IStudentLesson {
     attachments?: { name: string; url: string; size?: number; path?: string }[];
 }
 
+export type ICourseContentItem = 
+  | (IStudentLesson & { type: 'lesson'; isLocked?: boolean; isCompleted?: boolean })
+  | (IStudentExam & { type: 'exam'; isLocked?: boolean; isPassed?: boolean; studentAttempt?: any })
+  | (IStudentHomework & { type: 'homework'; isLocked?: boolean; isSubmitted?: boolean; isPassed?: boolean; studentAttempt?: any })
+  | { _id: string; title: string; type: 'live'; isLocked?: boolean };
+
 export interface IStudentCourseSection {
     _id: string;
     name: string; // Backend uses name
@@ -60,6 +66,7 @@ export interface IStudentCourseSection {
     description: string;
     order: number;
     lessons: IStudentLesson[];
+    items?: ICourseContentItem[]; // Mixed content items
     price: number;
     finalPrice: number;
 }

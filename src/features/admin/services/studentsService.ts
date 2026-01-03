@@ -286,6 +286,106 @@ class StudentsService {
         );
         return response.data;
     }
+
+    /**
+     * Get student overview/statistics (Admin only)
+     */
+    async getStudentOverview(studentId: string): Promise<ApiResponse<{ overview: any }>> {
+        const response = await axiosInstance.get<ApiResponse<{ overview: any }>>(
+            `${this.BASE_PATH}/${studentId}/overview`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student courses (Admin only)
+     */
+    async getStudentCourses(studentId: string): Promise<ApiResponse<{ courses: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ courses: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/courses`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student lessons (Admin only)
+     */
+    async getStudentLessons(studentId: string): Promise<ApiResponse<{ lessons: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ lessons: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/lessons`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student sections (Admin only)
+     */
+    async getStudentSections(studentId: string): Promise<ApiResponse<{ sections: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ sections: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/sections`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student homeworks (Admin only)
+     */
+    async getStudentHomeworks(studentId: string): Promise<ApiResponse<{ homeworks: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ homeworks: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/homeworks`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student exams (Admin only)
+     */
+    async getStudentExams(studentId: string): Promise<ApiResponse<{ exams: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ exams: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/exams`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student grades (Admin only)
+     */
+    async getStudentGrades(studentId: string): Promise<ApiResponse<{ grades: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ grades: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/grades`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student subscriptions history (Admin only)
+     */
+    async getStudentSubscriptions(studentId: string): Promise<ApiResponse<{ subscriptions: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ subscriptions: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/subscriptions`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student payment history (Admin only)
+     */
+    async getStudentPayments(studentId: string): Promise<ApiResponse<{ payments: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ payments: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/payments`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get student teachers (Admin only)
+     */
+    async getStudentTeachers(studentId: string): Promise<ApiResponse<{ teachers: any[]; total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ teachers: any[]; total: number }>>(
+            `${this.BASE_PATH}/${studentId}/teachers`
+        );
+        return response.data;
+    }
 }
 
 // Export singleton instance

@@ -248,6 +248,154 @@ class CoursesService {
         );
         return response.data;
     }
+
+    /**
+     * Get course students with pagination
+     */
+    async getCourseStudents(
+        courseId: string,
+        query?: {
+            page?: number;
+            limit?: number;
+            search?: string;
+        }
+    ): Promise<ApiResponse<{
+        students: Array<{
+            _id: string;
+            fullName: string;
+            firstName?: string;
+            middleName?: string;
+            lastName?: string;
+            email?: string;
+            phoneNumber?: string;
+            photo?: string;
+            educationalLevel?: {
+                _id: string;
+                name: string;
+                shortName: string;
+                stage?: string;
+            };
+            subscription: {
+                _id: string;
+                subscribedAt: string;
+                paymentMethod: string;
+                finalPrice: number;
+            };
+        }>;
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>> {
+        const params = new URLSearchParams();
+        if (query?.page) params.append('page', query.page.toString());
+        if (query?.limit) params.append('limit', query.limit.toString());
+        if (query?.search) params.append('search', query.search);
+
+        const response = await axiosInstance.get<ApiResponse<{
+            students: Array<{
+                _id: string;
+                fullName: string;
+                firstName?: string;
+                middleName?: string;
+                lastName?: string;
+                email?: string;
+                phoneNumber?: string;
+                photo?: string;
+                educationalLevel?: {
+                    _id: string;
+                    name: string;
+                    shortName: string;
+                    stage?: string;
+                };
+                subscription: {
+                    _id: string;
+                    subscribedAt: string;
+                    paymentMethod: string;
+                    finalPrice: number;
+                };
+            }>;
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        }>>(`${this.BASE_PATH}/${courseId}/students?${params.toString()}`);
+        return response.data;
+    }
+
+    /**
+     * Get course lessons with pagination
+     */
+    async getCourseLessons(
+        courseId: string,
+        query?: {
+            page?: number;
+            limit?: number;
+            search?: string;
+            status?: string;
+        }
+    ): Promise<ApiResponse<{
+        lessons: Array<{
+            _id: string;
+            title: string;
+            description?: string;
+            poster?: string;
+            videoUrl?: string;
+            videoProvider?: string;
+            duration?: number;
+            order?: number;
+            status: string;
+            isFree: boolean;
+            price: number;
+            discount: number;
+            finalPrice: number;
+            lessonSection?: {
+                _id: string;
+                title: string;
+            };
+            createdAt: string;
+            updatedAt: string;
+        }>;
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>> {
+        const params = new URLSearchParams();
+        if (query?.page) params.append('page', query.page.toString());
+        if (query?.limit) params.append('limit', query.limit.toString());
+        if (query?.search) params.append('search', query.search);
+        if (query?.status) params.append('status', query.status);
+
+        const response = await axiosInstance.get<ApiResponse<{
+            lessons: Array<{
+                _id: string;
+                title: string;
+                description?: string;
+                poster?: string;
+                videoUrl?: string;
+                videoProvider?: string;
+                duration?: number;
+                order?: number;
+                status: string;
+                isFree: boolean;
+                price: number;
+                discount: number;
+                finalPrice: number;
+                lessonSection?: {
+                    _id: string;
+                    title: string;
+                };
+                createdAt: string;
+                updatedAt: string;
+            }>;
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        }>>(`${this.BASE_PATH}/${courseId}/lessons?${params.toString()}`);
+        return response.data;
+    }
 }
 
 // Export singleton instance

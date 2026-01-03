@@ -1,11 +1,20 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Box, Container, Skeleton, Stack, Text, Center, Tabs, Button, HStack } from '@chakra-ui/react';
+import { 
+    Box, 
+    Container, 
+    Skeleton, 
+    Stack, 
+    Text, 
+    Center, 
+    Tabs, 
+    Button, 
+    HStack
+} from '@chakra-ui/react';
 import { useCourseContent, useStudentSubscriptions } from '@/features/student/hooks/useStudentCourses';
 import { useMemo, useState, useEffect } from 'react';
 import CourseHeader from './course-details/CourseHeader';
 import CourseTabs from './course-details/CourseTabs';
 import CourseTabPanels from './course-details/CourseTabPanels';
-import { IStudentLesson } from '../types';
 import SubscriptionSelector from './SubscriptionSelector';
 
 const StudentCourseDetails = () => {
@@ -13,7 +22,6 @@ const StudentCourseDetails = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     
-    // Data fetching
     // Data fetching
     const { data: subscriptions = [], isLoading: isLoadingSubscriptions } = useStudentSubscriptions();
     const { data: courseData, isLoading: isLoadingCourse } = useCourseContent(courseId || '');
@@ -23,60 +31,48 @@ const StudentCourseDetails = () => {
     const sections = useMemo(() => courseData?.months || [], [courseData]); // Legacy "months" are "sections"
     const lessons = useMemo(() => courseData?.lessons || [], [courseData]);
     const exams = useMemo(() => courseData?.exams || [], [courseData]);
-    const homeworks = useMemo(() => courseData?.homeworks || [], [courseData]);
+    // const homeworks = useMemo(() => courseData?.homeworks || [], [courseData]); // Unused
     const lessonSubscriptions = useMemo(() => courseData?.lesson_subscriptions || [], [courseData]);
 
     const [activeTab, setActiveTab] = useState(0);
-    const [selectedLesson, setSelectedLesson] = useState<IStudentLesson | null>(null);
 
-    // Initial Lesson Selection from URL
+    const [selectedContent, setSelectedContent] = useState<any | null>(null);
+
+    // Initial Content Selection from URL
     useEffect(() => {
-        const lessonId = searchParams.get('lesson');
-        if (lessonId && sections.length > 0) {
-            // Find the lesson in sections
+        const contentId = searchParams.get('lesson') || searchParams.get('content');
+        if (contentId && sections.length > 0) {
+            // Find in sections.items (Preferred)
             for (const section of sections) {
-                // Section might have lessons nested if populated, or we look at flat list?
-                // Legacy "months" likely had nested content or we match by section_id?
-                // New backend returns "months" as lessonSections. These don't have lessons populated inside them in the root array usually?
-                // Wait, getCourseWithFullContent returns "months" = lessonSectionModel.find().
-                // It does NOT populate lessons inside sections automatically unless implied.
-                // But we define `lessons` as separate array.
-                // The frontend logic `section.lessons?.find` assumes nesting.
-                // I should check if `CourseTabPanels` expects nested lessons.
-                // If distinct arrays, I should join them or `CourseTabPanels` handles it.
-                // Legacy `CourseDetail` (Step 322 lines 70-71) gets them separately from `safeCourse`.
-                // `const lessons = ...`
-                // But `LessonList` usually iterates sections.
-                // I need to verify how `LessonList` maps them.
-                // In my new `LessonList.tsx`: imports `IStudentCourseSection`.
-                // It expects `sections: IStudentCourseSection[]`.
-                // `IStudentCourseSection` has `lessons: IStudentLesson[]`.
-                
-                // My backend `getCourseWithFullContent` returns:
-                // months: lessonSectionModel.find().
-                // lessons: lessonModel.find().
-                // They are SEPARATE.
-                // I need to MERGE them here in frontend or backend.
-                // Legacy backend likely nested them or frontend did.
-                // Let's do it in frontend for now to match `sections` expectation.
-                
-                // We'll skip legacy initial selection logic for a moment or adapt it.
-                const foundLesson = lessons.find((l: any) => l._id === lessonId);
-                if (foundLesson) {
-                    setSelectedLesson(foundLesson);
+                if (section.items && section.items.length > 0) {
+                     const foundItem = section.items.find((i: any) => i._id === contentId);
+                     if (foundItem) {
+                         setSelectedContent(foundItem);
+                         return;
+                     }
                 }
+                // Fallback for older structure
+                if (section.lessons) {
+                    const foundLesson = section.lessons.find((l: any) => l._id === contentId);
+                    if (foundLesson) {
+                        setSelectedContent({ ...foundLesson, type: 'lesson' });
+                        return;
+                    }
+                }
+            }
+             // Fallback for flat lessons list if not in sections
+            const foundLesson = lessons.find((l: any) => l._id === contentId);
+            if (foundLesson) {
+                setSelectedContent({ ...foundLesson, type: 'lesson' });
             }
         }
     }, [searchParams, lessons, sections]);
 
-    // Derived State: Sections with Nested Lessons
-    const sectionsWithLessons = useMemo(() => {
+    // Derived State: Sections with Content (Backend provides items, we ensure it's passed)
+    const sectionsWithContent = useMemo(() => {
         if (!sections.length) return [];
-        return sections.map((section: any) => ({
-            ...section,
-            lessons: lessons.filter((l: any) => l.lessonSection === section._id || l.lessonSection?._id === section._id)
-        }));
-    }, [sections, lessons]);
+        return sections; // Backend now handles population of items
+    }, [sections]);
 
     // Derived State: Subscription
     const isSubscribed = useMemo(() => {
@@ -108,10 +104,11 @@ const StudentCourseDetails = () => {
         return false;
     }, [subscriptions, courseId, course, lessonSubscriptions]);
 
-    // Handler: Lesson Click
-    const handleLessonClick = (lesson: IStudentLesson) => {
-        setSelectedLesson(lesson);
-        setSearchParams({ lesson: lesson._id });
+    // Handler: Content Click
+    const handleContentClick = (content: any) => {
+        if (content.isLocked) return;
+        setSelectedContent(content);
+        setSearchParams({ lesson: content._id }); // Keep 'lesson' param for compatibility or use 'content'
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -156,17 +153,17 @@ const StudentCourseDetails = () => {
                         <CourseTabs 
                             lessonsCount={course.stats?.totalLessons || 0}
                             examsCount={course.stats?.totalExams || 0}
-                            homeworksCount={0} // TODO: Add homeworks count when available
-                            livesCount={0} // TODO: Add lives count when available
+                            homeworksCount={course.stats?.totalHomeworks || 0}
+                            livesCount={0} 
                             isSubscribed={isSubscribed}
                         />
                         
                         <Box mt={6}>
                             <CourseTabPanels 
                                 course={course}
-                                sections={sectionsWithLessons}
-                                selectedLesson={selectedLesson}
-                                onLessonClick={handleLessonClick}
+                                sections={sectionsWithContent}
+                                selectedContent={selectedContent}
+                                onContentClick={handleContentClick}
                                 isSubscribed={isSubscribed}
                                 exams={exams}
                             />

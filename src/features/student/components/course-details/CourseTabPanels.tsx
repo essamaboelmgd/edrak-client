@@ -6,11 +6,11 @@ import { IStudentCourse, IStudentCourseSection, IStudentLesson } from "../../typ
 
 interface CourseTabPanelsProps {
     course: IStudentCourse;
-    sections: IStudentCourseSection[];
-    selectedLesson: IStudentLesson | null; // Using null instead of undefined for safer checks
-    onLessonClick: (lesson: IStudentLesson) => void;
+    sections: IStudentCourseSection[]; // Now includes mixed items
+    selectedContent: any | null; 
+    onContentClick: (content: any) => void;
     isSubscribed: boolean;
-    exams?: any[]; // Using any[] temporarily or IStudentExam[] if imported
+    exams?: any[]; 
 }
 
 import { ExamCard } from "./ExamCard";
@@ -18,44 +18,68 @@ import { ExamCard } from "./ExamCard";
 export default function CourseTabPanels({
     course,
     sections,
-    selectedLesson,
-    onLessonClick,
+    selectedContent,
+    onContentClick,
     isSubscribed,
     exams = []
 }: CourseTabPanelsProps) {
     
-    // Flatten lessons for easier checking if any exist
-    const hasLessons = sections.some(s => s.lessons && s.lessons.length > 0);
+    // Flatten check (backend guarantees items or lessons)
+    const hasContent = sections.some(s => (s.items && s.items.length > 0) || (s.lessons && s.lessons.length > 0));
 
     return (
         <TabPanels>
-            {/* Lessons Tab */}
+            {/* Lessons Tab - Unified Curriculum */}
             <TabPanel px={0}>
-                {hasLessons ? (
+                {hasContent ? (
                     <Grid templateColumns={{ base: "1fr", lg: "350px 1fr" }} gap={6}>
                         {/* Sidebar (List) - Right Side in RTL */}
                         <Box order={{ base: 2, lg: 1 }}>
                             <LessonList 
                                 sections={sections} 
-                                selectedLessonId={selectedLesson?._id}
-                                onLessonClick={onLessonClick}
+                                selectedContentId={selectedContent?._id}
+                                onContentClick={onContentClick}
                                 isSubscribed={isSubscribed}
                             />
                         </Box>
 
-                        {/* Main Content (Video) - Left Side in RTL */}
+                        {/* Main Content (Video/Exam/etc) - Left Side in RTL */}
                         <Box order={{ base: 1, lg: 2 }}>
-                            {selectedLesson ? (
-                                <LessonDetails 
-                                    lesson={selectedLesson} 
-                                    course={course} 
-                                    isSubscribed={isSubscribed} 
-                                />
+                            {selectedContent ? (
+                                <>
+                                    {selectedContent.type === 'lesson' && (
+                                        <LessonDetails 
+                                            lesson={selectedContent} 
+                                            course={course} 
+                                            isSubscribed={isSubscribed} 
+                                        />
+                                    )}
+                                    {selectedContent.type === 'exam' && (
+                                        <Box bg="white" p={8} borderRadius="xl" shadow="sm" textAlign="center">
+                                            <Text fontSize="xl" fontWeight="bold" mb={4}>{selectedContent.title}</Text>
+                                            <Text color="gray.600" mb={6}>{selectedContent.description || 'امتحان شامل'}</Text>
+                                            <Box p={4} bg="orange.50" color="orange.700" borderRadius="lg" mb={6}>
+                                                تنبيه: هذا الامتحان {selectedContent.isMandatory ? 'إلزامي' : 'اختياري'} ويجب اجتيازه للمتابعة.
+                                            </Box>
+                                            {/* Placeholder for Exam Start - In real app, navigate to exam runner or show inline */}
+                                            <Box p={4} border="1px dashed" borderColor="gray.300" borderRadius="lg">
+                                                <Text mb={2}>مكون الامتحان (سيتم إضافته قريباً)</Text>
+                                                <Text fontSize="sm" color="gray.500">Duration: {selectedContent.settings?.duration || 0} mins | Pass: {selectedContent.settings?.passingScore || 50}%</Text>
+                                            </Box>
+                                        </Box>
+                                    )}
+                                    {selectedContent.type === 'homework' && (
+                                        <Box bg="white" p={8} borderRadius="xl" shadow="sm" textAlign="center">
+                                            <Text fontSize="xl" fontWeight="bold">واجب: {selectedContent.title}</Text>
+                                            <Text mt={4} color="gray.500">نظام الواجبات قيد التطوير</Text>
+                                        </Box>
+                                    )}
+                                </>
                             ) : (
                                 <Center h="400px" bg="gray.50" borderRadius="xl" border="1px dashed" borderColor="gray.300">
                                     <Stack spacing={4} align="center">
                                         <Icon as={BookOpen} boxSize={12} color="gray.300" />
-                                        <Text color="gray.500">اختر درساً لبدء المشاهدة</Text>
+                                        <Text color="gray.500">اختر محتوى لبدء المشاهدة</Text>
                                     </Stack>
                                 </Center>
                             )}

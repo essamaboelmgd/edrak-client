@@ -574,7 +574,7 @@ export default function Courses() {
                                                 isFetching ||
                                                 isLoading ||
                                                 currentPage >= totalPages ||
-                                                totalPages === 0
+                                                  totalPages === 0
                                             }
                                             isLoading={isLoading || isFetching}
                                             onClick={() => {

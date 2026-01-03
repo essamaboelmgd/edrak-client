@@ -25,9 +25,6 @@ interface StudentsTableProps {
   onViewDetails?: (student: IStudentAdmin) => void;
   onEdit?: (student: IStudentAdmin) => void;
   onManageWallet?: (student: IStudentAdmin) => void;
-  onResetLevel?: (studentId: string) => void;
-  onResetRank?: (studentId: string) => void;
-  onChangeStatus?: (studentId: string) => void;
   onAllowModifications?: (studentId: string) => void;
   onToggleActivation?: (studentId: string) => void;
   selectedStudents?: string[];
@@ -40,9 +37,6 @@ export default function StudentsTable({
   students,
   onViewDetails,
   onManageWallet,
-  onResetLevel,
-  onResetRank,
-  onChangeStatus,
   onAllowModifications,
   onToggleActivation,
   selectedStudents = [],
@@ -172,10 +166,10 @@ export default function StudentsTable({
                     )}
                   </Td>
                   <Td>
-                    {onChangeStatus && (
+                    {onToggleActivation && (
                       <Switch
-                        isChecked={student.status === 'active'}
-                        onChange={() => onChangeStatus(student._id)}
+                        isChecked={student.isActive}
+                        onChange={() => onToggleActivation(student._id)}
                       />
                     )}
                   </Td>
@@ -206,32 +200,6 @@ export default function StudentsTable({
                           gap={1.5}
                         >
                           <Text fontSize="smaller">المحفظة</Text>
-                        </Button>
-                      )}
-                      {onResetRank && (
-                        <Button
-                          fontWeight="medium"
-                          size="sm"
-                          h={8}
-                          colorScheme="blue"
-                          rounded={2}
-                          onClick={() => onResetRank(student._id)}
-                          gap={1.5}
-                        >
-                          <Text fontSize="smaller">إعادة تعيين الترتيب</Text>
-                        </Button>
-                      )}
-                      {onResetLevel && (
-                        <Button
-                          fontWeight="medium"
-                          size="sm"
-                          h={8}
-                          colorScheme="blue"
-                          rounded={2}
-                          onClick={() => onResetLevel(student._id)}
-                          gap={1.5}
-                        >
-                          <Text fontSize="smaller">إعادة تعيين المستويات</Text>
                         </Button>
                       )}
                     </Stack>

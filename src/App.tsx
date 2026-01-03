@@ -16,8 +16,14 @@ const DashboardLayout = lazy(() => import('@/layouts/DashboardLayout'))
 // Role-based pages
 const AdminHome = lazy(() => import('@/pages/admin/Home'))
 const AdminCourses = lazy(() => import('@/pages/admin/Courses'))
+const AdminCourseDetails = lazy(() => import('@/pages/admin/CourseDetails'))
+const AdminSectionDetails = lazy(() => import('@/pages/admin/SectionDetails'))
+const AdminLessonDetails = lazy(() => import('@/pages/admin/LessonDetails'))
+const AdminLessons = lazy(() => import('@/pages/admin/Lessons'))
 const AdminTeachers = lazy(() => import('@/pages/admin/Teachers'))
+const AdminTeacherDetails = lazy(() => import('@/pages/admin/TeacherDetails'))
 const AdminStudents = lazy(() => import('@/pages/admin/Students'))
+const AdminStudentDetails = lazy(() => import('@/pages/admin/StudentDetails'))
 const AdminActivationCodes = lazy(() => import('@/pages/admin/ActivationCodes'))
 const AdminCoupons = lazy(() => import('@/pages/admin/Coupons'))
 const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
@@ -180,9 +186,15 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
         }>
           <Route index element={<AdminHome />} />
           <Route path="courses" element={<AdminCourses />} />
+          <Route path="courses/:id" element={<AdminCourseDetails />} />
+          <Route path="sections/:id" element={<AdminSectionDetails />} />
+          <Route path="lessons/:id" element={<AdminLessonDetails />} />
+          <Route path="lessons" element={<AdminLessons />} />
           <Route path="question-bank" element={<AdminQuestionBank />} />
           <Route path="teachers" element={<AdminTeachers />} />
+          <Route path="teachers/:id" element={<AdminTeacherDetails />} />
           <Route path="students" element={<AdminStudents />} />
+          <Route path="students/:id" element={<AdminStudentDetails />} />
           <Route path="exams" element={<AdminExams />} />
           <Route path="exams/:id" element={<AdminViewExam />} />
           <Route path="exams/:id/edit" element={<AdminEditExam />} />
