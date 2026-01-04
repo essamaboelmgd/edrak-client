@@ -1,17 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import { studentService } from '../services/studentService';
 
-export const useAllCourses = () => {
+export const useAllCourses = (params?: any) => {
     return useQuery({
-        queryKey: ['student', 'courses', 'all'],
-        queryFn: () => studentService.getAllCourses(),
+        queryKey: ['student', 'courses', 'all', params],
+        queryFn: () => studentService.getAllCourses(params),
     });
 };
 
-export const useMyCourses = () => {
+export const useMyCourses = (params?: any) => {
     return useQuery({
-        queryKey: ['student', 'courses', 'my'],
-        queryFn: () => studentService.getMyCourses(),
+        queryKey: ['student', 'courses', 'my', params],
+        queryFn: () => studentService.getMyCourses(params),
+    });
+};
+
+// Hook to fetch course content (Legacy parity)
+export const useCourseContent = (courseId: string) => {
+    return useQuery({
+        queryKey: ['student', 'course-content', courseId],
+        queryFn: () => studentService.getCourseContent(courseId),
+        enabled: !!courseId,
     });
 };
 

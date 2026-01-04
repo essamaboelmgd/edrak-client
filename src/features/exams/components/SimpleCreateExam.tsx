@@ -11,6 +11,7 @@ import {
   ModalHeader,
   ModalOverlay,
   Stack,
+  Select,
   Switch,
   Text,
   Textarea,
@@ -20,7 +21,9 @@ import {
 import { ChangeEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import examService from "@/features/teacher/services/examService";
+import courseService from "@/features/teacher/services/courseService";
 import { ICreateExamRequest } from "@/types/exam.types";
+import { useQuery } from "@tanstack/react-query";
 
 interface SimpleCreateExamProps {
   onSuccess?: () => void;
@@ -50,7 +53,18 @@ export default function SimpleCreateExam({ onSuccess }: SimpleCreateExamProps) {
     },
   });
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const { data: coursesData } = useQuery({
+    queryKey: ['myCourses'],
+    queryFn: () => courseService.getMyCourses({ limit: 100 }),
+  });
+
+  const { data: lessonsData } = useQuery({
+    queryKey: ['courseLessons', formData.course],
+    queryFn: () => courseService.getCourseLessons(formData.course!),
+    enabled: !!formData.course,
+  });
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -159,6 +173,36 @@ export default function SimpleCreateExam({ onSuccess }: SimpleCreateExamProps) {
                       onChange={handleInputChange}
                     />
                   </FormControl>
+
+                  <FormControl>
+                    <FormLabel>الكورس</FormLabel>
+                    <Select 
+                      placeholder="اختر الكورس" 
+                      name="course" 
+                      value={formData.course} 
+                      onChange={handleInputChange}
+                    >
+                      {coursesData?.data?.courses?.map((course: any) => (
+                        <option key={course._id} value={course._id}>{course.title}</option>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  {formData.course && (
+                    <FormControl>
+                      <FormLabel>الدرس (اختياري)</FormLabel>
+                      <Select 
+                        placeholder="اختر الدرس" 
+                        name="lesson" 
+                        value={formData.lesson} 
+                        onChange={handleInputChange}
+                      >
+                        {lessonsData?.data?.lessons?.map((lesson: any) => (
+                          <option key={lesson._id} value={lesson._id}>{lesson.title}</option>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
 
                   <FormControl>
                     <Stack direction="row" alignItems="center">

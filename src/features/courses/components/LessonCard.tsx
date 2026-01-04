@@ -22,6 +22,7 @@ import { Icon } from "@iconify-icon/react";
 import { axiosInstance, getImageUrl } from "@/lib/axios";
 import { useToast } from "@chakra-ui/react";
 import EditLessonModal from "./EditLessonModal";
+import coursesService from "../coursesService";
 
 interface LessonCardProps {
   lesson: any;
@@ -73,15 +74,20 @@ export default function LessonCard({ lesson, callback }: LessonCardProps) {
               position="absolute"
               top={2}
               right={2}
-              colorScheme={lesson.status === 'published' ? 'green' : 'gray'}
+              colorScheme={lesson.status === 'active' ? 'green' : 'gray'}
             >
-              {lesson.status === 'published' ? 'منشور' : 'مسودة'}
+              {lesson.status === 'active' ? 'منشور' : 'مسودة'}
             </Badge>
           </Box>
           <Box>
             <Heading size="md" mb={2} noOfLines={1}>
               {lesson.title}
             </Heading>
+            {lesson.price > 0 && (
+                <Text fontSize="sm" fontWeight="bold" color="green.600" mb={1}>
+                    {lesson.price} ج.م
+                </Text>
+            )}
             <Text fontSize="sm" color="gray.600" noOfLines={2}>
               {lesson.description || "لا يوجد وصف"}
             </Text>
@@ -128,12 +134,12 @@ export default function LessonCard({ lesson, callback }: LessonCardProps) {
             <FormControl display='flex' alignItems='center' width="auto">
                 <Switch 
                     id={`status-${lesson._id}`} 
-                    isChecked={lesson.status === 'published'}
+                    isChecked={lesson.status === 'active'}
                     onChange={async (e) => {
                          try {
-                            const newStatus = e.target.checked ? 'published' : 'draft';
-                            await axiosInstance.patch(`/lessons/${lesson._id}`, { status: newStatus });
-                            toast({ status: 'success', description: `تم تحويل الدرس إلى ${newStatus === 'published' ? 'منشور' : 'مسودة'}` });
+                            const newStatus = e.target.checked ? 'active' : 'draft';
+                            await coursesService.updateLesson(lesson._id, { status: newStatus });
+                            toast({ status: 'success', description: `تم تحويل الدرس إلى ${newStatus === 'active' ? 'منشور' : 'مسودة'}` });
                             callback();
                          } catch (err: any) {
                              toast({ status: 'error', description: err.response?.data?.message || 'برجاء المحاولة مرة أخرى' });
@@ -142,7 +148,7 @@ export default function LessonCard({ lesson, callback }: LessonCardProps) {
                     colorScheme="green"
                 />
                 <FormLabel htmlFor={`status-${lesson._id}`} mb='0' mr={2} fontSize="xs" color="gray.500">
-                    {lesson.status === 'published' ? 'تفعيل' : 'تعطيل'}
+                    {lesson.status === 'active' ? 'تفعيل' : 'تعطيل'}
                 </FormLabel>
             </FormControl>
           </HStack>

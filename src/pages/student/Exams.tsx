@@ -33,7 +33,7 @@ export default function StudentExams() {
     page: '1',
   });
   const { data: examsData, isLoading } = useStudentExams();
-  const exams = examsData?.exams || [];
+  const exams = examsData?.availableExams || [];
 
   return (
     <Stack
@@ -115,6 +115,7 @@ export default function StudentExams() {
                   <Th>مدة الامتحان</Th>
                   <Th>تاريخ الانشاء</Th>
                   <Th>اخر تحديث</Th>
+                  <Th>الإجراء</Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -137,7 +138,13 @@ export default function StudentExams() {
                         _hover={{
                           textDecoration: "underline",
                         }}
-                        onClick={() => navigate(`/student/exams/${item._id || item.id}`)}
+                        onClick={() => {
+                          if (item.myAttempts && item.myAttempts > 0) {
+                            navigate(`/student/exams/${item._id || item.id}/results`);
+                          } else {
+                            navigate(`/student/exams/${item._id || item.id}/start`);
+                          }
+                        }}
                       >
                         {item.exam?.title || item.title}
                       </Text>
@@ -193,10 +200,34 @@ export default function StudentExams() {
                     </Td>
                     <Td>{item.duration ? item.duration || 0 : <Badge>غير مفعل</Badge>}</Td>
                     <Td>
-                      <Text>{new Date(item.createdAt || item.created_at).toISOString().substring(0, 10)}</Text>
+                      <Text>
+                        {(item.createdAt || item.created_at) 
+                          ? new Date(item.createdAt || item.created_at).toISOString().substring(0, 10) 
+                          : "-"}
+                      </Text>
                     </Td>
                     <Td>
-                      <Text>{new Date(item.updatedAt || item.updated_at).toISOString().substring(0, 10)}</Text>
+                      <Text>
+                        {(item.updatedAt || item.updated_at) 
+                          ? new Date(item.updatedAt || item.updated_at).toISOString().substring(0, 10) 
+                          : "-"}
+                      </Text>
+                    </Td>
+                    <Td>
+                      <Button
+                        size="sm"
+                        colorScheme={(item.myAttempts && item.myAttempts > 0) ? 'green' : 'blue'}
+                        variant={(item.myAttempts && item.myAttempts > 0) ? 'outline' : 'solid'}
+                        onClick={() => {
+                          if (item.myAttempts && item.myAttempts > 0) {
+                             navigate(`/student/exams/${item._id || item.id}/results`);
+                          } else {
+                             navigate(`/student/exams/${item._id || item.id}/start`);
+                          }
+                        }}
+                      >
+                         {(item.myAttempts && item.myAttempts > 0) ? 'عرض النتائج' : 'ابدأ الاختبار'}
+                      </Button>
                     </Td>
                   </Tr>
                 ))}

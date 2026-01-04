@@ -5,17 +5,21 @@ class StudentService {
     /**
      * Get all available courses
      */
-    async getAllCourses() {
+    async getAllCourses(params?: any) {
         // Based on existing controllers, public courses are likely under /courses
-        const response = await axiosInstance.get<{ data: { courses: IStudentCourse[]; total: number } }>('/courses');
+        const response = await axiosInstance.get<{ data: { courses: IStudentCourse[]; total: number } }>('/courses', {
+            params
+        });
         return response.data.data;
     }
 
     /**
      * Get my enrolled courses
      */
-    async getMyCourses() {
-        const response = await axiosInstance.get<{ data: { courses: IStudentCourse[]; total: number } }>('/courses/my-courses');
+    async getMyCourses(params?: any) {
+        const response = await axiosInstance.get<{ data: { courses: IStudentCourse[]; total: number } }>('/courses/my-courses', {
+            params
+        });
         return response.data.data;
     }
 
@@ -25,6 +29,12 @@ class StudentService {
     async getCourseById(courseId: string) {
         const response = await axiosInstance.get<{ data: { course: IStudentCourse } }>(`/courses/${courseId}`);
         return response.data.data.course;
+    }
+
+    async getCourseContent(courseId: string) {
+        // Legacy parity endpoint
+        const response = await axiosInstance.get<{ data: { result: any } }>(`/courses/${courseId}/content`);
+        return response.data.data.result;
     }
     
     /**
@@ -116,10 +126,11 @@ class StudentService {
     /**
      * Subscribe to a course
      */
-    async subscribeToCourse(courseId: string, paymentMethod: string = 'wallet') {
+    async subscribeToCourse(courseId: string, paymentMethod: string = 'wallet', couponCode?: string) {
         const response = await axiosInstance.post('/courses/subscribe/course', {
             course: courseId,
-            paymentMethod
+            paymentMethod,
+            couponCode
         });
         return response.data;
     }

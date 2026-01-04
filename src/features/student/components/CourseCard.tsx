@@ -1,92 +1,146 @@
-import { IStudentCourse } from '@/features/student/types';
-import { Card, CardBody, Image, Stack, Heading, Text, Badge, Button, Flex, Icon, Box } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
-import { BookOpen, User } from 'lucide-react';
-import { getImageUrl } from '@/lib/axios';
+import {
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Card,
+  Heading,
+  HStack,
+  Image,
+  Progress,
+  Spacer,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
+import { Link } from "react-router-dom";
+import { IStudentCourse } from "../types";
+import { getImageUrl } from "@/lib/axios";
 
 interface CourseCardProps {
-    course: IStudentCourse;
+  c: IStudentCourse;
 }
 
-export const CourseCard = ({ course }: CourseCardProps) => {
-    const navigate = useNavigate();
+export default function CourseCard({ c }: CourseCardProps) {
+  const isEnrolled = c.isSubscribed;
+  
+  const detailLink = `/student/courses/${c._id}`;
 
-    return (
-        <Card maxW='sm' boxShadow="md" borderRadius="lg" overflow="hidden" _hover={{ transform: 'translateY(-4px)', boxShadow: 'lg', transition: 'all 0.2s' }}>
-            <Box position="relative">
-                <Image
-                    src={
-                        typeof course.poster === 'string' 
-                            ? getImageUrl(course.poster) 
-                            : (course.poster?.url || 'https://via.placeholder.com/400x200?text=No+Image')
-                    }
-                    alt={course.title}
-                    objectFit="cover"
-                    h="200px"
-                    w="100%"
-                    fallbackSrc="https://via.placeholder.com/400x200?text=Loading"
-                />
-                <Badge
-                    position="absolute"
-                    top={2}
-                    right={2}
-                    colorScheme={course.isSubscribed ? 'green' : 'blue'}
-                    variant="solid"
+  return (
+    <Card
+      direction="column"
+      overflow="hidden"
+      variant="outline"
+      borderColor="gray.200"
+      _hover={{ transform: "translateY(-4px)", shadow: "lg", borderColor: "blue.200" }}
+      transition="all 0.3s ease"
+      bg="white"
+      borderRadius="2xl"
+      h="100%"
+      role="group"
+    >
+      <Box position="relative" overflow="hidden">
+        <Image
+          objectFit="cover"
+          w="100%"
+          h="180px"
+          src={getImageUrl(c.poster as string)}
+          alt={c.title}
+          fallbackSrc="https://via.placeholder.com/400x200"
+          transition="transform 0.4s ease"
+          _groupHover={{ transform: "scale(1.05)" }}
+        />
+        {isEnrolled && (
+            <Badge
+                colorScheme="green"
+                position="absolute"
+                top={3}
+                right={3}
+                fontSize="xs"
+                px={2}
+                py={1}
+                borderRadius="md"
+                boxShadow="md"
+            >
+                مشترك
+            </Badge>
+        )}
+      </Box>
+
+      <Stack spacing={4} p={5} flex={1}>
+        <Stack spacing={2}>
+            <Link to={detailLink}>
+                <Heading 
+                    size="md" 
+                    noOfLines={2} 
+                    lineHeight="1.4"
+                    _hover={{ color: "blue.600" }}
+                    transition="color 0.2s"
                 >
-                    {course.isSubscribed ? 'مشترك' : 'جديد'}
-                </Badge>
-            </Box>
+                    {c.title}
+                </Heading>
+            </Link>
             
-            <CardBody>
-                <Stack spacing='3'>
-                    <Flex justify="space-between" align="center">
-                        <Badge colorScheme="purple">{course.subjects?.[0] || 'عام'}</Badge>
-                        <Text fontSize="xs" color="gray.500">{course.educationalLevel?.name}</Text>
-                    </Flex>
-                    
-                    <Heading size='md' noOfLines={2}>{course.title}</Heading>
-                    
-                    <Text noOfLines={2} fontSize="sm" color="gray.600">
-                        {course.description}
-                    </Text>
+            {/* Teacher Info */}
+             {c.teacher && (
+            <HStack spacing={3} pt={1}>
+              <Avatar
+                size="sm"
+                name={c.teacher.fullName}
+                src={c.teacher.image ? getImageUrl(c.teacher.image) : undefined}
+                border="2px solid white"
+                boxShadow="sm"
+              />
+              <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                {c.teacher.fullName}
+              </Text>
+            </HStack>
+          )}
+        </Stack>
 
-                    <Flex align="center" gap={2} fontSize="sm" color="gray.500">
-                        <Icon as={User} />
-                        <Text>{course.teacher?.fullName}</Text>
-                    </Flex>
+        <Spacer />
+        
+        {/* Price / Progress */}
+        <Box pt={2} borderTop="1px dashed" borderColor="gray.100">
+            {isEnrolled ? (
+                <Box>
+                    <HStack justify="space-between" mb={2}>
+                        <Text fontSize="xs" color="gray.500" fontWeight="medium">التقدم في الدورة</Text>
+                        <Text fontSize="xs" fontWeight="bold" color="green.600">{c.progress || 0}%</Text>
+                    </HStack>
+                    <Progress value={c.progress || 0} size="xs" colorScheme="green" borderRadius="full" />
+                </Box>
+            ) : (
+                <HStack justify="space-between" align="center">
+                     {c.discount && c.discount > 0 ? (
+                        <HStack spacing={2}>
+                            <Text color="green.600" fontSize="lg" fontWeight="bold">{c.finalPrice} ج.م</Text>
+                            <Text color="gray.400" fontSize="sm" textDecoration="line-through">{c.price} ج.م</Text>
+                        </HStack>
+                    ) : (
+                        <Text color="green.600" fontSize="lg" fontWeight="bold">
+                            {c.price > 0 ? `${c.price} ج.م` : "مجاني"}
+                        </Text>
+                    )}
+                </HStack>
+            )}
+        </Box>
 
-                    <Box mt={2}>
-                        {!course.isSubscribed ? (
-                            <Button 
-                                w="full"
-                                variant='solid' 
-                                bgGradient="linear(to-r, blue.500, purple.600)"
-                                _hover={{ bgGradient: "linear(to-r, blue.600, purple.700)" }}
-                                color="white"
-                                onClick={() => navigate(`/student/courses/${course._id}`)}
-                                size="md"
-                                rightIcon={<Icon as={BookOpen} size={18} />}
-                                boxShadow="md"
-                            >
-                                اشترك الآن
-                            </Button>
-                        ) : (
-                            <Button 
-                                w="full"
-                                variant='outline' 
-                                colorScheme='green'
-                                borderWidth="2px"
-                                onClick={() => navigate(`/student/courses/${course._id}`)}
-                                size="md"
-                                rightIcon={<Icon as={BookOpen} size={18} />}
-                                _hover={{ bg: 'green.50' }}
-                            >
-                                دخول الكورس
-                            </Button>
-                        )}
-                    </Box>
-                </Stack>
-            </CardBody>
-        </Card>
-    );
-};
+        <Button
+            as={Link}
+            to={detailLink}
+            variant={isEnrolled ? "outline" : "solid"}
+            colorScheme={isEnrolled ? "green" : "blue"}
+            size="md"
+            w="full"
+            borderRadius="xl"
+            _hover={{
+                transform: "translateY(-2px)",
+                boxShadow: "md"
+            }}
+        >
+            {isEnrolled ? "دخول الكورس" : "اشترك الآن"}
+        </Button>
+      </Stack>
+    </Card>
+  );
+}

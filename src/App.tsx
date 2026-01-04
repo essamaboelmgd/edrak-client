@@ -54,10 +54,11 @@ const AdminFeatures = lazy(() => import('@/pages/admin/Features'))
 const AdminSubscriptions = lazy(() => import('@/pages/admin/Subscriptions'))
 const StudentHome = lazy(() => import('@/pages/student/Home'))
 const StudentCourses = lazy(() => import('@/pages/student/Courses'))
+const StudentSubscribe = lazy(() => import('@/pages/student/Subscribe'))
 const StudentCourseDetails = lazy(() => import('@/features/student/components/CourseDetails'))
 const StudentLessonPlayer = lazy(() => import('@/features/student/components/LessonPlayer'))
 const StudentExams = lazy(() => import('@/pages/student/Exams'))
-const StudentExamPlayer = lazy(() => import('@/features/student/components/ExamPlayer'))
+const StudentExamPlayer = lazy(() => import('@/pages/student/ExamPage'))
 const StudentExamResults = lazy(() => import('@/pages/student/ExamResults'))
 const StudentHomework = lazy(() => import('@/pages/student/Homework'))
 
@@ -242,6 +243,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route index element={<StudentHome />} />
           <Route path="courses" element={<StudentCourses />} />
           <Route path="courses/:courseId" element={<StudentCourseDetails />} />
+          <Route path="courses/:courseId/subscribe" element={<StudentSubscribe />} />
           <Route path="courses/:courseId/learn" element={<StudentLessonPlayer />} />
           <Route path="exams" element={<StudentExams />} />
           <Route path="exams/:examId/start" element={<StudentExamPlayer />} />
