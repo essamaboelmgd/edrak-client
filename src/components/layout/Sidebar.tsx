@@ -435,3 +435,4 @@ const NavItem = ({ icon, path, name, badge, isCollapsed = false }: NavItemProps)
         </Link>
     );
 };
+
