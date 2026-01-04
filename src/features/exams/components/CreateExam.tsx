@@ -35,6 +35,8 @@ import {
   useDisclosure,
   Heading,
   Text,
+  Grid,
+  Image,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import examService from '@/features/teacher/services/examService';
@@ -84,11 +86,14 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
   // For new questions method
   const [newQuestions, setNewQuestions] = useState<Array<{
     question: string;
-    questionType: 'mcq' | 'true_false' | 'written';
+    questionType: 'mcq' | 'true_false';
     answers: IAnswer[];
     correctAnswer?: string;
     points: number;
     difficulty: 'easy' | 'medium' | 'hard';
+    imageFile?: File | null;
+    imagePreview?: string | null;
+    imageUrl?: string;
   }>>([]);
 
   // For bank questions method
@@ -97,7 +102,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
   const [bankFilters, setBankFilters] = useState({
     page: 1,
     limit: 20,
-    questionType: '' as 'mcq' | 'true_false' | 'written' | '',
+    questionType: '' as 'mcq' | 'true_false' | '',
     difficulty: '' as 'easy' | 'medium' | 'hard' | '',
   });
   const [generateCriteria, setGenerateCriteria] = useState({
@@ -105,6 +110,11 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
     medium: 0,
     hard: 0,
     pointsPerQuestion: 1,
+  });
+  const [availableQuestionCounts, setAvailableQuestionCounts] = useState({
+    easy: 0,
+    medium: 0,
+    hard: 0,
   });
 
   // For PDF method
@@ -202,18 +212,29 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
 
   useEffect(() => {
     if (isOpen && creationMethod === 'bank') {
-      fetchBankQuestions();
+      // Only fetch questions if teacher is selected (for admin) or if not admin
+      if (role === UserRole.ADMIN) {
+        if (formData.teacher) {
+          fetchBankQuestions();
+        } else {
+          // Clear questions if no teacher selected
+          setBankQuestions([]);
+        }
+      } else {
+        // For teachers, fetch their own questions
+        fetchBankQuestions();
+      }
     }
-  }, [isOpen, creationMethod, bankFilters]);
+  }, [isOpen, creationMethod, bankFilters, formData.teacher, role]);
 
   const fetchCourses = async () => {
     try {
       if (role === UserRole.ADMIN && formData.teacher) {
         // For admin, fetch courses for selected teacher
-        const response = await coursesService.getAllCourses({ 
-          page: 1, 
-          limit: 1000, 
-          teacher: formData.teacher 
+        const response = await coursesService.getAllCourses({
+          page: 1,
+          limit: 1000,
+          teacher: formData.teacher
         });
         if (response.success && response.data) {
           setCourses(response.data.courses || []);
@@ -255,14 +276,50 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
 
   const fetchBankQuestions = async () => {
     try {
-      const response = await examService.getQuestions({
+      const query: any = {
         page: bankFilters.page,
         limit: bankFilters.limit,
         questionType: bankFilters.questionType || undefined,
         difficulty: bankFilters.difficulty || undefined,
         activeOnly: true,
-      });
+      };
+
+      // Filter by teacher if selected (for admin)
+      if (role === UserRole.ADMIN && formData.teacher) {
+        query.teacher = formData.teacher;
+      }
+
+      const response = await examService.getQuestions(query);
       setBankQuestions(response.data.questions || []);
+
+      // Calculate available question counts by difficulty
+      const counts = {
+        easy: 0,
+        medium: 0,
+        hard: 0,
+      };
+
+      // Fetch all questions to get accurate counts (not just current page)
+      const countQuery: any = {
+        page: 1,
+        limit: 10000, // Get all questions for counting
+        activeOnly: true,
+      };
+
+      if (role === UserRole.ADMIN && formData.teacher) {
+        countQuery.teacher = formData.teacher;
+      }
+
+      const countResponse = await examService.getQuestions(countQuery);
+      const allQuestions = countResponse.data.questions || [];
+
+      allQuestions.forEach((q: IQuestionBankResponse) => {
+        if (q.difficulty === 'easy') counts.easy++;
+        else if (q.difficulty === 'medium') counts.medium++;
+        else if (q.difficulty === 'hard') counts.hard++;
+      });
+
+      setAvailableQuestionCounts(counts);
     } catch (error) {
       console.error('Failed to fetch bank questions', error);
     }
@@ -293,13 +350,48 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
         // Create questions in bank first, then create exam
         const questionIds: string[] = [];
         for (const q of newQuestions) {
+          // Validate: must have either question text or image
+          if (!q.question?.trim() && !q.imageFile && !q.imageUrl) {
+            toast({
+              title: 'خطأ',
+              description: `السؤال ${questionIds.length + 1}: يجب إدخال نص السؤال أو رفع صورة`,
+              status: 'error',
+            });
+            setLoading(false);
+            return;
+          }
+
+          // Upload image if provided
+          let imageUrl = q.imageUrl;
+          if (q.imageFile) {
+            try {
+              const formData = new FormData();
+              formData.append('image', q.imageFile);
+              const uploadResponse = await axiosInstance.post('/uploads/question-image', formData, {
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                },
+              });
+              imageUrl = uploadResponse.data.url || uploadResponse.data.data?.url || '';
+            } catch (error) {
+              toast({
+                title: 'خطأ',
+                description: `فشل رفع صورة السؤال ${questionIds.length + 1}`,
+                status: 'error',
+              });
+              setLoading(false);
+              return;
+            }
+          }
+
           const questionData = {
-            question: q.question,
+            question: q.question?.trim() || '',
             questionType: q.questionType,
             answers: q.answers,
             correctAnswer: q.correctAnswer,
             difficulty: q.difficulty,
             points: q.points,
+            imageUrl: imageUrl || undefined,
             isGeneral: formData.examType === 'general',
             course: formData.course,
             lesson: formData.lesson,
@@ -321,28 +413,54 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
 
         await examService.createExam(examData);
       } else if (creationMethod === 'bank') {
-        if (selectedQuestions.length === 0) {
+        // Check if using random generation
+        const totalRandom = (generateCriteria.easy || 0) + (generateCriteria.medium || 0) + (generateCriteria.hard || 0);
+
+        if (totalRandom > 0) {
+          // Use random generation
+          const generateData = {
+            title: formData.title || '',
+            description: formData.description,
+            examType: formData.examType || 'general',
+            course: formData.course,
+            lesson: formData.lesson,
+            criteria: {
+              easy: generateCriteria.easy || 0,
+              medium: generateCriteria.medium || 0,
+              hard: generateCriteria.hard || 0,
+            },
+            pointsPerQuestion: generateCriteria.pointsPerQuestion,
+            settings: {
+              ...formData.settings,
+              shuffleQuestions: true, // Always shuffle for random exams
+            },
+            teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
+          };
+
+          await examService.generateExam(generateData);
+        } else if (selectedQuestions.length === 0) {
           toast({
             title: 'خطأ',
-            description: 'يجب اختيار سؤال واحد على الأقل',
+            description: 'يجب اختيار سؤال واحد على الأقل أو تحديد عدد الأسئلة للإنشاء العشوائي',
             status: 'error',
           });
           setLoading(false);
           return;
+        } else {
+          // Use manual selection
+          const examData: ICreateExamRequest = {
+            ...formData,
+            contentType: 'questions',
+            questions: selectedQuestions.map((id, idx) => ({
+              question: id,
+              points: generateCriteria.pointsPerQuestion,
+              order: idx + 1,
+            })),
+            teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
+          } as ICreateExamRequest;
+
+          await examService.createExam(examData);
         }
-
-        const examData: ICreateExamRequest = {
-          ...formData,
-          contentType: 'questions',
-          questions: selectedQuestions.map((id, idx) => ({
-            question: id,
-            points: generateCriteria.pointsPerQuestion,
-            order: idx + 1,
-          })),
-          teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
-        } as ICreateExamRequest;
-
-        await examService.createExam(examData);
       } else if (creationMethod === 'pdf') {
         if (!pdfFile && !examId) {
           toast({
@@ -487,6 +605,9 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
       ],
       points: 1,
       difficulty: 'medium',
+      imageFile: null,
+      imagePreview: null,
+      imageUrl: undefined,
     }]);
   };
 
@@ -705,12 +826,72 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
                             </HStack>
 
                             <FormControl>
-                              <FormLabel>نص السؤال</FormLabel>
+                              <FormLabel>نص السؤال (اختياري إذا تم رفع صورة)</FormLabel>
                               <Textarea
                                 value={q.question}
                                 onChange={(e) => updateNewQuestion(qIdx, 'question', e.target.value)}
-                                placeholder="أدخل نص السؤال"
+                                placeholder="أدخل نص السؤال أو ارفع صورة أدناه"
                               />
+                            </FormControl>
+
+                            <FormControl>
+                              <FormLabel>صورة السؤال (اختياري إذا تم إدخال نص)</FormLabel>
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                display="none"
+                                id={`question-image-${qIdx}`}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    if (file.type.startsWith('image/')) {
+                                      updateNewQuestion(qIdx, 'imageFile', file);
+                                      const reader = new FileReader();
+                                      reader.onloadend = () => {
+                                        updateNewQuestion(qIdx, 'imagePreview', reader.result as string);
+                                      };
+                                      reader.readAsDataURL(file);
+                                    } else {
+                                      toast({
+                                        title: 'خطأ',
+                                        description: 'الرجاء اختيار ملف صورة',
+                                        status: 'error',
+                                      });
+                                    }
+                                  }
+                                }}
+                              />
+                              <HStack spacing={2}>
+                                <Button
+                                  as="label"
+                                  htmlFor={`question-image-${qIdx}`}
+                                  size="sm"
+                                  leftIcon={<Icon icon="solar:gallery-bold-duotone" width="16" height="16" />}
+                                  cursor="pointer"
+                                  variant="outline"
+                                >
+                                  {q.imagePreview ? 'تغيير الصورة' : 'اختر صورة'}
+                                </Button>
+                                {q.imagePreview && (
+                                  <Button
+                                    size="sm"
+                                    colorScheme="red"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      updateNewQuestion(qIdx, 'imageFile', null);
+                                      updateNewQuestion(qIdx, 'imagePreview', null);
+                                      updateNewQuestion(qIdx, 'imageUrl', undefined);
+                                    }}
+                                  >
+                                    إزالة
+                                  </Button>
+                                )}
+                              </HStack>
+                              {q.imagePreview && (
+                                <Box mt={2}>
+                                  <Image src={q.imagePreview} alt="Preview" maxH="200px" borderRadius="md" />
+                                </Box>
+                              )}
                             </FormControl>
 
                             <HStack>
@@ -731,7 +912,6 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
                                 >
                                   <option value="mcq">اختيار من متعدد</option>
                                   <option value="true_false">صحيح/خطأ</option>
-                                  <option value="written">مقالي</option>
                                 </Select>
                               </FormControl>
 
@@ -811,16 +991,6 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
                               </Stack>
                             )}
 
-                            {q.questionType === 'written' && (
-                              <FormControl>
-                                <FormLabel>الإجابة الصحيحة (مرجعية)</FormLabel>
-                                <Textarea
-                                  value={q.correctAnswer || ''}
-                                  onChange={(e) => updateNewQuestion(qIdx, 'correctAnswer', e.target.value)}
-                                  placeholder="الإجابة المرجعية (اختياري)"
-                                />
-                              </FormControl>
-                            )}
                           </Stack>
                         </Box>
                       ))}
@@ -830,86 +1000,260 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
                   {/* Method 2: From Bank */}
                   <TabPanel>
                     <Stack spacing={4}>
-                      <HStack>
-                        <FormControl>
-                          <FormLabel>نوع السؤال</FormLabel>
-                          <Select
-                            value={bankFilters.questionType}
-                            onChange={(e) => setBankFilters({ ...bankFilters, questionType: e.target.value as any })}
-                            placeholder="الكل"
-                          >
-                            <option value="">الكل</option>
-                            <option value="mcq">اختيار من متعدد</option>
-                            <option value="true_false">صحيح/خطأ</option>
-                            <option value="written">مقالي</option>
-                          </Select>
-                        </FormControl>
-                        <FormControl>
-                          <FormLabel>الصعوبة</FormLabel>
-                          <Select
-                            value={bankFilters.difficulty}
-                            onChange={(e) => setBankFilters({ ...bankFilters, difficulty: e.target.value as any })}
-                            placeholder="الكل"
-                          >
-                            <option value="">الكل</option>
-                            <option value="easy">سهل</option>
-                            <option value="medium">متوسط</option>
-                            <option value="hard">صعب</option>
-                          </Select>
-                        </FormControl>
-                        <FormControl>
-                          <FormLabel>النقاط لكل سؤال</FormLabel>
-                          <NumberInput
-                            value={generateCriteria.pointsPerQuestion}
-                            onChange={(_, val) => setGenerateCriteria({ ...generateCriteria, pointsPerQuestion: val })}
-                            min={1}
-                          >
-                            <NumberInputField />
-                            <NumberInputStepper>
-                              <NumberIncrementStepper />
-                              <NumberDecrementStepper />
-                            </NumberInputStepper>
-                          </NumberInput>
-                        </FormControl>
-                      </HStack>
+                      {/* Teacher Selection Required for Admin */}
+                      {role === UserRole.ADMIN && !formData.teacher && (
+                        <Box p={4} bg="orange.50" borderRadius="lg" border="1px" borderColor="orange.200">
+                          <HStack spacing={3} mb={3}>
+                            <Icon icon="solar:info-circle-bold-duotone" width="24" height="24" style={{ color: 'var(--chakra-colors-orange-600)' }} />
+                            <Heading size="sm" color="orange.700">
+                              يجب اختيار المدرس أولاً
+                            </Heading>
+                          </HStack>
+                          <Text fontSize="sm" color="gray.600" mb={4}>
+                            يرجى اختيار المدرس من الأعلى لعرض أسئلته من بنك الأسئلة
+                          </Text>
+                        </Box>
+                      )}
 
-                      <Box maxH="400px" overflowY="auto" border="1px" borderColor="gray.200" rounded="md" p={4}>
-                        <Stack spacing={2}>
-                          {bankQuestions.map((question) => (
-                            <HStack
-                              key={question._id}
-                              p={3}
-                              border="1px"
-                              borderColor={selectedQuestions.includes(question._id) ? 'blue.500' : 'gray.200'}
-                              rounded="md"
-                              cursor="pointer"
-                              onClick={() => toggleQuestionSelection(question._id)}
-                              _hover={{ bg: 'gray.50' }}
-                            >
-                              <Checkbox
-                                isChecked={selectedQuestions.includes(question._id)}
-                                onChange={() => toggleQuestionSelection(question._id)}
-                              />
-                              <Box flex={1}>
-                                <Text fontWeight="medium" noOfLines={2}>
-                                  {question.question}
-                                </Text>
-                                <HStack mt={1}>
-                                  <Badge>{question.questionType}</Badge>
-                                  <Badge colorScheme={question.difficulty === 'easy' ? 'green' : question.difficulty === 'medium' ? 'yellow' : 'red'}>
-                                    {question.difficulty}
-                                  </Badge>
-                                  <Badge>{question.points} نقطة</Badge>
-                                </HStack>
-                              </Box>
+                      {((role === UserRole.ADMIN && formData.teacher) || role !== UserRole.ADMIN) && (
+                        <>
+                          <Box p={4} bg="purple.50" borderRadius="lg" border="1px" borderColor="purple.200">
+                            <Heading size="sm" mb={3} color="purple.700">
+                              إنشاء امتحان عشوائي من بنك الأسئلة
+                            </Heading>
+                            <Text fontSize="sm" color="gray.600" mb={4}>
+                              اختر عدد الأسئلة لكل مستوى صعوبة. سيتم اختيار الأسئلة بشكل عشوائي وخلطها تلقائياً.
+                            </Text>
+                            <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
+                              <FormControl>
+                                <FormLabel>
+                                  عدد الأسئلة السهلة
+                                  {availableQuestionCounts.easy > 0 && (
+                                    <Text as="span" fontSize="xs" color="gray.500" fontWeight="normal" mr={2}>
+                                      (المتاح: {availableQuestionCounts.easy})
+                                    </Text>
+                                  )}
+                                </FormLabel>
+                                <NumberInput
+                                  value={generateCriteria.easy}
+                                  onChange={(_, val) => {
+                                    const numVal = isNaN(val) ? 0 : val;
+                                    const maxVal = Math.min(Math.max(0, numVal), availableQuestionCounts.easy);
+                                    setGenerateCriteria({ ...generateCriteria, easy: maxVal });
+                                  }}
+                                  onBlur={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    const maxVal = Math.min(val, availableQuestionCounts.easy);
+                                    if (val !== maxVal) {
+                                      setGenerateCriteria({ ...generateCriteria, easy: maxVal });
+                                    }
+                                  }}
+                                  min={0}
+                                  max={availableQuestionCounts.easy}
+                                  isDisabled={availableQuestionCounts.easy === 0}
+                                >
+                                  <NumberInputField />
+                                  <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                  </NumberInputStepper>
+                                </NumberInput>
+                                {availableQuestionCounts.easy === 0 && (
+                                  <Text fontSize="xs" color="orange.500" mt={1}>
+                                    لا توجد أسئلة سهلة متاحة
+                                  </Text>
+                                )}
+                              </FormControl>
+                              <FormControl>
+                                <FormLabel>
+                                  عدد الأسئلة المتوسطة
+                                  {availableQuestionCounts.medium > 0 && (
+                                    <Text as="span" fontSize="xs" color="gray.500" fontWeight="normal" mr={2}>
+                                      (المتاح: {availableQuestionCounts.medium})
+                                    </Text>
+                                  )}
+                                </FormLabel>
+                                <NumberInput
+                                  value={generateCriteria.medium}
+                                  onChange={(_, val) => {
+                                    const numVal = isNaN(val) ? 0 : val;
+                                    const maxVal = Math.min(Math.max(0, numVal), availableQuestionCounts.medium);
+                                    setGenerateCriteria({ ...generateCriteria, medium: maxVal });
+                                  }}
+                                  onBlur={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    const maxVal = Math.min(val, availableQuestionCounts.medium);
+                                    if (val !== maxVal) {
+                                      setGenerateCriteria({ ...generateCriteria, medium: maxVal });
+                                    }
+                                  }}
+                                  min={0}
+                                  max={availableQuestionCounts.medium}
+                                  isDisabled={availableQuestionCounts.medium === 0}
+                                >
+                                  <NumberInputField />
+                                  <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                  </NumberInputStepper>
+                                </NumberInput>
+                                {availableQuestionCounts.medium === 0 && (
+                                  <Text fontSize="xs" color="orange.500" mt={1}>
+                                    لا توجد أسئلة متوسطة متاحة
+                                  </Text>
+                                )}
+                              </FormControl>
+                              <FormControl>
+                                <FormLabel>
+                                  عدد الأسئلة الصعبة
+                                  {availableQuestionCounts.hard > 0 && (
+                                    <Text as="span" fontSize="xs" color="gray.500" fontWeight="normal" mr={2}>
+                                      (المتاح: {availableQuestionCounts.hard})
+                                    </Text>
+                                  )}
+                                </FormLabel>
+                                <NumberInput
+                                  value={generateCriteria.hard}
+                                  onChange={(_, val) => {
+                                    const numVal = isNaN(val) ? 0 : val;
+                                    const maxVal = Math.min(Math.max(0, numVal), availableQuestionCounts.hard);
+                                    setGenerateCriteria({ ...generateCriteria, hard: maxVal });
+                                  }}
+                                  onBlur={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    const maxVal = Math.min(val, availableQuestionCounts.hard);
+                                    if (val !== maxVal) {
+                                      setGenerateCriteria({ ...generateCriteria, hard: maxVal });
+                                    }
+                                  }}
+                                  min={0}
+                                  max={availableQuestionCounts.hard}
+                                  isDisabled={availableQuestionCounts.hard === 0}
+                                >
+                                  <NumberInputField />
+                                  <NumberInputStepper>
+                                    <NumberIncrementStepper />
+                                    <NumberDecrementStepper />
+                                  </NumberInputStepper>
+                                </NumberInput>
+                                {availableQuestionCounts.hard === 0 && (
+                                  <Text fontSize="xs" color="orange.500" mt={1}>
+                                    لا توجد أسئلة صعبة متاحة
+                                  </Text>
+                                )}
+                              </FormControl>
+                            </Grid>
+                            <FormControl mt={4}>
+                              <FormLabel>النقاط لكل سؤال</FormLabel>
+                              <NumberInput
+                                value={generateCriteria.pointsPerQuestion}
+                                onChange={(_, val) => setGenerateCriteria({ ...generateCriteria, pointsPerQuestion: val })}
+                                min={1}
+                              >
+                                <NumberInputField />
+                                <NumberInputStepper>
+                                  <NumberIncrementStepper />
+                                  <NumberDecrementStepper />
+                                </NumberInputStepper>
+                              </NumberInput>
+                            </FormControl>
+                            <HStack justify="space-between" mt={2}>
+                              <Text fontSize="xs" color="gray.500">
+                                إجمالي الأسئلة: {generateCriteria.easy + generateCriteria.medium + generateCriteria.hard}
+                              </Text>
+                              <Text fontSize="xs" color="gray.500">
+                                المتاح: {availableQuestionCounts.easy + availableQuestionCounts.medium + availableQuestionCounts.hard}
+                              </Text>
                             </HStack>
-                          ))}
-                        </Stack>
-                      </Box>
+                            {(generateCriteria.easy > availableQuestionCounts.easy ||
+                              generateCriteria.medium > availableQuestionCounts.medium ||
+                              generateCriteria.hard > availableQuestionCounts.hard) && (
+                                <Text fontSize="xs" color="red.500" mt={1}>
+                                  ⚠️ العدد المدخل يتجاوز المتاح. سيتم استخدام الحد الأقصى المتاح.
+                                </Text>
+                              )}
+                          </Box>
 
-                      <Text fontSize="sm" color="gray.500">
-                        تم اختيار {selectedQuestions.length} سؤال
-                      </Text>
+                          <Divider />
+
+                          <Box>
+                            <Heading size="sm" mb={3}>
+                              أو اختر الأسئلة يدوياً
+                            </Heading>
+                            <HStack mb={4}>
+                              <FormControl>
+                                <FormLabel>نوع السؤال</FormLabel>
+                                <Select
+                                  value={bankFilters.questionType}
+                                  onChange={(e) => setBankFilters({ ...bankFilters, questionType: e.target.value as any })}
+                                  placeholder="الكل"
+                                >
+                                  <option value="">الكل</option>
+                                  <option value="mcq">اختيار من متعدد</option>
+                                  <option value="true_false">صحيح/خطأ</option>
+                                </Select>
+                              </FormControl>
+                              <FormControl>
+                                <FormLabel>الصعوبة</FormLabel>
+                                <Select
+                                  value={bankFilters.difficulty}
+                                  onChange={(e) => setBankFilters({ ...bankFilters, difficulty: e.target.value as any })}
+                                  placeholder="الكل"
+                                >
+                                  <option value="">الكل</option>
+                                  <option value="easy">سهل</option>
+                                  <option value="medium">متوسط</option>
+                                  <option value="hard">صعب</option>
+                                </Select>
+                              </FormControl>
+                            </HStack>
+
+                            <Box maxH="400px" overflowY="auto" border="1px" borderColor="gray.200" rounded="md" p={4}>
+                              {bankQuestions.length === 0 ? (
+                                <Box textAlign="center" py={8}>
+                                  <Text color="gray.500">لا توجد أسئلة متاحة</Text>
+                                </Box>
+                              ) : (
+                                <Stack spacing={2}>
+                                  {bankQuestions.map((question) => (
+                                    <HStack
+                                      key={question._id}
+                                      p={3}
+                                      border="1px"
+                                      borderColor={selectedQuestions.includes(question._id) ? 'blue.500' : 'gray.200'}
+                                      rounded="md"
+                                      cursor="pointer"
+                                      onClick={() => toggleQuestionSelection(question._id)}
+                                      _hover={{ bg: 'gray.50' }}
+                                    >
+                                      <Checkbox
+                                        isChecked={selectedQuestions.includes(question._id)}
+                                        onChange={() => toggleQuestionSelection(question._id)}
+                                      />
+                                      <Box flex={1}>
+                                        <Text fontWeight="medium" noOfLines={2}>
+                                          {question.question}
+                                        </Text>
+                                        <HStack mt={1}>
+                                          <Badge>{question.questionType}</Badge>
+                                          <Badge colorScheme={question.difficulty === 'easy' ? 'green' : question.difficulty === 'medium' ? 'yellow' : 'red'}>
+                                            {question.difficulty}
+                                          </Badge>
+                                          <Badge>{question.points} نقطة</Badge>
+                                        </HStack>
+                                      </Box>
+                                    </HStack>
+                                  ))}
+                                </Stack>
+                              )}
+                            </Box>
+
+                            <Text fontSize="sm" color="gray.500" mt={2}>
+                              تم اختيار {selectedQuestions.length} سؤال
+                            </Text>
+                          </Box>
+                        </>
+                      )}
                     </Stack>
                   </TabPanel>
 

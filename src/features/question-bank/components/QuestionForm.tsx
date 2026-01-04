@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Trash2, Save, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { axiosInstance } from '@/lib/axios';
 import {
     ICreateQuestionBankRequest,
     IUpdateQuestionBankRequest,
@@ -37,6 +38,9 @@ interface QuestionFormData {
 export default function QuestionForm({ question, onSave, onCancel, isLoading = false }: QuestionFormProps) {
     const [tagInput, setTagInput] = useState('');
     const [selectedCourseId, setSelectedCourseId] = useState<string>(question?.course?._id || '');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(question?.imageUrl || null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
 
     const {
         register,
@@ -101,8 +105,6 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
                 { text: 'صحيح', isCorrect: false, order: 1 },
                 { text: 'خطأ', isCorrect: false, order: 2 },
             ]);
-        } else if (questionType === 'written') {
-            setValue('answers', []);
         } else if (questionType === 'mcq' && answers.length === 0) {
             setValue('answers', [{ text: '', isCorrect: false, order: 1 }]);
         }
@@ -146,6 +148,22 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
         setValue('tags', currentTags.filter(t => t !== tag));
     };
 
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setImageFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImagePreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('الرجاء اختيار ملف صورة');
+            }
+        }
+    };
+
     const onSubmit = async (data: QuestionFormData) => {
         // Validate based on question type
         if (data.questionType === 'mcq' || data.questionType === 'true_false') {
@@ -158,15 +176,32 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
                 alert('يجب تحديد إجابة صحيحة واحدة على الأقل');
                 return;
             }
-        } else if (data.questionType === 'written') {
-            if (!data.correctAnswer) {
-                alert('يجب إدخال الإجابة الصحيحة');
-                return;
+
+        // Upload image if new file is selected
+        let imageUrl = question?.imageUrl || '';
+        if (imageFile) {
+            try {
+                const formData = new FormData();
+                formData.append('image', imageFile);
+                const uploadResponse = await axiosInstance.post('/uploads/question-image', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                imageUrl = uploadResponse.data.url || uploadResponse.data.data?.url || '';
+            } catch (error) {
+                console.error('Failed to upload image', error);
+                alert('فشل رفع الصورة. سيتم حفظ السؤال بدون صورة.');
             }
         }
 
         // Clean up data: remove empty strings and undefined values
         const dataToSave: any = { ...data };
+        
+        // Add imageUrl to data
+        if (imageUrl) {
+            dataToSave.imageUrl = imageUrl;
+        }
 
         // Remove course and lesson if general
         if (dataToSave.isGeneral) {
@@ -198,8 +233,8 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
             }
         }
 
-        // Remove empty correctAnswer if not written question
-        if (data.questionType !== 'written' && dataToSave.correctAnswer === '') {
+        // Remove empty correctAnswer
+        if (dataToSave.correctAnswer === '') {
             delete dataToSave.correctAnswer;
         }
 
@@ -227,6 +262,51 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
                 )}
             </div>
 
+            {/* Question Image */}
+            <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">صورة السؤال (اختياري)</label>
+                <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                />
+                <div className="flex gap-2 mb-2">
+                    <button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                        {imagePreview ? 'تغيير الصورة' : 'اختر صورة'}
+                    </button>
+                    {imagePreview && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setImageFile(null);
+                                setImagePreview(null);
+                                if (imageInputRef.current) {
+                                    imageInputRef.current.value = '';
+                                }
+                            }}
+                            className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                            إزالة الصورة
+                        </button>
+                    )}
+                </div>
+                {imagePreview && (
+                    <div className="mt-2">
+                        <img
+                            src={imagePreview}
+                            alt="Question preview"
+                            className="max-h-48 rounded-lg border border-gray-300"
+                        />
+                    </div>
+                )}
+            </div>
+
             {/* Question Type */}
             <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">نوع السؤال *</label>
@@ -236,7 +316,6 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
                 >
                     <option value="mcq">اختيار من متعدد</option>
                     <option value="true_false">صحيح/خطأ</option>
-                    <option value="written">سؤال كتابي</option>
                 </select>
             </div>
 
@@ -296,21 +375,6 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
                 </div>
             )}
 
-            {/* Correct Answer for Written */}
-            {questionType === 'written' && (
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">الإجابة الصحيحة *</label>
-                    <textarea
-                        {...register('correctAnswer', { required: 'الإجابة الصحيحة مطلوبة' })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        rows={3}
-                        placeholder="أدخل الإجابة الصحيحة..."
-                    />
-                    {errors.correctAnswer && (
-                        <p className="text-sm text-red-500 mt-1">{errors.correctAnswer.message}</p>
-                    )}
-                </div>
-            )}
 
             {/* Explanation */}
             <div>

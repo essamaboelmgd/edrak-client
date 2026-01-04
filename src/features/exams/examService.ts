@@ -180,12 +180,17 @@ class ExamService {
     }
 
     /**
-     * Create question in bank
+     * Create question in bank (supports FormData for image upload)
      */
-    async createQuestion(data: ICreateQuestionBankRequest): Promise<ApiResponse<{ question: IQuestionBankResponse }>> {
+    async createQuestion(data: ICreateQuestionBankRequest | FormData): Promise<ApiResponse<{ question: IQuestionBankResponse }>> {
+        const headers = data instanceof FormData
+            ? { 'Content-Type': 'multipart/form-data' }
+            : {};
+
         const response = await axiosInstance.post<ApiResponse<{ question: IQuestionBankResponse }>>(
             '/exams/question-bank',
-            data
+            data,
+            { headers }
         );
         return response.data;
     }
@@ -195,6 +200,27 @@ class ExamService {
      */
     async getQuestionById(id: string): Promise<ApiResponse<{ question: IQuestionBankResponse }>> {
         const response = await axiosInstance.get<ApiResponse<{ question: IQuestionBankResponse }>>(
+            `/exams/question-bank/${id}`
+        );
+        return response.data;
+    }
+
+    /**
+     * Update question in bank
+     */
+    async updateQuestion(id: string, data: Partial<ICreateQuestionBankRequest>): Promise<ApiResponse<{ question: IQuestionBankResponse }>> {
+        const response = await axiosInstance.put<ApiResponse<{ question: IQuestionBankResponse }>>(
+            `/exams/question-bank/${id}`,
+            data
+        );
+        return response.data;
+    }
+
+    /**
+     * Delete question from bank
+     */
+    async deleteQuestion(id: string): Promise<ApiResponse<null>> {
+        const response = await axiosInstance.delete<ApiResponse<null>>(
             `/exams/question-bank/${id}`
         );
         return response.data;

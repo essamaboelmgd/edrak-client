@@ -30,6 +30,7 @@ import {
 import { studentsService, IStudentAdmin } from '@/features/admin/services/studentsService';
 import EditStudentModal from '@/features/admin/components/EditStudentModal';
 import WalletManagementModal from '@/features/admin/components/WalletManagementModal';
+import ChangePasswordModal from '@/features/admin/components/ChangePasswordModal';
 import StudentOverviewTab from '@/features/admin/components/StudentOverviewTab';
 import StudentCoursesTab from '@/features/admin/components/StudentCoursesTab';
 import StudentLessonsTab from '@/features/admin/components/StudentLessonsTab';
@@ -101,6 +102,7 @@ export default function StudentDetails() {
     const [loading, setLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showWalletModal, setShowWalletModal] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [teachers, setTeachers] = useState<any[]>([]);
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const cancelRef = React.useRef<HTMLButtonElement>(null);
@@ -532,16 +534,38 @@ export default function StudentDetails() {
                                                     fetchTeachers();
                                                 }}
                                             />
-                                            <Button
-                                                colorScheme="blue"
-                                                onClick={() => setShowEditModal(true)}
-                                                leftIcon={<Icon icon="solar:pen-bold-duotone" width="18" height="18" />}
-                                                w="fit-content"
-                                            >
-                                                تعديل بيانات الطالب
-                                            </Button>
+                                            <HStack spacing={2} flexWrap="wrap">
+                                                <Button
+                                                    colorScheme="blue"
+                                                    onClick={() => setShowEditModal(true)}
+                                                    leftIcon={<Icon icon="solar:pen-bold-duotone" width="18" height="18" />}
+                                                    w="fit-content"
+                                                >
+                                                    تعديل بيانات الطالب
+                                                </Button>
+                                                <Button
+                                                    colorScheme="orange"
+                                                    onClick={() => setShowPasswordModal(true)}
+                                                    leftIcon={<Icon icon="solar:lock-password-bold-duotone" width="18" height="18" />}
+                                                    w="fit-content"
+                                                    variant="outline"
+                                                >
+                                                    تغيير كلمة المرور
+                                                </Button>
+                                            </HStack>
                                         </Stack>
                                     </Card>
+
+                                    {/* Change Password Modal */}
+                                    <ChangePasswordModal
+                                        studentId={id!}
+                                        studentName={student.fullName}
+                                        isOpen={showPasswordModal}
+                                        onClose={() => setShowPasswordModal(false)}
+                                        onSuccess={() => {
+                                            setShowPasswordModal(false);
+                                        }}
+                                    />
 
                                     {/* Wallet Management */}
                                     <Card borderRadius="xl" border="1px" borderColor="gray.200" boxShadow="sm">

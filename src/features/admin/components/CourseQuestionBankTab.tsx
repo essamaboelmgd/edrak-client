@@ -84,7 +84,6 @@ export default function CourseQuestionBankTab({ courseId }: CourseQuestionBankTa
         const types: Record<string, string> = {
             mcq: 'اختيار من متعدد',
             true_false: 'صح/خطأ',
-            written: 'مقالي',
         };
         return types[type] || type;
     };
@@ -93,7 +92,6 @@ export default function CourseQuestionBankTab({ courseId }: CourseQuestionBankTa
         const colors: Record<string, string> = {
             mcq: 'blue',
             true_false: 'green',
-            written: 'purple',
         };
         return colors[type] || 'gray';
     };
@@ -121,7 +119,6 @@ export default function CourseQuestionBankTab({ courseId }: CourseQuestionBankTa
     const questionsByType = {
         mcq: filteredQuestions.filter((q) => q.questionType === 'mcq').length,
         true_false: filteredQuestions.filter((q) => q.questionType === 'true_false').length,
-        written: filteredQuestions.filter((q) => q.questionType === 'written').length,
     };
 
     return (
@@ -246,27 +243,6 @@ export default function CourseQuestionBankTab({ courseId }: CourseQuestionBankTa
                                     />
                                     <Text fontSize="sm" fontWeight="semibold" color="green.700">
                                         {questionsByType.true_false} صح/خطأ
-                                    </Text>
-                                </HStack>
-                            )}
-                            {questionsByType.written > 0 && (
-                                <HStack
-                                    spacing={2}
-                                    bg="orange.50"
-                                    px={4}
-                                    py={2.5}
-                                    borderRadius="lg"
-                                    border="1px"
-                                    borderColor="orange.200"
-                                >
-                                    <Icon
-                                        icon="solar:document-text-bold-duotone"
-                                        width="20"
-                                        height="20"
-                                        style={{ color: 'var(--chakra-colors-orange-600)' }}
-                                    />
-                                    <Text fontSize="sm" fontWeight="semibold" color="orange.700">
-                                        {questionsByType.written} مقالي
                                     </Text>
                                 </HStack>
                             )}

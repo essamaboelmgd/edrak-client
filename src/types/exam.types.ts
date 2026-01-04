@@ -5,7 +5,7 @@
 export type ExamType = "lesson" | "course" | "general";
 export type ContentType = "questions" | "pdf" | "mixed";
 export type ExamStatus = "draft" | "published" | "archived";
-export type QuestionType = "mcq" | "true_false" | "written";
+export type QuestionType = "mcq" | "true_false";
 export type Difficulty = "easy" | "medium" | "hard";
 
 export interface IExamSettings {
@@ -18,6 +18,7 @@ export interface IExamSettings {
   shuffleQuestions: boolean;
   shuffleAnswers: boolean;
   requireAll: boolean;
+  requiredBeforeNextLesson?: boolean;
   availableFrom?: string | Date;
   availableUntil?: string | Date;
 }
@@ -51,6 +52,7 @@ export interface IUpdateExamRequest {
   title?: string;
   description?: string;
   pdfUrl?: string;
+  solutionVideo?: string;
   settings?: Partial<IExamSettings>;
   status?: ExamStatus;
   isActive?: boolean;
@@ -226,6 +228,7 @@ export interface ICreateQuestionBankRequest {
   tags?: string[];
   points?: number;
   estimatedTime?: number;
+  imageUrl?: string;
   teacher?: string; // For admin
 }
 
@@ -244,6 +247,7 @@ export interface IQuestionBankResponse {
   tags: string[];
   points: number;
   estimatedTime: number;
+  imageUrl?: string;
   usageCount: number;
   isActive: boolean;
   createdAt: string | Date;

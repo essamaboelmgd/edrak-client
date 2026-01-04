@@ -386,6 +386,17 @@ class StudentsService {
         );
         return response.data;
     }
+
+    /**
+     * Change student password (Admin only)
+     */
+    async changeStudentPassword(studentId: string, newPassword: string): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `/users/${studentId}/change-password`,
+            { password: newPassword }
+        );
+        return response.data;
+    }
 }
 
 // Export singleton instance

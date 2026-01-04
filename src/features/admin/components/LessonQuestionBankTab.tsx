@@ -158,7 +158,6 @@ export default function LessonQuestionBankTab({ lessonId }: LessonQuestionBankTa
         const types: Record<string, string> = {
             mcq: 'اختيار من متعدد',
             true_false: 'صح/خطأ',
-            written: 'مقالي',
         };
         return types[type] || type;
     };
@@ -167,7 +166,6 @@ export default function LessonQuestionBankTab({ lessonId }: LessonQuestionBankTa
         const colors: Record<string, string> = {
             mcq: 'blue',
             true_false: 'green',
-            written: 'purple',
         };
         return colors[type] || 'gray';
     };
