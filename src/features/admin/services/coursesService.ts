@@ -54,6 +54,17 @@ class CoursesService {
     private readonly BASE_PATH = '/courses';
 
     /**
+     * Reorder course sections (Admin)
+     */
+    async reorderCourseSections(sections: { sectionId: string; order: number }[]) {
+        const response = await axiosInstance.put<ApiResponse<null>>(
+            `${this.BASE_PATH}/sections/reorder`,
+            { sections }
+        );
+        return response.data;
+    }
+
+    /**
      * Get all courses with pagination and filters (Admin)
      */
     async getAllCourses(query?: {

@@ -391,6 +391,7 @@ export default function CreateCourseSectionModal({ callback, editing }: CreateCo
                   <FormLabel>الترتيب</FormLabel>
                   <Input
                     type="number"
+                    placeholder="اتركه فارغاً للترتيب التلقائي"
                     {...register("order", { valueAsNumber: true, min: 1 })}
                   />
                   <FormErrorMessage>{errors.order?.message}</FormErrorMessage>

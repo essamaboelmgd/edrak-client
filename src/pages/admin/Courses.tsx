@@ -222,8 +222,8 @@ export default function AdminCourses() {
                 if (section.title) formData.append('title', section.title);
                 if (section.description) formData.append('description', section.description || '');
                 if (section.educationalLevel) {
-                    const eduLevelId = typeof section.educationalLevel === 'string' 
-                        ? section.educationalLevel 
+                    const eduLevelId = typeof section.educationalLevel === 'string'
+                        ? section.educationalLevel
                         : section.educationalLevel._id;
                     if (eduLevelId) formData.append('educationalLevel', eduLevelId);
                 }
@@ -231,7 +231,7 @@ export default function AdminCourses() {
                 if (section.poster && typeof section.poster === 'string') {
                     formData.append('poster', section.poster);
                 }
-                
+
                 await coursesService.updateCourseSection(sectionId, formData);
                 toast({
                     status: 'success',
@@ -244,6 +244,33 @@ export default function AdminCourses() {
                 status: 'error',
                 description: error.response?.data?.message || 'حدث خطأ أثناء تحديث حالة القسم',
             });
+        }
+    };
+
+    const handleReorderSections = async (newSections: any[]) => {
+        try {
+            // Optimistic update
+            setSections(newSections);
+
+            // Prepare payload
+            const reorderPayload = newSections.map((section, index) => ({
+                sectionId: section._id,
+                order: index + 1
+            }));
+
+            await coursesService.reorderCourseSections(reorderPayload);
+
+            toast({
+                status: 'success',
+                description: 'تم تحديث ترتيب الأقسام',
+                duration: 2000,
+            });
+        } catch (error: any) {
+            toast({
+                status: 'error',
+                description: error.response?.data?.message || 'حدث خطأ أثناء إعادة الترتيب',
+            });
+            fetchCourses(); // Revert
         }
     };
 
@@ -674,6 +701,8 @@ export default function AdminCourses() {
                                     sections={sections}
                                     onToggleStatus={handleToggleSectionStatus}
                                     loading={loading}
+                                    canReorder={teacherFilter !== 'all' && sections.length > 1}
+                                    onReorder={handleReorderSections}
                                 />
                             ) : (
                                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={4}>
