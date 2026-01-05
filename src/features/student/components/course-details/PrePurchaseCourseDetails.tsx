@@ -402,7 +402,6 @@ export default function PrePurchaseCourseDetails({
                                                                                             borderRadius="full" 
                                                                                             px={3} 
                                                                                             fontSize="0.7rem"
-                                                                                            onClick={(e) => e.stopPropagation()}
                                                                                             leftIcon={<Icon icon="solar:cart-large-minimalistic-bold-duotone" width="14" />}
                                                                                          />
                                                                                      )}

@@ -26,6 +26,7 @@ const AdminStudents = lazy(() => import('@/pages/admin/Students'))
 const AdminStudentDetails = lazy(() => import('@/pages/admin/StudentDetails'))
 const AdminActivationCodes = lazy(() => import('@/pages/admin/ActivationCodes'))
 const AdminCoupons = lazy(() => import('@/pages/admin/Coupons'))
+const AdminLives = lazy(() => import('@/pages/admin/lives/Lives'))
 const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
 const TeacherActivationCodes = lazy(() => import('@/pages/teacher/ActivationCodes'))
 const TeacherCoupons = lazy(() => import('@/pages/teacher/Coupons'))
@@ -204,6 +205,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="activation-codes" element={<AdminActivationCodes />} />
           <Route path="coupons" element={<AdminCoupons />} />
+          <Route path="lives" element={<AdminLives />} />
           <Route path="settings" element={<div>Admin Settings Page</div>} />
         </Route>
 
