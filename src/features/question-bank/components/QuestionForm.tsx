@@ -176,6 +176,9 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
                 alert('يجب تحديد إجابة صحيحة واحدة على الأقل');
                 return;
             }
+        }
+
+
 
         // Upload image if new file is selected
         let imageUrl = question?.imageUrl || '';
@@ -197,7 +200,7 @@ export default function QuestionForm({ question, onSave, onCancel, isLoading = f
 
         // Clean up data: remove empty strings and undefined values
         const dataToSave: any = { ...data };
-        
+
         // Add imageUrl to data
         if (imageUrl) {
             dataToSave.imageUrl = imageUrl;
