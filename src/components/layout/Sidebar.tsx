@@ -491,3 +491,4 @@ const NavItem = ({ icon, path, name, badge, underDevelopment, isCollapsed = fals
         </Link>
     );
 };
+

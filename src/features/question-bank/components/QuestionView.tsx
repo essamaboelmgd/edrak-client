@@ -12,7 +12,6 @@ export default function QuestionView({ question, onEdit, onClose }: QuestionView
     switch (type) {
       case 'mcq': return 'اختيار من متعدد';
       case 'true_false': return 'صحيح/خطأ';
-      case 'written': return 'سؤال كتابي';
       default: return type;
     }
   };
@@ -116,16 +115,6 @@ export default function QuestionView({ question, onEdit, onClose }: QuestionView
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Correct Answer for Written */}
-          {question.questionType === 'written' && question.correctAnswer && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">الإجابة الصحيحة</h3>
-              <div className="bg-green-50 border-2 border-green-300 p-4 rounded-xl">
-                <p className="text-gray-800 leading-relaxed">{question.correctAnswer}</p>
               </div>
             </div>
           )}

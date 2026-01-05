@@ -1,6 +1,6 @@
 // ==================== QUESTION BANK TYPES ==================== //
 
-export type QuestionType = "mcq" | "true_false" | "written";
+export type QuestionType = "mcq" | "true_false";
 export type Difficulty = "easy" | "medium" | "hard";
 
 export interface IAnswer {
@@ -107,7 +107,6 @@ export interface IQuestionBankStatistics {
   byType: {
     mcq?: number;
     true_false?: number;
-    written?: number;
   };
   byDifficulty: {
     easy?: number;

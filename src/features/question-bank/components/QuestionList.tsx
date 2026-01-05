@@ -39,7 +39,6 @@ export default function QuestionList({
     switch (type) {
       case 'mcq': return 'اختيار من متعدد';
       case 'true_false': return 'صحيح/خطأ';
-      case 'written': return 'سؤال كتابي';
       default: return type;
     }
   };
@@ -127,7 +126,6 @@ export default function QuestionList({
                 <option value="all">الكل</option>
                 <option value="mcq">اختيار من متعدد</option>
                 <option value="true_false">صحيح/خطأ</option>
-                <option value="written">سؤال كتابي</option>
               </select>
             </div>
             <div>
@@ -178,7 +176,6 @@ export default function QuestionList({
                     <div className="flex items-center gap-2 mb-2">
                       {question.questionType === 'mcq' && <FileText size={16} className="text-blue-500" />}
                       {question.questionType === 'true_false' && <CheckCircle size={16} className="text-green-500" />}
-                      {question.questionType === 'written' && <BookOpen size={16} className="text-purple-500" />}
                       <span className="text-sm text-gray-600">{getQuestionTypeLabel(question.questionType)}</span>
                     </div>
                   </div>
