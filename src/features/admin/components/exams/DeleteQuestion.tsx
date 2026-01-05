@@ -56,3 +56,4 @@ export default function DeleteQuestion({ questionId, examId, onSuccess }: Delete
   );
 }
 
+
