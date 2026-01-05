@@ -14,6 +14,7 @@ import {
 import { Icon } from "@iconify-icon/react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGetCartQuery } from "@/features/student/services/cartApi";
 import HeaderNotifications from "./HeaderNotifications";
 
 interface HeaderProps {
@@ -52,6 +53,7 @@ export default function Header({ onOpen }: HeaderProps) {
         {/* Action Buttons */}
         <HStack spacing={3}>
            {/* Notifications */}
+           <HeaderCart />
            <HeaderNotifications />
 
            {/* Wallet */}
@@ -121,4 +123,35 @@ export default function Header({ onOpen }: HeaderProps) {
   );
 }
 
+function HeaderCart() {
+  const { data } = useGetCartQuery();
+  const count = data?.result?.count || 0;
+  return (
+    <IconButton
+      as={Link}
+      to="/student/cart"
+      aria-label="السلة"
+      title="السلة"
+      minW={0}
+      w={10}
+      h={10}
+      rounded={100}
+      border="1px"
+      borderColor="gray.200"
+      bg="transparent"
+      color="gray.800"
+      variant="ghost"
+      _hover={{ bg: "gray.100" }}
+    >
+      <Box position="relative" color="gray.800" display="flex" alignItems="center" justifyContent="center">
+        <Icon icon="solar:cart-large-2-bold-duotone" width="24" height="24" />
+        {!!count && (
+          <Box position="absolute" top={-1.5} right={-1.5} bg="red.500" color="white" rounded="full" px={1.5} py={0.5} fontSize="10px" fontWeight="bold" minW={5} textAlign="center" lineHeight={1}>
+            {count}
+          </Box>
+        )}
+      </Box>
+    </IconButton>
+  );
+}
 

@@ -19,6 +19,7 @@ import {
 import { Icon } from '@iconify-icon/react';
 import { useState, useMemo } from 'react';
 import { getImageUrl } from '@/lib/axios';
+import AddToCartButton from '@/features/student/components/AddToCartButton';
 
 interface PrePurchaseCourseDetailsProps {
     course: any;
@@ -199,6 +200,29 @@ export default function PrePurchaseCourseDetails({
                                             اشترك الآن
                                         </Button>
 
+                                        <AddToCartButton
+                                            itemType="course"
+                                            itemId={course._id || course.id}
+                                            itemTitle={course.title}
+                                            bg="whiteAlpha.200"
+                                            color="white" 
+                                            size="lg"
+                                            px={10}
+                                            h="56px"
+                                            borderRadius="full"
+                                            fontWeight="bold"
+                                            _hover={{ 
+                                                bg: "whiteAlpha.300", 
+                                                transform: "translateY(-4px)", 
+                                                boxShadow: "xl" 
+                                            }}
+                                            backdropFilter="blur(10px)"
+                                            border="2px solid" 
+                                            borderColor="whiteAlpha.300"
+                                            colorScheme="gray" // Override default colorScheme
+                                            variant="solid" 
+                                        />
+
                                         {/* Price Display */}
                                         <VStack
                                             spacing={0}
@@ -289,6 +313,18 @@ export default function PrePurchaseCourseDetails({
                                                                     {section.items?.length || section.lessons?.length || 0} درس
                                                                 </Text>
                                                              </HStack>
+                                                             <AddToCartButton 
+                                                                itemType="section"
+                                                                itemId={section.id || section._id}
+                                                                itemTitle={section.title || section.name}
+                                                                size="xs"
+                                                                variant="outline"
+                                                                colorScheme="purple"
+                                                                borderRadius="full"
+                                                                px={3}
+                                                                fontSize="0.7rem"
+                                                                leftIcon={<Icon icon="solar:cart-large-minimalistic-bold-duotone" width="14" />}
+                                                             />
                                                         </HStack>
                                                         
                                                         <Stack spacing={3}>
@@ -341,19 +377,34 @@ export default function PrePurchaseCourseDetails({
                                                                                 <HStack pt={1} spacing={2} justify="flex-end">
                                                                                      {!item.isFree && (
                                                                                          <Button 
+                                                                                             size="xs" 
+                                                                                             colorScheme="teal" 
+                                                                                             variant="solid" 
+                                                                                             borderRadius="full" 
+                                                                                             px={3} 
+                                                                                             fontSize="0.7rem"
+                                                                                             onClick={(e) => {
+                                                                                                 e.stopPropagation();
+                                                                                                 onSubscribe();
+                                                                                             }}
+                                                                                         >
+                                                                                             اشترك
+                                                                                         </Button>
+                                                                                     )}
+                                                                                     {!item.isFree && (
+                                                                                         <AddToCartButton 
+                                                                                            itemType="lesson"
+                                                                                            itemId={item._id || item.id}
+                                                                                            itemTitle={item.title}
                                                                                             size="xs" 
-                                                                                            colorScheme="teal" 
-                                                                                            variant="solid" 
+                                                                                            variant="outline"
+                                                                                            colorScheme="purple"
                                                                                             borderRadius="full" 
                                                                                             px={3} 
                                                                                             fontSize="0.7rem"
-                                                                                            onClick={(e) => {
-                                                                                                e.stopPropagation();
-                                                                                                onSubscribe();
-                                                                                            }}
-                                                                                         >
-                                                                                            اشترك
-                                                                                         </Button>
+                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                            leftIcon={<Icon icon="solar:cart-large-minimalistic-bold-duotone" width="14" />}
+                                                                                         />
                                                                                      )}
                                                                                 </HStack>
                                                                             </Stack>

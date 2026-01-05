@@ -35,6 +35,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DisplayPrice from "@/features/student/components/DisplayPrice";
 import { getImageUrl } from "@/lib/axios";
 import SubscriptionSelector from "@/features/student/components/SubscriptionSelector";
+import AddToCartButton from "@/features/student/components/AddToCartButton";
 
 import { axiosInstance } from "@/lib/axios";
 import currency from "@/lib/currency";
@@ -353,6 +354,25 @@ export default function Subscribe() {
                        <Button type="submit" size="md" colorScheme="blue" fontWeight="medium" rounded={3} w="full" mt={4} isLoading={disabled}>
                            اشترك الان
                        </Button>
+                       
+                       <Box mt={2} w="full">
+                           <AddToCartButton
+                               w="full"
+                               size="md"
+                               colorScheme="purple"
+                               itemType={subscriptionType === 'course' ? 'course' : subscriptionType === 'section' ? 'section' : 'lesson'}
+                               itemId={
+                                   subscriptionType === 'course' ? courseId! :
+                                   subscriptionType === 'section' ? selectedSection :
+                                   (selectedLessons.length === 1 ? selectedLessons[0] : '')
+                               }
+                               isDisabled={
+                                   (subscriptionType === 'section' && !selectedSection) ||
+                                   (subscriptionType === 'custom' && selectedLessons.length !== 1)
+                               }
+                               display={subscriptionType === 'custom' && selectedLessons.length !== 1 ? 'none' : 'flex'}
+                           />
+                       </Box>
 
                   </Stack>
                 </Stack>

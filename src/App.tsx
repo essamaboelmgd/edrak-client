@@ -61,6 +61,7 @@ const StudentExams = lazy(() => import('@/pages/student/Exams'))
 const StudentExamPlayer = lazy(() => import('@/pages/student/ExamPage'))
 const StudentExamResults = lazy(() => import('@/pages/student/ExamResults'))
 const StudentHomework = lazy(() => import('@/pages/student/Homework'))
+const StudentCart = lazy(() => import('./pages/student/Cart'))
 
 const StudentProfile = lazy(() => import('@/pages/student/Profile'))
 
@@ -250,6 +251,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="exams/:examId/results" element={<StudentExamResults />} />
           <Route path="homework" element={<StudentHomework />} />
           <Route path="subscriptions" element={<StudentSubscriptions />} />
+          <Route path="cart" element={<StudentCart />} />
           <Route path="profile" element={<StudentProfile />} />
           <Route path="lessons" element={<div>Student Lessons Page</div>} />
           <Route path="settings" element={<div>Student Settings Page</div>} />

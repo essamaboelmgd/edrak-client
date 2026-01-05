@@ -10,8 +10,7 @@ import {
     Icon,
     Badge,
     Collapse,
-    Button,
-    VStack
+    Button
 } from "@chakra-ui/react";
 import { IStudentCourseSection, IStudentLesson, IStudentExam, IStudentHomework } from "@/features/student/types";
 import { 
@@ -20,10 +19,10 @@ import {
     ChevronUp, 
     FileText, 
     Video, 
-    Lock, 
     Paperclip,
     PenTool,
-    MonitorPlay
+    MonitorPlay,
+    CheckCircle
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -75,7 +74,6 @@ export default function CourseSectionList({
         const lessonHomeworks = getLessonHomeworks(lesson._id);
         const lessonExams = getLessonExams(lesson._id);
         const attachments = lesson.attachments || [];
-        const isLocked = false; // logic would typically use isSubscribed/progress
         
         // Video Item
         const renderVideoItem = () => (
@@ -108,27 +106,42 @@ export default function CourseSectionList({
         );
 
         // Exam Item
-        const renderExamItem = (exam: IStudentExam) => (
+        const renderExamItem = (exam: IStudentExam) => {
+            const studentAttempt = (exam as any).studentAttempt || (exam as any).myAttempts?.[0];
+            const isCompleted = (exam.isAttempted) || (studentAttempt && ['submitted', 'graded', 'completed'].includes(studentAttempt.status));
+            const score = studentAttempt?.score || 0;
+            const total = exam.totalMarks || 0;
+
+            return (
              <Box
                 key={exam._id}
                 borderLeft="3px solid"
-                borderLeftColor="orange.300"
+                borderLeftColor={isCompleted ? "green.300" : "orange.300"}
                 borderRadius="md"
                 p={3}
-                bg="white"
+                bg={isCompleted ? "green.50" : "white"}
                 boxShadow="xs"
                 cursor="pointer"
-                 _hover={{ bg: "gray.50" }}
-                onClick={() => navigate(`/exams/${exam._id}`)}
+                 _hover={{ bg: isCompleted ? "green.100" : "gray.50" }}
+                onClick={() => navigate(isCompleted ? `/student/exams/${exam._id}/results` : `/student/exams/${exam._id}/start`)}
             >
                 <HStack align="flex-start" spacing={3}>
-                    <Box bg="orange.50" color="orange.500" p={1.5} borderRadius="full">
-                        <Icon as={PenTool} boxSize={4} />
+                    <Box bg={isCompleted ? "green.200" : "orange.50"} color={isCompleted ? "green.700" : "orange.500"} p={1.5} borderRadius="full">
+                        <Icon as={isCompleted ? CheckCircle : PenTool} boxSize={4} />
                     </Box>
                     <Stack spacing={0.5} flex={1}>
-                        <HStack spacing={2}>
-                            <Text fontWeight="semibold" fontSize="sm">{exam.title}</Text>
-                            <Badge colorScheme="orange" fontSize="xs">امتحان</Badge>
+                        <HStack spacing={2} justify="space-between" width="100%">
+                            <HStack>
+                                <Text fontWeight="semibold" fontSize="sm">{exam.title}</Text>
+                                <Badge colorScheme={isCompleted ? "green" : "orange"} fontSize="xs">
+                                    {isCompleted ? "تم الحل" : "امتحان"}
+                                </Badge>
+                            </HStack>
+                            {isCompleted && (
+                                <Badge colorScheme="green" variant="solid" fontSize="xs">
+                                    {score} / {total}
+                                </Badge>
+                            )}
                         </HStack>
                         <Text fontSize="xs" color="gray.600">
                            {exam.duration} دقيقة
@@ -136,7 +149,8 @@ export default function CourseSectionList({
                     </Stack>
                 </HStack>
             </Box>
-        );
+            );
+        };
 
         // Homework Item
         const renderHomeworkItem = (hw: IStudentHomework) => (
