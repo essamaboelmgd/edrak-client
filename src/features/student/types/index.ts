@@ -120,7 +120,7 @@ export interface IExamAttempt {
   student: string;
   startedAt: string;
   endTime?: string;
-  status: 'in_progress' | 'completed' | 'timeout';
+  status: 'in_progress' | 'completed' | 'timeout' | 'submitted' | 'graded';
   answers: {
     question: string;
     selectedOptions?: string[]; // for mcq

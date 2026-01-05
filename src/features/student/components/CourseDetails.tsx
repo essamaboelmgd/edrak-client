@@ -114,7 +114,6 @@ const StudentCourseDetails = () => {
                 lessons={lessons}
                 exams={exams}
                 homeworks={homeworks}
-                isSubscribed={isSubscribed}
             />
         </Container>
     );

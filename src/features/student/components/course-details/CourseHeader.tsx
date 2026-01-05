@@ -1,10 +1,11 @@
 import { Card, CardBody, Grid, GridItem, Heading, HStack, Image, Stack, Text, Badge, Button, Box } from "@chakra-ui/react";
 import { Icon } from "@chakra-ui/react";
-import { ShoppingCart, Video, FileText } from "lucide-react"; // Using lucide-react as substitute for solar icons where appropriate or just standard icons
+import { Video, FileText } from "lucide-react"; // Using lucide-react as substitute for solar icons where appropriate or just standard icons
 import { useNavigate } from "react-router-dom";
 import { IStudentCourse } from "../../types";
 import { getImageUrl } from "@/lib/axios";
 import DisplayPrice from "../DisplayPrice";
+import AddToCartButton from "../AddToCartButton";
 
 interface CourseHeaderProps {
     course: IStudentCourse;
@@ -86,11 +87,16 @@ export default function CourseHeader({ course, isSubscribed = false }: CourseHea
                                             colorScheme="blue"
                                             size="md"
                                             onClick={() => navigate(`/student/courses/${course._id}/subscribe`)}
-                                            leftIcon={<Icon as={ShoppingCart} />}
                                             px={6}
                                         >
                                             اشترك الآن
                                         </Button>
+                                        <AddToCartButton 
+                                            itemType="course" 
+                                            itemId={course._id} 
+                                            itemTitle={course.title}
+                                            size="md"
+                                        />
                                     </HStack>
                                 )}
                                 {isSubscribed && (

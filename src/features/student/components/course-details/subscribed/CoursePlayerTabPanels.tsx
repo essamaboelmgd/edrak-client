@@ -13,6 +13,7 @@ import {
 import { IStudentCourse, IStudentCourseSection, IStudentLesson, IStudentExam, IStudentHomework } from "@/features/student/types";
 import CourseSectionList from "@/features/student/components/course-details/subscribed/CourseSectionList";
 import LessonPlayer from "@/features/student/components/course-details/subscribed/LessonPlayer";
+import ExamCard from "@/features/student/components/course-details/subscribed/ExamCard";
 import { Video, FileText } from "lucide-react";
 
 interface CoursePlayerTabPanelsProps {
@@ -105,16 +106,20 @@ export default function CoursePlayerTabPanels({
                 </Stack>
             </TabPanel>
 
+
             {/* Exams Tab */}
-            <TabPanel>
-                 {/* Placeholder for Exams Grid */}
+            <TabPanel px={0}>
                  <Stack spacing={6}>
-                    {exams.length > 0 ? (
+                    {exams && exams.length > 0 ? (
                         <Grid templateColumns="1fr" gap={4}>
-                            {exams.map(exam => (
-                                <Card key={exam._id} p={4} variant="outline">
-                                    <Text>{exam.title}</Text>
-                                </Card>
+                            {exams
+                                //.filter((exam: any) => !exam.is_homework_exam) // Filter if field exists
+                                .map((exam) => (
+                                <ExamCard 
+                                    key={exam._id} 
+                                    exam={exam} 
+                                    isLocked={(exam as any).isLocked}
+                                />
                             ))}
                         </Grid>
                     ) : (

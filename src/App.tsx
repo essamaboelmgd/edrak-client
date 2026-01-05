@@ -26,6 +26,7 @@ const AdminStudents = lazy(() => import('@/pages/admin/Students'))
 const AdminStudentDetails = lazy(() => import('@/pages/admin/StudentDetails'))
 const AdminActivationCodes = lazy(() => import('@/pages/admin/ActivationCodes'))
 const AdminCoupons = lazy(() => import('@/pages/admin/Coupons'))
+const AdminLives = lazy(() => import('@/pages/admin/lives/Lives'))
 const TeacherHome = lazy(() => import('@/pages/teacher/Home'))
 const TeacherActivationCodes = lazy(() => import('@/pages/teacher/ActivationCodes'))
 const TeacherCoupons = lazy(() => import('@/pages/teacher/Coupons'))
@@ -61,6 +62,7 @@ const StudentExams = lazy(() => import('@/pages/student/Exams'))
 const StudentExamPlayer = lazy(() => import('@/pages/student/ExamPage'))
 const StudentExamResults = lazy(() => import('@/pages/student/ExamResults'))
 const StudentHomework = lazy(() => import('@/pages/student/Homework'))
+const StudentCart = lazy(() => import('./pages/student/Cart'))
 
 const StudentProfile = lazy(() => import('@/pages/student/Profile'))
 
@@ -203,6 +205,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="activation-codes" element={<AdminActivationCodes />} />
           <Route path="coupons" element={<AdminCoupons />} />
+          <Route path="lives" element={<AdminLives />} />
           <Route path="settings" element={<div>Admin Settings Page</div>} />
         </Route>
 
@@ -250,6 +253,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="exams/:examId/results" element={<StudentExamResults />} />
           <Route path="homework" element={<StudentHomework />} />
           <Route path="subscriptions" element={<StudentSubscriptions />} />
+          <Route path="cart" element={<StudentCart />} />
           <Route path="profile" element={<StudentProfile />} />
           <Route path="lessons" element={<div>Student Lessons Page</div>} />
           <Route path="settings" element={<div>Student Settings Page</div>} />

@@ -51,7 +51,7 @@ export default function LessonPlayer({
                      {lesson.videoUrl || lesson.url ? ( // Assuming videoUrl or url property
                         <Box borderRadius="lg" overflow="hidden" boxShadow="md">
                              {/* Use custom VideoPlayer if available, else generic */}
-                             <VideoPlayer url={lesson.videoUrl || lesson.url} title={lesson.title} />
+                             <VideoPlayer url={lesson.videoUrl || lesson.url} />
                         </Box>
                      ) : (
                          <Box bg="gray.100" p={10} borderRadius="lg" textAlign="center">

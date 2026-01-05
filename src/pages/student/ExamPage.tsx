@@ -24,9 +24,11 @@ import {
     AlertIcon,
     AlertTitle,
     AlertDescription,
+    CircularProgress,
+    CircularProgressLabel
 } from "@chakra-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Clock, CheckCircle } from "lucide-react";
 import { examService } from "@/features/student/services/examService";
@@ -48,8 +50,17 @@ export default function ExamPage() {
         retry: false,
         staleTime: Infinity, // Don't re-fetch on focus
     });
-
+    
     const attempt = data?.attempt;
+
+    // Redirect if already submitted
+    useEffect(() => {
+        if (attempt && ['submitted', 'graded', 'completed'].includes(attempt.status)) {
+            navigate(`/student/exams/${examId}/results`, { replace: true });
+        }
+    }, [attempt, examId, navigate]);
+
+
     const questions = data?.exam?.questions || [];
     const currentQuestion = questions[currentQuestionIndex];
 
@@ -186,41 +197,60 @@ export default function ExamPage() {
 
     return (
         <Container maxW="container.xl" py={8}>
-            <Stack spacing={6}>
-                {/* Header */}
-                <Card>
-                    <CardBody>
-                        <Flex justify="space-between" align="center" wrap="wrap" gap={4}>
-                            <VStack align="start" spacing={1}>
-                                <Heading size="md" color="blue.600">{data?.exam?.title}</Heading>
-                                <Text color="gray.500" fontSize="sm">عدد الأسئلة: {questions.length}</Text>
-                            </VStack>
+            <Stack spacing={4} w="100%">
+                 {/* Top Stats */}
+                 <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                    <Card bg="purple.500" color="white" direction="column" align="center" justify="center" p={4}>
+                        <Text fontWeight="medium">عدد الاسئلة</Text>
+                        <Text fontWeight="bold" fontSize="2xl">{questions.length}</Text>
+                    </Card>
+                    <Card bg="blue.500" color="white" direction="column" align="center" justify="center" p={4}>
+                        <Text fontWeight="medium">عدد الاسئلة المحلولة</Text>
+                        <Text fontWeight="bold" fontSize="2xl">
+                            {Object.keys(answers).length}
+                        </Text>
+                    </Card>
+                    <Card bg="red.500" color="white" direction="column" align="center" justify="center" p={4}>
+                        <Text fontWeight="medium">عدد الاسئلة الغير محلولة</Text>
+                        <Text fontWeight="bold" fontSize="2xl">
+                            {questions.length - Object.keys(answers).length}
+                        </Text>
+                    </Card>
+                 </SimpleGrid>
 
-                            {durationMinutes > 0 && (
-                                <Box p={3} bg="blue.50" borderRadius="md">
-                                    <Countdown
-                                        date={endTime} 
-                                        renderer={renderer}
-                                        onComplete={handleTimerComplete}
-                                    />
-                                </Box>
-                            )}
-                        </Flex>
-                    </CardBody>
-                </Card>
+                 <Flex gap={6} direction={{ base: "column", lg: "row" }} align="start">
+                    <Stack flex={1} spacing={4} w="100%">
+                        
+                        {/* Question Navigation Tabs */}
+                        <Box overflowX="auto" py={2}>
+                             <HStack spacing={2}>
+                                {questions.map((_: any, idx: number) => (
+                                    <Button
+                                        key={idx}
+                                        size="md"
+                                        variant={idx === currentQuestionIndex ? "solid" : "outline"}
+                                        colorScheme="blue"
+                                        bg={idx === currentQuestionIndex ? "blue.500" : "white"}
+                                        color={idx === currentQuestionIndex ? "white" : "gray.600"}
+                                        borderColor="gray.200"
+                                        onClick={() => setCurrentQuestionIndex(idx)}
+                                        minW="50px"
+                                        borderRadius="md"
+                                    >
+                                        {idx + 1}
+                                    </Button>
+                                ))}
+                             </HStack>
+                        </Box>
 
-                {/* Progress Bar */}
-                <Box>
-                    <Flex justify="space-between" mb={2}>
-                        <Text fontSize="sm" color="gray.600">السؤال {currentQuestionIndex + 1} من {questions.length}</Text>
-                        <Text fontSize="sm" color="gray.600">{Math.round(progress)}% مكتمل</Text>
-                    </Flex>
-                    <Progress value={progress} size="sm" colorScheme="blue" borderRadius="full" />
-                </Box>
+                        <Progress 
+                            value={progress} 
+                            size="lg" 
+                            colorScheme="green" 
+                            borderRadius="lg" 
+                            hasStripe
+                        />
 
-                {/* Question Area */}
-                <Flex gap={6} direction={{ base: "column", lg: "row" }}>
-                    <Box flex={1}>
                         <Card minH="400px">
                             <CardBody>
                                 {questions.length === 0 ? (
@@ -232,22 +262,26 @@ export default function ExamPage() {
                                         <Flex justify="space-between" align="start">
                                             <VStack align="start" spacing={2} w="full">
                                                 <Heading size="sm" color="gray.700">السؤال {currentQuestionIndex + 1}</Heading>
-                                                <Text fontSize="lg" fontWeight="medium" dangerouslySetInnerHTML={{ __html: currentQuestion.question.question }} />
+                                                <Box fontSize="lg" fontWeight="medium" dangerouslySetInnerHTML={{ __html: currentQuestion.question.question }} />
                                             </VStack>
-                                            <Badge colorScheme="purple" flexShrink={0}>{currentQuestion.points} درجات</Badge>
+                                            <Badge colorScheme="green" p={2} borderRadius="md" fontSize="sm">
+                                                الدرجة: ({currentQuestion.points})
+                                            </Badge>
                                         </Flex>
+
+                                        <Box dangerouslySetInnerHTML={{ __html: currentQuestion.question.description || '' }} color="gray.600" fontSize="sm" />
 
                                         <RadioGroup
                                             onChange={handleAnswerChange}
                                             value={answers[currentQuestion.question._id] || ""}
                                         >
-                                            <Stack spacing={4}>
+                                            <Stack spacing={3}>
                                                 {currentQuestion.question.answers?.map((answer: any, idx: number) => (
                                                     <Box
                                                         key={idx}
                                                         borderWidth="1px"
                                                         borderRadius="md"
-                                                        p={4}
+                                                        p={3}
                                                         _hover={{ bg: "gray.50", borderColor: "blue.400" }}
                                                         borderColor={answers[currentQuestion.question._id] === (answer._id || answer.text) ? "blue.500" : "gray.200"}
                                                         bg={answers[currentQuestion.question._id] === (answer._id || answer.text) ? "blue.50" : "white"}
@@ -267,62 +301,57 @@ export default function ExamPage() {
                         </Card>
 
                         {/* Navigation Buttons */}
-                        <Flex justify="space-between" mt={6}>
-                            <Button
-                                onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-                                isDisabled={currentQuestionIndex === 0}
-                                variant="outline"
-                            >
-                                السؤال السابق
-                            </Button>
-
-                            {currentQuestionIndex < questions.length - 1 ? (
+                        <Center>
+                            <HStack spacing={4}>
                                 <Button
-                                    colorScheme="blue"
-                                    onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                                    onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
+                                    isDisabled={currentQuestionIndex === 0}
+                                    width="120px"
                                 >
-                                    السؤال التالي
+                                    السابق
                                 </Button>
-                            ) : (
-                                <Button
-                                    colorScheme="green"
-                                    leftIcon={<Icon as={CheckCircle} />}
-                                    onClick={handleSubmit}
-                                    isLoading={isSubmitting}
-                                >
-                                    تسليم الامتحان
-                                </Button>
-                            )}
-                        </Flex>
-                    </Box>
 
-                    {/* Question Map */}
-                    <Box w={{ base: "100%", lg: "300px" }}>
-                        <Card position="sticky" top="4">
-                            <CardBody>
-                                <Heading size="sm" mb={4}>خريطة الأسئلة</Heading>
-                                <SimpleGrid columns={5} gap={2}>
-                                    {questions.map((q: any, idx: number) => (
-                                        <Button
-                                            key={q.question._id}
-                                            size="sm"
-                                            variant={idx === currentQuestionIndex ? "solid" : "outline"}
-                                            colorScheme={answers[q.question._id] ? "green" : (idx === currentQuestionIndex ? "blue" : "gray")}
-                                            onClick={() => setCurrentQuestionIndex(idx)}
-                                        >
-                                            {idx + 1}
-                                        </Button>
-                                    ))}
-                                </SimpleGrid>
-                                <Stack mt={6} spacing={2} fontSize="sm" color="gray.500">
-                                    <HStack><Box w={3} h={3} bg="green.500" borderRadius="full" /><Text>محلول</Text></HStack>
-                                    <HStack><Box w={3} h={3} bg="blue.500" borderRadius="full" /><Text>الحالي</Text></HStack>
-                                    <HStack><Box w={3} h={3} border="1px solid gray" borderRadius="full" /><Text>غير محلول</Text></HStack>
-                                </Stack>
-                            </CardBody>
-                        </Card>
-                    </Box>
-                </Flex>
+                                {currentQuestionIndex < questions.length - 1 ? (
+                                    <Button
+                                        colorScheme="blue"
+                                        onClick={() => setCurrentQuestionIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+                                        width="120px"
+                                    >
+                                        التالي
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        colorScheme="green"
+                                        leftIcon={<Icon as={CheckCircle} />}
+                                        onClick={handleSubmit}
+                                        isLoading={isSubmitting}
+                                        width="180px"
+                                    >
+                                        تصحيح الامتحان
+                                    </Button>
+                                )}
+                            </HStack>
+                        </Center>
+                    </Stack>
+
+                    {/* Timer Sidebar */}
+                    {durationMinutes > 0 && (
+                        <Stack flexShrink={0} w={{ base: "100%", lg: "280px" }}>
+                            <Card>
+                                <CardBody>
+                                    <Center flexDirection="column" gap={2}>
+                                        <Countdown
+                                            date={endTime} 
+                                            renderer={renderer}
+                                            onComplete={handleTimerComplete}
+                                        />
+                                        <Text fontWeight="semibold" color="gray.600">الوقت المتبقي</Text>
+                                    </Center>
+                                </CardBody>
+                            </Card>
+                        </Stack>
+                    )}
+                 </Flex>
             </Stack>
         </Container>
     );

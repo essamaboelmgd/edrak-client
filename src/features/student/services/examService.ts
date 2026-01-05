@@ -21,7 +21,7 @@ class ExamService {
     /**
      * Submit an answer
      */
-    async submitAnswer(attemptId: string, questionId: string, answer: { selectedOptions?: string[], textAnswer?: string }) {
+    async submitAnswer(attemptId: string, questionId: string, answer: { selectedAnswers?: string[], textAnswer?: string }) {
         const response = await axiosInstance.post(`/exams/attempt/${attemptId}/answer`, {
             questionId,
             ...answer
