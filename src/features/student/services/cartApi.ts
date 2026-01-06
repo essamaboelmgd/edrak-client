@@ -58,6 +58,11 @@ class CartService {
         const { data } = await axiosInstance.post("/cart/checkout", body); // Or /user/orders/new
         return data;
     }
+
+    async createOrder(body: { paymentMethod: string }) {
+        const { data } = await axiosInstance.post("/orders", body);
+        return data;
+    }
 }
 
 export const cartService = new CartService();
@@ -117,5 +122,11 @@ export const useCheckoutBulkMutation = () => {
          onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["cart"] });
         },
+    });
+};
+
+export const useCreateOrderMutation = () => {
+    return useMutation({
+        mutationFn: (body: { paymentMethod: string }) => cartService.createOrder(body),
     });
 };

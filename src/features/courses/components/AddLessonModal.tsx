@@ -158,7 +158,6 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
       formData.append("description", values.description);
       formData.append("videoUrl", values.videoUrl || "");
       formData.append("videoProvider", values.videoProvider || "youtube");
-      formData.append("price", values.price?.toString() || "0");
       if (values.lessonSection) formData.append("lessonSection", values.lessonSection);
       if (courseId) formData.append("course", courseId);
       formData.append("price", price.toString());
@@ -292,15 +291,7 @@ export default function AddLessonModal({ callback }: AddLessonModalProps) {
                     <FormErrorMessage>{errors.description?.message}</FormErrorMessage>
                   </FormControl>
 
-                  <FormControl isInvalid={!!errors.price}>
-                    <FormLabel>السعر</FormLabel>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      {...register("price", { valueAsNumber: true, min: 0 })}
-                    />
-                    <FormErrorMessage>{errors.price?.message}</FormErrorMessage>
-                  </FormControl>
+
 
                   <FormControl>
                     <FormLabel>السعر</FormLabel>

@@ -10,7 +10,11 @@ import {
     Button,
     Icon
 } from "@chakra-ui/react";
-import { Play, FileText, Clock } from "lucide-react";
+import { 
+    Play,
+    // FileText,
+    Clock
+} from "lucide-react";
 import VideoPlayer from "@/components/ui/VideoPlayer"; // Adjust path if needed
 import { IStudentHomework, IStudentExam } from "@/features/student/types";
 import { useMemo } from "react";
@@ -26,14 +30,14 @@ interface LessonPlayerProps {
 
 export default function LessonPlayer({
     lesson,
-    homeworks,
+    // homeworks,
     exams
 }: LessonPlayerProps) {
     
     // Filter content related to this lesson
-    const relatedHomeworks = useMemo(() => 
-        homeworks.filter(h => h.lesson === lesson._id || (typeof h.lesson === 'object' && h.lesson?._id === lesson._id)), 
-    [homeworks, lesson._id]);
+    // const relatedHomeworks = useMemo(() => 
+    //     homeworks.filter(h => h.lesson === lesson._id || (typeof h.lesson === 'object' && h.lesson?._id === lesson._id)), 
+    // [homeworks, lesson._id]);
 
     const relatedExams = useMemo(() => 
          exams.filter(e => e.lesson === lesson._id || (typeof e.lesson === 'object' && e.lesson?._id === lesson._id)),
@@ -69,7 +73,7 @@ export default function LessonPlayer({
             </Card>
             
             {/* Related Homeworks */}
-            {relatedHomeworks.length > 0 && (
+            {/* {relatedHomeworks.length > 0 && (
                  <Box>
                     <Heading size="sm" mb={4} display="flex" alignItems="center" gap={2}>
                         <Icon as={FileText} color="purple.500" />
@@ -98,7 +102,7 @@ export default function LessonPlayer({
                         ))}
                     </Stack>
                  </Box>
-            )}
+            )} */}
 
              {/* Related Exams */}
              {relatedExams.length > 0 && (

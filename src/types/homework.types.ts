@@ -16,6 +16,7 @@ export interface ICreateHomeworkRequest {
     solutionVideoUrl?: string;
     settings?: Partial<IHomeworkSettings>;
     teacher?: string; // For admin to assign to specific teacher
+    totalPoints?: number;
 }
 
 export interface IUpdateHomeworkRequest {
@@ -27,6 +28,7 @@ export interface IUpdateHomeworkRequest {
     settings?: Partial<IHomeworkSettings>;
     status?: "draft" | "published" | "archived";
     isActive?: boolean;
+    totalPoints?: number;
 }
 
 export interface IGenerateHomeworkRequest {

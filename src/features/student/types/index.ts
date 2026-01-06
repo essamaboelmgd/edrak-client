@@ -43,6 +43,7 @@ export interface IStudentLesson {
     title: string;
     description: string;
     videoUrl?: string; // If accessed via direct link
+    provider?: 'youtube' | 'vimeo' | 'bunny' | 'custom';
     duration?: number;
     isFree?: boolean;
     isSubscribed?: boolean;
@@ -139,21 +140,33 @@ export interface IStudentHomework {
   };
   lesson?: string | any;
   dueDate?: string;
-  pdfUrl?: string; // Teacher's homework file
+  pdfUrl?: string; // Teacher's homework file (Backend sends this)
   totalMarks: number;
   status: 'published' | 'draft' | 'archived';
   isSubmitted?: boolean;
   submissions?: any[];
   homeworkSolutionVideo?: string;
-  solutionFile?: string;
+  solutionFile?: string; // Legacy field
+  solutionPdfUrl?: string; // New Backend field
+  pdfFile?: string; // Legacy parity
   allowShowSolutionAlways?: boolean;
-  submission?: {
-      _id: string;
-      status: 'pending' | 'submitted' | 'graded' | 'accepted' | 'rejected' | 'late';
-      score?: number;
-      feedback?: string;
-      submittedAt: string;
-  };
+  submission?: IStudentHomeworkSubmission; // Nested submission for easy access
+}
+
+export interface IStudentHomeworkSubmission {
+    _id: string;
+    student: string;
+    homework: string | { _id: string; title: string }; // Can be populated
+    pdfFile?: string; // Legacy
+    pdfSubmissionUrl?: string; // Backend field
+    solutionPdfFile?: string; 
+    status: 'pending' | 'submitted' | 'graded' | 'accepted' | 'rejected' | 'late';
+    score?: number;
+    feedback?: string;
+    submittedAt: string;
+    attempt_number?: number;
+    resubmission_count?: number;
+    notes?: string;
 }
 
 export interface IStudentSubscription {

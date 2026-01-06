@@ -69,6 +69,7 @@ class HomeworkService {
         if (data.solutionVideoUrl) formData.append('solutionVideoUrl', data.solutionVideoUrl);
         if (data.settings) formData.append('settings', JSON.stringify(data.settings));
         if (data.teacher) formData.append('teacher', data.teacher);
+        if (data.totalPoints !== undefined) formData.append('totalPoints', data.totalPoints.toString());
 
         // Append files
         if (files?.pdfFile) {
@@ -117,6 +118,7 @@ class HomeworkService {
         if (data.settings) formData.append('settings', JSON.stringify(data.settings));
         if (data.status) formData.append('status', data.status);
         if (data.isActive !== undefined) formData.append('isActive', data.isActive.toString());
+        if (data.totalPoints !== undefined) formData.append('totalPoints', data.totalPoints.toString());
 
         // Append files
         if (files?.pdfFile) {
@@ -182,6 +184,22 @@ class HomeworkService {
 
         const response = await axiosInstance.get<ApiResponse<IHomeworkSubmissionListResponse>>(
             `${this.BASE_PATH}/${homeworkId}/submissions?${params.toString()}`
+        );
+        return response.data;
+    }
+
+    /**
+     * Grade submission
+     */
+    async gradeSubmission(submissionId: string, data: {
+        score?: number;
+        feedback?: string;
+        status?: 'graded' | 'rejected' | 'accepted';
+        adminNotes?: string;
+    }): Promise<ApiResponse<any>> {
+        const response = await axiosInstance.post<ApiResponse<any>>(
+            `${this.BASE_PATH}/submission/${submissionId}/grade`,
+            data
         );
         return response.data;
     }

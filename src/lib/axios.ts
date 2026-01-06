@@ -41,7 +41,12 @@ class ApiClient {
             (config: InternalAxiosRequestConfig) => {
                 const token = Cookies.get(TOKEN_COOKIE_NAME);
                 if (token && config.headers) {
+                    // console.log('[Axios] Using token from Cookie:', token.substring(0, 10) + '...');
                     config.headers.Authorization = `Bearer ${token}`;
+                } else {
+                     // Fallback/Debug: Check if there's a token in localStorage that might be interfering?
+                     // No, strictly use cookie as per design.
+                     // console.log('[Axios] No token in Cookie');
                 }
                 
                 // If data is FormData, remove Content-Type header to let axios set it automatically with boundary

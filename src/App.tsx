@@ -41,8 +41,9 @@ const TeacherQuestionBank = lazy(() => import('@/pages/teacher/QuestionBank'))
 const TeacherExams = lazy(() => import('@/pages/teacher/Exams'))
 const TeacherViewExam = lazy(() => import('@/pages/teacher/ViewExam'))
 const TeacherEditExam = lazy(() => import('@/pages/teacher/EditExam'))
-const TeacherHomeworks = lazy(() => import('@/pages/teacher/Homeworks'))
-const MyStudents = lazy(() => import('@/pages/teacher/MyStudents'))
+  const TeacherHomeworks = lazy(() => import('@/pages/teacher/Homeworks'))
+  const TeacherHomeworkSubmissions = lazy(() => import('@/pages/teacher/HomeworkSubmissions'))
+  const MyStudents = lazy(() => import('@/pages/teacher/MyStudents'))
 const PlatformSubscriptions = lazy(() => import('@/pages/teacher/PlatformSubscriptions'))
 const CreateSubscription = lazy(() => import('@/pages/teacher/CreateSubscription'))
 const StudentSubscriptions = lazy(() => import('@/pages/teacher/StudentSubscriptions'))
@@ -51,6 +52,7 @@ const AdminViewExam = lazy(() => import('@/pages/admin/ExamDetails'))
 const AdminEditExam = lazy(() => import('@/pages/admin/ExamDetails'))
 const AdminQuestionBank = lazy(() => import('@/pages/admin/QuestionBank'))
 const AdminHomeworks = lazy(() => import('@/pages/admin/Homeworks'))
+const AdminHomeworkSubmissions = lazy(() => import('@/pages/admin/HomeworkSubmissions'))
 const AdminFeatures = lazy(() => import('@/pages/admin/Features'))
 const AdminSubscriptions = lazy(() => import('@/pages/admin/Subscriptions'))
 const StudentHome = lazy(() => import('@/pages/student/Home'))
@@ -65,6 +67,8 @@ const StudentHomework = lazy(() => import('@/pages/student/Homework'))
 const StudentCart = lazy(() => import('./pages/student/Cart'))
 
 const StudentProfile = lazy(() => import('@/pages/student/Profile'))
+const PaymentSuccess = lazy(() => import('@/pages/student/PaymentSuccess'))
+const PaymentFailed = lazy(() => import('@/pages/student/PaymentFailed'))
 
 // Loading Fallback
 const Loading = () => <div className="min-h-screen flex items-center justify-center">Loading...</div>
@@ -201,6 +205,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="exams/:id" element={<AdminViewExam />} />
           <Route path="exams/:id/edit" element={<AdminEditExam />} />
           <Route path="homeworks" element={<AdminHomeworks />} />
+          <Route path="homeworks/:homeworkId/submissions" element={<AdminHomeworkSubmissions />} />
           <Route path="features" element={<AdminFeatures />} />
           <Route path="subscriptions" element={<AdminSubscriptions />} />
           <Route path="activation-codes" element={<AdminActivationCodes />} />
@@ -225,6 +230,7 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="exams/:id" element={<TeacherViewExam />} />
           <Route path="exams/:id/edit" element={<TeacherEditExam />} />
           <Route path="homeworks" element={<TeacherHomeworks />} />
+          <Route path="homeworks/:homeworkId/submissions" element={<TeacherHomeworkSubmissions />} />
           <Route path="question-bank" element={<TeacherQuestionBank />} />
           <Route path="students" element={<MyStudents />} />
           <Route path="student-subscriptions" element={<StudentSubscriptions />} />
@@ -257,6 +263,16 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="profile" element={<StudentProfile />} />
           <Route path="lessons" element={<div>Student Lessons Page</div>} />
           <Route path="settings" element={<div>Student Settings Page</div>} />
+        </Route>
+
+        {/* Payment Routes */}
+        <Route path="/payment" element={
+            <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+               <DashboardLayout /> 
+            </ProtectedRoute>
+        }>
+            <Route path="success" element={<PaymentSuccess />} />
+            <Route path="failed" element={<PaymentFailed />} />
         </Route>
 
         {/* Legacy /app route - redirects based on role */}

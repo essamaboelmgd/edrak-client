@@ -4,10 +4,11 @@ import { IStudentLesson, IStudentCourse, IStudentExam } from "../../types";
 import { useNavigate } from "react-router-dom";
 import DisplayLessonExams from "./DisplayLessonExams";
 
+import VideoPlayer from "@/components/ui/VideoPlayer";
+
 // Simple fallback mock if VideoPlayer doesn't exist
-const DefaultVideoPlayer = ({ url }: { url: string }) => (
-    <Box as="video" controls w="full" borderRadius="lg" src={url} poster="" />
-);
+// Removed DefaultVideoPlayer in favor of unified VideoPlayer
+
 
 interface LessonDetailsProps {
     lesson: IStudentLesson;
@@ -61,8 +62,14 @@ export default function LessonDetails({ lesson, course, isSubscribed, exams = []
                                     </Box>
                                 ) : (
                                     <Box borderRadius="xl" overflow="hidden" bg="black">
-                                       {/* Assuming videoUrl is a direct link or handled by player */}
-                                        <DefaultVideoPlayer url={lesson.videoUrl} /> 
+                                       <VideoPlayer 
+                                            url={lesson.videoUrl} 
+                                            provider={lesson.provider}
+                                            title={lesson.title}
+                                            onStart={() => {
+                                                // Video started
+                                            }}
+                                       /> 
                                     </Box>
                                 )}
                             </Box>

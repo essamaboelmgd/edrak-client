@@ -20,6 +20,8 @@ interface SubscribedCourseDetailsProps {
   exams: IStudentExam[];
   homeworks: IStudentHomework[];
 }
+import { useQuery } from "@tanstack/react-query";
+import { studentService } from "@/features/student/services/studentService";
 
 export default function SubscribedCourseDetails({
   course,
@@ -38,6 +40,21 @@ export default function SubscribedCourseDetails({
   const lessonsCount = course.stats?.totalLessons || lessons.length;
   const examsCount = course.stats?.totalExams || exams.length;
   const homeworksCount = homeworks.length;
+
+  // Fetch my submissions
+  const { data: submissions = [] } = useQuery({
+      queryKey: ['student', 'homework-submissions'],
+      queryFn: () => studentService.getMyHomeworkSubmissions()
+  });
+
+  // Enrich homeworks with submission status
+  const enrichedHomeworks = homeworks.map(hw => {
+      const submission = submissions.find(s => {
+          const sHomeworkId = typeof s.homework === 'string' ? s.homework : s.homework._id;
+          return sHomeworkId === hw._id;
+      });
+      return { ...hw, submission };
+  });
 
   const handleLessonClick = (lesson: any, disabled: boolean, view?: any) => {
       if (disabled) return;
@@ -105,7 +122,7 @@ export default function SubscribedCourseDetails({
                 sections={sections}
                 lessons={lessons}
                 exams={exams}
-                homeworks={homeworks}
+                homeworks={enrichedHomeworks}
                 selectedContent={selectedContent}
                 viewMode={viewMode}
                 onLessonClick={handleLessonClick}

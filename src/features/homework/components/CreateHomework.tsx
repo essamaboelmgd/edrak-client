@@ -56,6 +56,7 @@ interface HomeworkFormValues {
         maxAttempts: number;
     };
     teacher?: string; // For admin
+    totalPoints?: number;
 }
 
 interface SelectCourseProps {
@@ -305,7 +306,10 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
             maxAttempts: 0,
         },
         teacher: undefined,
+        totalPoints: undefined,
     });
+    const [pdfFile, setPdfFile] = useState<File | undefined>(undefined);
+    const [solutionPdfFile, setSolutionPdfFile] = useState<File | undefined>(undefined);
 
     // Reset form when modal opens/closes
     useEffect(() => {
@@ -326,7 +330,10 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                     maxAttempts: 0,
                 },
                 teacher: undefined,
+                totalPoints: undefined,
             });
+            setPdfFile(undefined);
+            setSolutionPdfFile(undefined);
         } else if (initialLessonId) {
             // Set lesson when modal opens with initialLessonId
             setFormValues(prev => ({
@@ -415,9 +422,13 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                     maxAttempts: formValues.settings.maxAttempts,
                 },
                 teacher: isAdmin ? formValues.teacher : undefined,
+                totalPoints: formValues.totalPoints,
             };
 
-            await homeworkService.createHomework(homeworkData);
+            await homeworkService.createHomework(homeworkData, {
+                pdfFile,
+                solutionPdfFile,
+            });
 
             toast({
                 title: 'نجح',
@@ -652,6 +663,78 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                                     </Text>
                                 </FormControl>
                             )}
+
+                            <FormControl isRequired>
+                                <FormLabel>ملف الواجب (PDF)</FormLabel>
+                                <Input
+                                    type="file"
+                                    accept=".pdf"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            if (file.type !== 'application/pdf') {
+                                                toast({
+                                                    title: 'خطأ',
+                                                    description: 'يجب أن يكون الملف PDF',
+                                                    status: 'error',
+                                                });
+                                                e.target.value = '';
+                                                return;
+                                            }
+                                            setPdfFile(file);
+                                        }
+                                    }}
+                                    p={1}
+                                    bg="white"
+                                />
+                                <Text fontSize="xs" color="gray.500" mt={1}>
+                                    يجب أن يكون الملف بصيغة PDF
+                                </Text>
+                            </FormControl>
+
+                            <FormControl>
+                                <FormLabel>الدرجة النهائية للواجب</FormLabel>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={formValues.totalPoints || ''}
+                                    onChange={(e) => setFormValues({ ...formValues, totalPoints: parseInt(e.target.value) || 0 })}
+                                    placeholder="أدخل الدرجة النهائية (مثال: 100)"
+                                    bg="white"
+                                />
+                                <Text fontSize="xs" color="gray.500" mt={1}>
+                                    للواجبات التي تعتمد على الملفات، يرجى تحديد الدرجة النهائية يدوياً.
+                                    للواجبات المعتمدة على بنك الأسئلة، سيتم حساب الدرجة تلقائياً.
+                                </Text>
+                            </FormControl>
+
+                            <FormControl>
+                                <FormLabel>ملف الحل (PDF) - اختياري</FormLabel>
+                                <Input
+                                    type="file"
+                                    accept=".pdf"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            if (file.type !== 'application/pdf') {
+                                                toast({
+                                                    title: 'خطأ',
+                                                    description: 'يجب أن يكون الملف PDF',
+                                                    status: 'error',
+                                                });
+                                                e.target.value = '';
+                                                return;
+                                            }
+                                            setSolutionPdfFile(file);
+                                        }
+                                    }}
+                                    p={1}
+                                    bg="white"
+                                />
+                                <Text fontSize="xs" color="gray.500" mt={1}>
+                                    يجب أن يكون الملف بصيغة PDF
+                                </Text>
+                            </FormControl>
                         </Stack>
                     </ModalBody>
                     <ModalFooter>

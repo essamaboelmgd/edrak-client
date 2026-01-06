@@ -42,6 +42,7 @@ import {
     useRemoveCartItemMutation, 
     useClearCartMutation, 
     useCheckoutBulkMutation,
+    useCreateOrderMutation,
     CartItem
 } from "@/features/student/services/cartApi";
 import { getImageUrl } from "@/lib/axios";
@@ -55,7 +56,7 @@ export default function CartPage() {
     const { data } = useGetCartQuery();
     const { mutate: removeItem } = useRemoveCartItemMutation();
     const { mutate: clearCart } = useClearCartMutation();
-    const { mutate: checkout, isPending: isCheckingOut } = useCheckoutBulkMutation();
+    const { mutate: createOrder, isPending: isCreatingOrder } = useCreateOrderMutation();
     const toast = useToast();
     const navigate = useNavigate();
     const [params] = useSearchParams();
@@ -279,7 +280,7 @@ export default function CartPage() {
                                     </VStack>
                                     <Button size="lg" bgGradient="linear(to-r, purple.500, blue.500)" color="white"
                                         _hover={{ bgGradient: "linear(to-r, purple.600, blue.600)", boxShadow: "lg" }}
-                                        onClick={handleCheckout} isLoading={isCheckingOut as boolean || false} isDisabled={items.length === 0}
+                                        onClick={handleCheckout} isLoading={isCreatingOrder as boolean || false} isDisabled={items.length === 0}
                                         rounded="xl" height="60px" fontSize="xl" leftIcon={<ChakraIcon as={CreditCard} width="24px" />}
                                     >
                                         إتمام الشراء
@@ -306,15 +307,32 @@ export default function CartPage() {
                     <ModalHeader borderBottomWidth="1px" py={4}>بيانات الطلب والدفع</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody py={6}>
-                        {/* Placeholder for checkout form */}
-                        <Text>Checkout logic/form goes here. Currently pointed to dummy endpoint.</Text>
-                        <Button mt={4} colorScheme="blue" onClick={() => {
-                            checkout({ items });
-                            onClose();
-                            toast({ title: "Order placed (Simulated)", status: "success" });
-                        }}>
-                             Confirm Mock Order
-                        </Button>
+                        <VStack spacing={4}>
+                            <Text>اختر طريقة الدفع لإتمام عملية الشراء:</Text>
+                            <Button
+                                w="full"
+                                size="lg"
+                                colorScheme="purple"
+                                onClick={() => {
+                                    createOrder({ paymentMethod: "fawaterk" }, {
+                                        onSuccess: (data: any) => {
+                                            if (data?.data?.checkoutUrl) {
+                                                window.location.href = data.data.checkoutUrl;
+                                            } else {
+                                                toast({ status: "error", title: "حدث خطأ أثناء الاتصال ببوابة الدفع" });
+                                            }
+                                        },
+                                        onError: (err: any) => {
+                                             toast({ status: "error", title: err.response?.data?.message || "فشل إنشاء الطلب" });
+                                        }
+                                    });
+                                }}
+                                isLoading={isCreatingOrder}
+                            >
+                                الدفع بواسطة فواتيرك (Fawaterk)
+                            </Button>
+                             {/* Future: Wallet, etc. */}
+                        </VStack>
                     </ModalBody>
                 </ModalContent>
             </Modal>

@@ -26,6 +26,8 @@ import {
     Play, 
     Clock
 } from "lucide-react";
+import { Icon as IconifyIcon } from "@iconify-icon/react";
+import { API_ROOT_URL } from "@/lib/axios";
 import { IStudentExam } from "@/features/student/types";
 // import VideoPlayer from "@/components/ui/VideoPlayer"; // Assuming we have this or use generic
 
@@ -181,6 +183,35 @@ export default function ExamCard({ exam, isLocked = false }: ExamCardProps) {
                                             </Button>
                                         );
                                     })()}
+
+                                    {/* Exam PDF Actions */}
+                                    {((exam as any).pdfUrl || (exam as any).pdfFile) && (
+                                        <>
+                                            <Button 
+                                                size="sm" 
+                                                leftIcon={<IconifyIcon icon="solar:eye-bold-duotone" />}
+                                                variant="outline"
+                                                colorScheme="blue"
+                                                onClick={() => window.open(`${API_ROOT_URL}/${(exam as any).pdfUrl || (exam as any).pdfFile}`, '_blank')}
+                                                width={{ base: "100%", md: "auto" }}
+                                            >
+                                                عرض الملف
+                                            </Button>
+                                            <Button 
+                                                size="sm" 
+                                                leftIcon={<IconifyIcon icon="solar:download-minimalistic-bold-duotone" />}
+                                                variant="solid"
+                                                colorScheme="blue"
+                                                as="a"
+                                                href={`${API_ROOT_URL}/${(exam as any).pdfUrl || (exam as any).pdfFile}`}
+                                                download
+                                                target="_blank"
+                                                width={{ base: "100%", md: "auto" }}
+                                            >
+                                                تحميل الملف
+                                            </Button>
+                                        </>
+                                    )}
                                     
                                     {(exam.duration || 0) > 0 && (
                                         <Badge colorScheme="blue" px={2} py={1} borderRadius="md" variant="subtle">

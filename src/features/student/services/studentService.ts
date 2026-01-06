@@ -1,5 +1,5 @@
 import { axiosInstance } from '@/lib/axios';
-import { IStudentCourse } from '../types';
+import { IStudentCourse, IStudentHomeworkSubmission } from '../types';
 
 class StudentService {
     /**
@@ -182,6 +182,31 @@ class StudentService {
             paymentMethod
         });
         return response.data;
+    }
+
+    /**
+     * Submit homework solution
+     */
+    async submitHomework(homeworkId: string, file: File) {
+        const formData = new FormData();
+        formData.append('submissionPdfFile', file);
+        formData.append('homeworkId', homeworkId); 
+
+        const response = await axiosInstance.post(`/homework/submit`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    }
+
+    /**
+     * Get my homework submissions
+     */
+    async getMyHomeworkSubmissions() {
+        // Implemented new endpoint in backend
+        const response = await axiosInstance.get<{ success: boolean; data: IStudentHomeworkSubmission[] }>('/homework/submissions/my');
+        return response.data.data;
     }
 
 }

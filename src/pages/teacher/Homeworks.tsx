@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
     Box,
     Button,
@@ -43,6 +43,7 @@ import CreateHomework from '@/features/homework/components/CreateHomework';
 
 export default function TeacherHomeworks() {
     const [searchParams, setSearchParams] = useSearchParams({ page: '1' });
+    const navigate = useNavigate();
     const toast = useToast();
 
     const [homeworks, setHomeworks] = useState<IHomeworkResponse[]>([]);
@@ -621,27 +622,38 @@ export default function TeacherHomeworks() {
                                                         </Text>
                                                     </Td>
                                                     <Td>
-                                                        <Menu>
-                                                            <MenuButton
-                                                                as={IconButton}
-                                                                icon={<Icon icon="lucide:more-vertical" width="16" height="16" />}
-                                                                variant="ghost"
+                                                        <HStack spacing={1}>
+                                                            <Button
                                                                 size="sm"
-                                                            />
-                                                            <MenuList>
-                                                                <MenuItem
-                                                                    onClick={() => handleTogglePublish(homework)}
-                                                                >
-                                                                    {homework.status === 'published' ? 'إلغاء النشر' : 'نشر'}
-                                                                </MenuItem>
-                                                                <MenuItem
-                                                                    color="red.500"
-                                                                    onClick={() => handleDelete(homework._id)}
-                                                                >
-                                                                    حذف
-                                                                </MenuItem>
-                                                            </MenuList>
-                                                        </Menu>
+                                                                variant="solid"
+                                                                colorScheme="purple"
+                                                                leftIcon={<Icon icon="solar:users-group-rounded-bold-duotone" />}
+                                                                onClick={() => navigate(`/teacher/homeworks/${homework._id}/submissions`)}
+                                                            >
+                                                                التسليمات
+                                                            </Button>
+                                                            <Menu>
+                                                                <MenuButton
+                                                                    as={IconButton}
+                                                                    icon={<Icon icon="lucide:more-vertical" width="16" height="16" />}
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                />
+                                                                <MenuList>
+                                                                    <MenuItem
+                                                                        onClick={() => handleTogglePublish(homework)}
+                                                                    >
+                                                                        {homework.status === 'published' ? 'إلغاء النشر' : 'نشر'}
+                                                                    </MenuItem>
+                                                                    <MenuItem
+                                                                        color="red.500"
+                                                                        onClick={() => handleDelete(homework._id)}
+                                                                    >
+                                                                        حذف
+                                                                    </MenuItem>
+                                                                </MenuList>
+                                                            </Menu>
+                                                        </HStack>
                                                     </Td>
                                                 </Tr>
                                             ))

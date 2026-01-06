@@ -14,7 +14,11 @@ import { IStudentCourse, IStudentCourseSection, IStudentLesson, IStudentExam, IS
 import CourseSectionList from "@/features/student/components/course-details/subscribed/CourseSectionList";
 import LessonPlayer from "@/features/student/components/course-details/subscribed/LessonPlayer";
 import ExamCard from "@/features/student/components/course-details/subscribed/ExamCard";
+import HomeworkCard from "@/features/student/components/course-details/subscribed/HomeworkCard";
+import SubmitHomeworkModal from "@/features/student/components/course-details/subscribed/SubmitHomeworkModal";
 import { Video, FileText } from "lucide-react";
+import { useDisclosure, Accordion } from "@chakra-ui/react";
+import { useState } from "react";
 
 interface CoursePlayerTabPanelsProps {
     course: IStudentCourse;
@@ -40,6 +44,14 @@ export default function CoursePlayerTabPanels({
 
     // Helper to determine if we have any lessons
     const hasLessons = sections.length > 0 || lessons.length > 0;
+
+    const { isOpen: isSubmitOpen, onOpen: onSubmitOpen, onClose: onSubmitClose } = useDisclosure();
+    const [selectedHomework, setSelectedHomework] = useState<any>(null);
+
+    const handleOpenSubmit = (hw: any) => {
+        setSelectedHomework(hw);
+        onSubmitOpen();
+    };
 
     return (
         <TabPanels>
@@ -140,10 +152,37 @@ export default function CoursePlayerTabPanels({
                 <Text>لا يوجد بث مباشر حالياً</Text>
              </TabPanel>
 
-             {/* Homeworks Tab - Placeholder */}
-             <TabPanel>
-                <Text>لا توجد واجبات حالياً</Text>
-             </TabPanel>
+              {/* Homeworks Tab */}
+              <TabPanel px={0}>
+                  <Stack spacing={4}>
+                      {homeworks && homeworks.length > 0 ? (
+                          <Accordion allowMultiple>
+                            {homeworks.map((hw) => (
+                                <HomeworkCard 
+                                    key={hw._id} 
+                                    homework={hw} 
+                                    onOpenSubmit={handleOpenSubmit}
+                                />
+                            ))}
+                          </Accordion>
+                      ) : (
+                          <Card borderRadius="2xl" border="1px dashed" borderColor="gray.200" bg="gray.50" py={10}>
+                            <Center>
+                                <Stack spacing={4} textAlign="center">
+                                    <Icon as={FileText} boxSize={12} color="gray.400" />
+                                    <Text color="gray.500">لا توجد واجبات حالياً</Text>
+                                </Stack>
+                            </Center>
+                        </Card>
+                      )}
+                  </Stack>
+              </TabPanel>
+
+             <SubmitHomeworkModal 
+                isOpen={isSubmitOpen} 
+                onClose={onSubmitClose} 
+                homework={selectedHomework} 
+             />
              
              {/* Posts Tab - Placeholder */}
              <TabPanel>
