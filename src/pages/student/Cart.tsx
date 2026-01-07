@@ -37,11 +37,12 @@ import {
     CreditCard, 
     Folder
 } from "lucide-react";
+import { useState } from "react";
+import { axiosInstance } from "@/lib/axios";
 import { 
     useGetCartQuery, 
     useRemoveCartItemMutation, 
     useClearCartMutation, 
-    useCheckoutBulkMutation,
     useCreateOrderMutation,
     CartItem
 } from "@/features/student/services/cartApi";
@@ -61,6 +62,11 @@ export default function CartPage() {
     const navigate = useNavigate();
     const [params] = useSearchParams();
     const { isOpen, onOpen, onClose } = useDisclosure();
+    
+    // Coupon State
+    const [couponCode, setCouponCode] = useState("");
+    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+    const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
 
     const bgColor = useColorModeValue("gray.50", "gray.900");
     const cardBg = useColorModeValue("white", "gray.800");
@@ -84,10 +90,16 @@ export default function CartPage() {
 
     // Calculate total
     const total = items.reduce((acc: number, it: CartItem) => {
-        const unit = Number(it.unit_price || 0);
+        let price = it.unit_price;
+        if (it.item_type === 'course' && it.course) {
+            price = (it.course.finalPrice && it.course.finalPrice < it.course.price) ? it.course.finalPrice : it.course.price;
+        }
+        // Could add checking for section/lesson discounts here too if needed
         const count = Number(it.count || 1);
-        return acc + unit * count;
+        return acc + price * count;
     }, 0);
+
+
 
     const handleCheckout = async () => {
         if (items.length > 0) {
@@ -96,6 +108,28 @@ export default function CartPage() {
             toast({ status: "info", title: "السلة فارغة", position: "top" });
         }
     };
+    
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        setIsCheckingCoupon(true);
+        try {
+            const { data } = await axiosInstance.post('/coupons/validate-cart', { code: couponCode });
+            setAppliedCoupon(data.data);
+            toast({ status: "success", title: "تم تطبيق الكوبون بنجاح" });
+        } catch (error: any) {
+            setAppliedCoupon(null);
+            toast({ status: "error", title: error.response?.data?.message || "الكوبون غير صالح" });
+        } finally {
+            setIsCheckingCoupon(false);
+        }
+    };
+    
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode("");
+    };
+
+    const finalTotal = appliedCoupon ? (total - appliedCoupon.discountAmount) : total;
 
     return (
         <Box bg={bgColor} minH="100vh" pb={20}>
@@ -152,8 +186,9 @@ export default function CartPage() {
                                                     const item = i.course;
                                                     if (!item) return null;
                                                     
-                                                    const unitDetails = i.unit_price;
-                                                    const subtotal = unitDetails * (i.count || 1);
+                                                    const unitPrice = item.finalPrice && item.finalPrice < item.price ? item.finalPrice : item.price;
+                                                    const subtotal = unitPrice * (i.count || 1);
+                                                    const hasDiscount = item.finalPrice && item.finalPrice < item.price;
 
                                                     return (
                                                         <Card key={i.id} bg={cardBg} borderRadius="xl" boxShadow="md" overflow="hidden" borderLeft="4px solid" borderLeftColor="purple.400">
@@ -180,9 +215,16 @@ export default function CartPage() {
                                                                             />
                                                                         </Flex>
                                                                         <Flex w="100%" justify="end" align="center" mt={2}>
-                                                                            <Text fontSize="xl" fontWeight="800" color="purple.600">
-                                                                                {currency(subtotal)}
-                                                                            </Text>
+                                                                            <VStack align="end" spacing={0}>
+                                                                                {hasDiscount && (
+                                                                                    <Text fontSize="sm" textDecoration="line-through" color="gray.400">
+                                                                                        {currency(item.price * (i.count || 1))}
+                                                                                    </Text>
+                                                                                )}
+                                                                                <Text fontSize="xl" fontWeight="800" color="purple.600">
+                                                                                    {currency(subtotal)}
+                                                                                </Text>
+                                                                            </VStack>
                                                                         </Flex>
                                                                     </VStack>
                                                                 </Flex>
@@ -272,10 +314,60 @@ export default function CartPage() {
                                             <Text color="gray.600">عدد المنتجات</Text>
                                             <Text fontWeight="bold">{items.length}</Text>
                                         </Flex>
+                                        
+                                        {/* Coupon Section */}
+                                        <Divider />
+                                        <VStack align="stretch" spacing={2}>
+                                            <Text fontSize="sm" fontWeight="medium" color="gray.600">كود الخصم</Text>
+                                            <HStack>
+                                                <Box flex={1}>
+                                                     <input 
+                                                        style={{ 
+                                                            width: '100%', 
+                                                            padding: '8px', 
+                                                            borderRadius: '6px', 
+                                                            border: '1px solid #E2E8F0',
+                                                            outline: 'none'
+                                                        }}
+                                                        placeholder="ادخل الكود هنا"
+                                                        value={couponCode}
+                                                        onChange={(e) => setCouponCode(e.target.value)}
+                                                        disabled={!!appliedCoupon}
+                                                     />
+                                                </Box>
+                                                {!appliedCoupon ? (
+                                                    <Button size="sm" colorScheme="purple" onClick={handleApplyCoupon} isLoading={isCheckingCoupon} isDisabled={!couponCode}>
+                                                        تطبيق
+                                                    </Button>
+                                                ) : (
+                                                    <Button size="sm" colorScheme="red" variant="ghost" onClick={handleRemoveCoupon}>
+                                                        حذف
+                                                    </Button>
+                                                )}
+                                            </HStack>
+                                            {appliedCoupon && (
+                                                <HStack justify="space-between" bg="green.50" p={2} borderRadius="md">
+                                                    <Text fontSize="sm" color="green.600">تم الخصم</Text>
+                                                    <Text fontSize="sm" fontWeight="bold" color="green.600">
+                                                        - {currency(appliedCoupon.discountAmount)}
+                                                    </Text>
+                                                </HStack>
+                                            )}
+                                        </VStack>
+
                                         <Divider />
                                         <Flex justify="space-between" align="center">
                                             <Text fontSize="lg" fontWeight="bold" color="gray.800">الإجمالي</Text>
-                                            <Text fontSize="2xl" fontWeight="900" color="purple.600">{currency(total)}</Text>
+                                            <VStack align="end" spacing={0}>
+                                                {appliedCoupon && (
+                                                    <Text fontSize="sm" textDecoration="line-through" color="gray.400">
+                                                        {currency(total)}
+                                                    </Text>
+                                                )}
+                                                <Text fontSize="2xl" fontWeight="900" color="purple.600">
+                                                    {currency(finalTotal)}
+                                                </Text>
+                                            </VStack>
                                         </Flex>
                                     </VStack>
                                     <Button size="lg" bgGradient="linear(to-r, purple.500, blue.500)" color="white"
@@ -314,7 +406,10 @@ export default function CartPage() {
                                 size="lg"
                                 colorScheme="purple"
                                 onClick={() => {
-                                    createOrder({ paymentMethod: "fawaterk" }, {
+                                    createOrder({ 
+                                        paymentMethod: "fawaterk",
+                                        couponCode: appliedCoupon ? couponCode : undefined
+                                    }, {
                                         onSuccess: (data: any) => {
                                             if (data?.data?.checkoutUrl) {
                                                 window.location.href = data.data.checkoutUrl;

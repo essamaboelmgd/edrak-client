@@ -46,6 +46,7 @@ export interface ICreateExamRequest {
   pdfUrl?: string;
   settings?: Partial<IExamSettings>;
   teacher?: string; // For admin
+  status?: ExamStatus;
 }
 
 export interface IUpdateExamRequest {
@@ -73,6 +74,7 @@ export interface IGenerateExamRequest {
   pointsPerQuestion?: number;
   settings?: Partial<IExamSettings>;
   teacher?: string; // For admin
+  status?: ExamStatus;
 }
 
 export interface IAddQuestionToExamRequest {

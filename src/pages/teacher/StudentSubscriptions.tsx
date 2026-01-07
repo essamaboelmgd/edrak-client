@@ -234,7 +234,7 @@ export default function StudentSubscriptions() {
     <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
       {/* Modern Hero Header */}
       <Box
-        bgGradient="linear(135deg, indigo.600 0%, purple.500 50%, pink.400 100%)"
+        bgGradient="linear(135deg, teal.600 0%, cyan.500 50%, blue.400 100%)"
         position="relative"
         overflow="hidden"
         borderRadius="2xl"

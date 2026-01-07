@@ -25,6 +25,11 @@ import {
   SimpleGrid,
   VStack,
   Flex,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -33,6 +38,7 @@ import {
   ActivationTargetType,
 } from '@/features/admin/services/activationCodesService';
 import CreateActivationCodesModal from '@/features/admin/components/CreateActivationCodesModal';
+import EditActivationCodeModal from '@/features/admin/components/EditActivationCodeModal';
 
 export default function TeacherActivationCodes() {
   const toast = useToast();
@@ -43,8 +49,12 @@ export default function TeacherActivationCodes() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [targetTypeFilter, setTargetTypeFilter] = useState<string>('all');
+
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCode, setSelectedCode] = useState<IActivationCode | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const fetchCodes = useCallback(async () => {
     try {
@@ -148,19 +158,81 @@ export default function TeacherActivationCodes() {
               عرض وإنشاء {total} كود تفعيل على المنصة
             </Text>
           </VStack>
-          <Button
-            bg="white"
-            color="teal.600"
-            _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
-            leftIcon={<Icon icon="solar:key-plus-bold-duotone" width="20" height="20" />}
-            size={{ base: 'md', md: 'lg' }}
-            borderRadius="xl"
-            shadow="md"
-            transition="all 0.3s"
-            onClick={() => setShowCreateModal(true)}
-          >
-            إنشاء أكواد جديدة
-          </Button>
+          <HStack>
+            <Button
+              bg="white"
+              color="blue.600"
+              _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+              leftIcon={<Icon icon="solar:export-bold-duotone" width="20" height="20" />}
+              size={{ base: 'md', md: 'lg' }}
+              borderRadius="xl"
+              shadow="md"
+              transition="all 0.3s"
+              onClick={async () => {
+                setExportLoading(true);
+                try {
+                  // Fetch all codes for export (limit 10000)
+                  const response = await activationCodesService.getActivationCodes({
+                    limit: 10000,
+                    targetType: targetTypeFilter !== 'all' ? (targetTypeFilter as ActivationTargetType) : undefined,
+                    isUsed: statusFilter === 'used' ? true : statusFilter === 'unused' ? false : undefined,
+                    code: searchTerm || undefined,
+                  });
+
+                  if (response.success && response.data) {
+                    const codesToExport = response.data.codes;
+                    if (codesToExport.length === 0) {
+                        toast({ status: 'warning', description: 'لا توجد بيانات للتصدير' });
+                        return;
+                    }
+
+                    const header = ['#', 'الكود', 'النوع', 'الهدف', 'السعر', 'الحالة', 'تاريخ الإنشاء'];
+                    const rows = codesToExport.map((code, idx) => [
+                        idx + 1,
+                        code.code,
+                        getTargetTypeLabel(code.targetType),
+                        getTargetLabel(code),
+                        code.price,
+                        code.isUsed ? 'مستخدم' : 'متاح',
+                        new Date(code.createdAt).toLocaleDateString('ar-EG'),
+                    ]);
+                    
+                    const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+                    const BOM = '\uFEFF';
+                    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `activation_codes_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }
+                } catch (error) {
+                    console.error('Export failed', error);
+                    toast({ status: 'error', description: 'فشل التصدير' });
+                } finally {
+                    setExportLoading(false);
+                }
+              }}
+              isLoading={exportLoading}
+            >
+              تصدير الكل
+            </Button>
+            <Button
+              bg="white"
+              color="teal.600"
+              _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+              leftIcon={<Icon icon="solar:key-plus-bold-duotone" width="20" height="20" />}
+              size={{ base: 'md', md: 'lg' }}
+              borderRadius="xl"
+              shadow="md"
+              transition="all 0.3s"
+              onClick={() => setShowCreateModal(true)}
+            >
+              إنشاء أكواد جديدة
+            </Button>
+          </HStack>
         </Flex>
       </Box>
 
@@ -375,6 +447,7 @@ export default function TeacherActivationCodes() {
                     <Th>السعر</Th>
                     <Th>الحالة</Th>
                     <Th>تاريخ الإنشاء</Th>
+                    <Th>إجراءات</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -444,6 +517,29 @@ export default function TeacherActivationCodes() {
                             {new Date(code.createdAt).toLocaleDateString('ar-EG')}
                           </Text>
                         </Td>
+                        <Td>
+                          <Menu>
+                            <MenuButton
+                              as={IconButton}
+                              aria-label="Options"
+                              icon={<Icon icon="solar:menu-dots-bold" width="20" />}
+                              variant="ghost"
+                              size="sm"
+                            />
+                            <MenuList>
+                              <MenuItem
+                                icon={<Icon icon="solar:pen-bold-duotone" width="20" />}
+                                onClick={() => {
+                                  setSelectedCode(code);
+                                  setShowEditModal(true);
+                                }}
+                              >
+                                تعديل
+                              </MenuItem>
+                            </MenuList>
+                          </Menu>
+                        </Td>
+
                       </Tr>
                     ))
                   )}
@@ -500,6 +596,16 @@ export default function TeacherActivationCodes() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={fetchCodes}
+      />
+
+      <EditActivationCodeModal
+        isOpen={showEditModal}
+        onClose={() => {
+            setShowEditModal(false);
+            setSelectedCode(null);
+        }}
+        onSuccess={fetchCodes}
+        code={selectedCode}
       />
     </Stack>
   );

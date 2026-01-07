@@ -98,8 +98,21 @@ export interface IStudentResponse extends IUserResponse {
 }
 
 export interface ITeacherResponse extends IUserResponse {
+    teacherDetails?: {
+        _id: string;
+        subdomain: string;
+        platformSettings: {
+            platformName: string;
+            theme: string;
+            primaryColor?: string;
+            secondaryColor?: string;
+        };
+        // ... include other fields if needed or use loose typing for now to avoid huge refactor
+        [key: string]: any;
+    };
     teacherProfile?: {
         _id: string;
+        subdomain: string;
         platformSettings: {
             platformName: string;
             theme: string;

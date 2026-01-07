@@ -325,7 +325,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (status: 'published' | 'draft' = 'published') => {
     if (!formData.title) {
       toast({
         title: 'خطأ',
@@ -411,7 +411,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
           teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
         } as ICreateExamRequest;
 
-        await examService.createExam(examData);
+        await examService.createExam({ ...examData, status });
       } else if (creationMethod === 'bank') {
         // Check if using random generation
         const totalRandom = (generateCriteria.easy || 0) + (generateCriteria.medium || 0) + (generateCriteria.hard || 0);
@@ -437,7 +437,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
             teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
           };
 
-          await examService.generateExam(generateData);
+          await examService.generateExam({ ...generateData, status });
         } else if (selectedQuestions.length === 0) {
           toast({
             title: 'خطأ',
@@ -459,7 +459,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
             teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
           } as ICreateExamRequest;
 
-          await examService.createExam(examData);
+          await examService.createExam({ ...examData, status });
         }
       } else if (creationMethod === 'pdf') {
         if (!pdfFile && !examId) {
@@ -477,6 +477,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
         if (formData.description) formDataObj.append('description', formData.description);
         formDataObj.append('examType', formData.examType || 'general');
         formDataObj.append('contentType', 'pdf');
+        formDataObj.append('status', status);
         if (formData.lesson) formDataObj.append('lesson', formData.lesson);
         if (formData.course) formDataObj.append('course', formData.course);
         if (pdfFile) {
@@ -545,7 +546,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
           teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
         } as ICreateExamRequest;
 
-        await examService.createExam(examData);
+        await examService.createExam({ ...examData, status });
       }
 
       toast({
@@ -1537,12 +1538,26 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
             </Stack>
           </ModalBody>
 
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
+          <ModalFooter gap={3}>
+            <Button variant="ghost" onClick={onClose}>
               إلغاء
             </Button>
-            <Button colorScheme="blue" onClick={handleSubmit} isLoading={loading}>
-              إنشاء الامتحان
+            <Button
+              colorScheme="orange"
+              variant="outline"
+              onClick={() => handleSubmit('draft')}
+              isLoading={loading}
+              isDisabled={loading}
+            >
+              حفظ كمسودة
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={() => handleSubmit('published')}
+              isLoading={loading}
+              isDisabled={loading}
+            >
+              نشر الامتحان
             </Button>
           </ModalFooter>
         </ModalContent>

@@ -15,6 +15,7 @@ import {
   Badge,
   Avatar,
   Center,
+  useToast,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +35,15 @@ export default function TeacherHome() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState<any>(null);
+  const toast = useToast();
+
+  console.log('TeacherHome User:', user);
+  if (user) {
+     console.log('TeacherDetails:', (user as any).teacherDetails);
+     console.log('Subdomain:', (user as any).teacherDetails?.subdomain);
+  }
+
+
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -166,6 +176,65 @@ export default function TeacherHome() {
           </Button>
         </Flex>
       </Box>
+
+      {/* Subdomain & Platform Link Card */}
+      {/* Accessing teacherDetails from user object (populated by getMe/login) */}
+      {(user as any)?.teacherProfile?.subdomain && (
+         <Card borderRadius="2xl" boxShadow="sm" border="1px" borderColor="purple.200" bg="purple.50">
+            <CardBody>
+               <Flex direction={{ base: 'column', md: 'row' }} align="center" justify="space-between" gap={4}>
+                  <HStack spacing={4}>
+                     <Center w={12} h={12} bg="purple.100" borderRadius="lg" color="purple.600">
+                        <Icon icon="solar:link-circle-bold-duotone" width="28" height="28" />
+                     </Center>
+                     <VStack align="start" spacing={0}>
+                        <Text fontSize="sm" color="purple.700" fontWeight="bold">رابط المنصة الخاص بك</Text>
+                        <Text fontSize="xs" color="purple.600">شارك هذا الرابط مع طلابك</Text>
+                     </VStack>
+                  </HStack>
+                  
+                  <HStack w={{ base: 'full', md: 'auto' }} p={2} bg="white" borderRadius="xl" border="1px" borderColor="purple.100" flex={1} maxW="600px" justify="space-between">
+                     <Text fontSize="sm" fontFamily="monospace" px={2} color="gray.600" noOfLines={1}>
+                        {`https://${(user as any).teacherProfile.subdomain}.edrak.shop`}
+                     </Text>
+                     <Button
+                        size="sm"
+                        colorScheme="purple"
+                        variant="solid"
+                        borderRadius="lg"
+                        leftIcon={<Icon icon="solar:copy-bold-duotone" />}
+                        onClick={() => {
+                           const url = `https://${(user as any).teacherProfile.subdomain}.edrak.shop`;
+                           navigator.clipboard.writeText(url);
+                           toast({
+                             title: "تم نسخ الرابط",
+                             status: "success",
+                             duration: 2000,
+                             isClosable: true,
+                             position: "top"
+                           });
+                        }}
+                     >
+                        نسخ
+                     </Button>
+                  </HStack>
+                  
+                  <Button
+                      as="a"
+                      href={`https://${(user as any).teacherProfile.subdomain}.edrak.shop`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="md"
+                      colorScheme="purple" 
+                      variant="ghost"
+                      rightIcon={<Icon icon="solar:arrow-left-up-linear" />}
+                  >
+                      زيارة المنصة
+                  </Button>
+               </Flex>
+            </CardBody>
+         </Card>
+      )}
 
       {/* Statistics Cards */}
       <Box>

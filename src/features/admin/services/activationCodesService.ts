@@ -59,6 +59,12 @@ export interface IActivationCodesListResponse {
     totalPages: number;
 }
 
+export interface IUpdateActivationCodeRequest {
+    code?: string;
+    price?: number;
+    isUsed?: boolean;
+}
+
 export interface ICreateActivationCodesRequest {
     targetType: ActivationTargetType;
     targetId: string;
@@ -111,6 +117,17 @@ class ActivationCodesService {
     async deleteActivationCode(codeId: string): Promise<ApiResponse<null>> {
         const response = await axiosInstance.delete<ApiResponse<null>>(
             `${this.BASE_PATH}/${codeId}`
+        );
+        return response.data;
+    }
+
+    /**
+     * Update activation code
+     */
+    async updateActivationCode(codeId: string, data: IUpdateActivationCodeRequest): Promise<ApiResponse<IActivationCode>> {
+        const response = await axiosInstance.patch<ApiResponse<IActivationCode>>(
+            `${this.BASE_PATH}/${codeId}`,
+            data
         );
         return response.data;
     }

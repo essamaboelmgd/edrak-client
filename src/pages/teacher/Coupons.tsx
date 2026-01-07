@@ -25,6 +25,11 @@ import {
   SimpleGrid,
   VStack,
   Flex,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import {
@@ -33,6 +38,7 @@ import {
   CouponTargetType,
 } from '@/features/admin/services/couponsService';
 import CreateCouponsModal from '@/features/admin/components/CreateCouponsModal';
+import EditCouponModal from '@/features/admin/components/EditCouponModal';
 
 export default function TeacherCoupons() {
   const toast = useToast();
@@ -45,7 +51,11 @@ export default function TeacherCoupons() {
   const [targetTypeFilter, setTargetTypeFilter] = useState<string>('all');
   const [discountTypeFilter, setDiscountTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCoupon, setSelectedCoupon] = useState<ICoupon | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const fetchCoupons = useCallback(async () => {
     try {
@@ -128,7 +138,7 @@ export default function TeacherCoupons() {
     <Stack p={{ base: 4, md: 6 }} spacing={{ base: 4, md: 6 }} dir="rtl">
       {/* Modern Hero Header */}
       <Box
-        bgGradient="linear(135deg, pink.600 0%, rose.500 50%, orange.400 100%)"
+        bgGradient="linear(135deg, teal.600 0%, cyan.500 50%, blue.400 100%)"
         position="relative"
         overflow="hidden"
         borderRadius="2xl"
@@ -172,7 +182,7 @@ export default function TeacherCoupons() {
           </VStack>
           <Button
             bg="white"
-            color="pink.600"
+            color="teal.600"
             _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
             leftIcon={<Icon icon="solar:ticket-sale-bold-duotone" width="20" height="20" />}
             size={{ base: 'md', md: 'lg' }}
@@ -182,6 +192,69 @@ export default function TeacherCoupons() {
             onClick={() => setShowCreateModal(true)}
           >
             إنشاء كوبونات جديدة
+          </Button>
+          <Button
+            bg="white"
+            color="teal.600"
+            _hover={{ bg: 'whiteAlpha.900', transform: 'translateY(-2px)', shadow: 'lg' }}
+            leftIcon={<Icon icon="solar:export-bold-duotone" width="20" height="20" />}
+            size={{ base: 'md', md: 'lg' }}
+            borderRadius="xl"
+            shadow="md"
+            transition="all 0.3s"
+            onClick={async () => {
+              setExportLoading(true);
+              try {
+                // Fetch all coupons for export (limit 10000)
+                const response = await couponsService.getCoupons({
+                  limit: 10000,
+                  targetType: targetTypeFilter !== 'all' ? (targetTypeFilter as CouponTargetType) : undefined,
+                  discountType: discountTypeFilter !== 'all' ? (discountTypeFilter as any) : undefined,
+                  isActive: statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined,
+                  code: searchTerm || undefined,
+                });
+
+                if (response.success && response.data) {
+                  const couponsToExport = response.data.coupons;
+                  if (couponsToExport.length === 0) {
+                      toast({ status: 'warning', description: 'لا توجد بيانات للتصدير' });
+                      return;
+                  }
+
+                  const header = ['#', 'الكود', 'النوع', 'الهدف', 'نوع الخصم', 'الخصم', 'الاستخدامات', 'الحالة', 'تاريخ الانتهاء'];
+                  const rows = couponsToExport.map((coupon, idx) => [
+                      idx + 1,
+                      coupon.code,
+                      getTargetTypeLabel(coupon.targetType),
+                      getTargetLabel(coupon),
+                      coupon.discountType === 'percentage' ? 'نسبة مئوية' : 'مبلغ ثابت',
+                      coupon.discountValue,
+                      `${coupon.currentUses} / ${coupon.maxUses || '∞'}`,
+                      coupon.isActive ? (coupon.isExpired ? 'منحي' : coupon.isMaxedOut ? 'حد أقصى' : 'نشط') : 'غير نشط',
+                      coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString('ar-EG') : 'غير محدد',
+                  ]);
+                  
+                  const csvContent = [header, ...rows].map(e => e.join(',')).join('\n');
+                  const BOM = '\uFEFF';
+                  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', `coupons_${new Date().toISOString().split('T')[0]}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }
+              } catch (error) {
+                  console.error('Export failed', error);
+                  toast({ status: 'error', description: 'فشل التصدير' });
+              } finally {
+                  setExportLoading(false);
+              }
+            }}
+            isLoading={exportLoading}
+          >
+            تصدير الكل
           </Button>
         </Flex>
       </Box>
@@ -413,6 +486,7 @@ export default function TeacherCoupons() {
                     <Th>الاستخدامات</Th>
                     <Th>الحالة</Th>
                     <Th>تاريخ الانتهاء</Th>
+                    <Th>إجراءات</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -428,7 +502,7 @@ export default function TeacherCoupons() {
                     ))
                   ) : coupons.length === 0 ? (
                     <Tr>
-                      <Td colSpan={7} textAlign="center" py={12}>
+                      <Td colSpan={8} textAlign="center" py={12}>
                         <VStack spacing={4}>
                           <Box>
                             <Icon icon="solar:ticket-bold-duotone" width="60" height="60" style={{ color: '#718096' }} />
@@ -481,6 +555,28 @@ export default function TeacherCoupons() {
                               ? new Date(coupon.expiresAt).toLocaleDateString('ar-EG')
                               : 'غير محدد'}
                           </Text>
+                        </Td>
+                        <Td>
+                          <Menu>
+                            <MenuButton
+                              as={IconButton}
+                              aria-label="Options"
+                              icon={<Icon icon="solar:menu-dots-bold" width="20" />}
+                              variant="ghost"
+                              size="sm"
+                            />
+                            <MenuList>
+                              <MenuItem
+                                icon={<Icon icon="solar:pen-bold-duotone" width="20" />}
+                                onClick={() => {
+                                  setSelectedCoupon(coupon);
+                                  setShowEditModal(true);
+                                }}
+                              >
+                                تعديل
+                              </MenuItem>
+                            </MenuList>
+                          </Menu>
                         </Td>
                       </Tr>
                     ))
@@ -538,6 +634,16 @@ export default function TeacherCoupons() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={fetchCoupons}
+      />
+
+      <EditCouponModal
+        isOpen={showEditModal}
+        onClose={() => {
+            setShowEditModal(false);
+            setSelectedCoupon(null);
+        }}
+        onSuccess={fetchCoupons}
+        coupon={selectedCoupon}
       />
     </Stack>
   );

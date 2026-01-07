@@ -59,7 +59,7 @@ class CartService {
         return data;
     }
 
-    async createOrder(body: { paymentMethod: string }) {
+    async createOrder(body: { paymentMethod: string; couponCode?: string }) {
         const { data } = await axiosInstance.post("/orders", body);
         return data;
     }
@@ -127,6 +127,6 @@ export const useCheckoutBulkMutation = () => {
 
 export const useCreateOrderMutation = () => {
     return useMutation({
-        mutationFn: (body: { paymentMethod: string }) => cartService.createOrder(body),
+        mutationFn: (body: { paymentMethod: string; couponCode?: string }) => cartService.createOrder(body),
     });
 };
