@@ -54,6 +54,7 @@ interface HomeworkFormValues {
         showSolutionAlways: boolean;
         allowMultipleAttempts: boolean;
         maxAttempts: number;
+        requiredBeforeNextLesson: boolean;
     };
     teacher?: string; // For admin
     totalPoints?: number;
@@ -304,6 +305,7 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
             showSolutionAlways: false,
             allowMultipleAttempts: true,
             maxAttempts: 0,
+            requiredBeforeNextLesson: false,
         },
         teacher: undefined,
         totalPoints: undefined,
@@ -328,6 +330,7 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                     showSolutionAlways: false,
                     allowMultipleAttempts: true,
                     maxAttempts: 0,
+                    requiredBeforeNextLesson: false,
                 },
                 teacher: undefined,
                 totalPoints: undefined,
@@ -420,6 +423,7 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                     showSolutionAlways: formValues.settings.showSolutionAlways,
                     allowMultipleAttempts: formValues.settings.allowMultipleAttempts,
                     maxAttempts: formValues.settings.maxAttempts,
+                    requiredBeforeNextLesson: formValues.settings.requiredBeforeNextLesson,
                 },
                 teacher: isAdmin ? formValues.teacher : undefined,
                 totalPoints: formValues.totalPoints,
@@ -637,6 +641,21 @@ export default function CreateHomework({ isOpen, onClose, onSuccess, isAdmin = f
                                         }
                                     />
                                     <FormLabel m={0}>السماح بمحاولات متعددة</FormLabel>
+                                </HStack>
+                            </FormControl>
+
+                            <FormControl>
+                                <HStack>
+                                    <Switch
+                                        isChecked={formValues.settings.requiredBeforeNextLesson}
+                                        onChange={(e) =>
+                                            setFormValues({
+                                                ...formValues,
+                                                settings: { ...formValues.settings, requiredBeforeNextLesson: e.target.checked },
+                                            })
+                                        }
+                                    />
+                                    <FormLabel m={0}>مطلوب لفتح الدرس التالي</FormLabel>
                                 </HStack>
                             </FormControl>
 

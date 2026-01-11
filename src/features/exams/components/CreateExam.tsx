@@ -1,12 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  // useRef
+} from 'react';
 import {
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalBody,
-  ModalFooter,
-  ModalCloseButton,
+  // ModalFooter,
+  // ModalCloseButton,
   Button,
   FormControl,
   FormLabel,
@@ -37,12 +41,25 @@ import {
   Text,
   Grid,
   Image,
+  SimpleGrid,
+  Card,
+  CardBody,
+  // VStack,
+  Container,
+  InputGroup,
+  InputLeftElement,
+  Tooltip,
+  Radio,
+  RadioGroup,
 } from '@chakra-ui/react';
 import { Icon } from '@iconify-icon/react';
 import examService from '@/features/teacher/services/examService';
 import courseService from '@/features/teacher/services/courseService';
 import { coursesService } from '@/features/admin/services/coursesService';
-import { axiosInstance, getImageUrl } from '@/lib/axios';
+import { 
+  axiosInstance,
+  // getImageUrl
+} from '@/lib/axios';
 import { ICreateExamRequest, IQuestionBankResponse, IAnswer } from '@/types/exam.types';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import userService from '@/features/user/userService';
@@ -54,7 +71,7 @@ interface CreateExamProps {
   examId?: string; // For editing
 }
 
-type CreationMethod = 'new' | 'bank' | 'pdf' | 'true_false';
+type CreationMethod = 'new' | 'bank' | 'pdf';
 
 export default function CreateExam({ onSuccess, trigger, examId }: CreateExamProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -80,6 +97,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
       shuffleQuestions: false,
       shuffleAnswers: false,
       requireAll: true,
+      requiredBeforeNextLesson: false,
     },
   });
 
@@ -120,14 +138,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
   // For PDF method
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfPreview, setPdfPreview] = useState<string | null>(null);
-  const pdfInputRef = useRef<HTMLInputElement>(null);
-
-  // For true/false method
-  const [trueFalseQuestions, setTrueFalseQuestions] = useState<Array<{
-    question: string;
-    correctAnswer: boolean;
-    points: number;
-  }>>([]);
+  // const pdfInputRef = useRef<HTMLInputElement>(null);
 
   // Data for dropdowns
   const [courses, setCourses] = useState<any[]>([]);
@@ -173,6 +184,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
           shuffleQuestions: false,
           shuffleAnswers: false,
           requireAll: true,
+          requiredBeforeNextLesson: false,
         },
       });
       if (exam.course) {
@@ -347,10 +359,8 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
     setLoading(true);
     try {
       if (creationMethod === 'new') {
-        // Create questions in bank first, then create exam
         const questionIds: string[] = [];
         for (const q of newQuestions) {
-          // Validate: must have either question text or image
           if (!q.question?.trim() && !q.imageFile && !q.imageUrl) {
             toast({
               title: 'خطأ',
@@ -361,7 +371,6 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
             return;
           }
 
-          // Upload image if provided
           let imageUrl = q.imageUrl;
           if (q.imageFile) {
             try {
@@ -413,11 +422,9 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
 
         await examService.createExam({ ...examData, status });
       } else if (creationMethod === 'bank') {
-        // Check if using random generation
         const totalRandom = (generateCriteria.easy || 0) + (generateCriteria.medium || 0) + (generateCriteria.hard || 0);
 
         if (totalRandom > 0) {
-          // Use random generation
           const generateData = {
             title: formData.title || '',
             description: formData.description,
@@ -432,7 +439,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
             pointsPerQuestion: generateCriteria.pointsPerQuestion,
             settings: {
               ...formData.settings,
-              shuffleQuestions: true, // Always shuffle for random exams
+              shuffleQuestions: true,
             },
             teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
           };
@@ -447,7 +454,6 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
           setLoading(false);
           return;
         } else {
-          // Use manual selection
           const examData: ICreateExamRequest = {
             ...formData,
             contentType: 'questions',
@@ -503,55 +509,11 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
             },
           });
         }
-      } else if (creationMethod === 'true_false') {
-        if (trueFalseQuestions.length === 0) {
-          toast({
-            title: 'خطأ',
-            description: 'يجب إضافة سؤال واحد على الأقل',
-            status: 'error',
-          });
-          setLoading(false);
-          return;
-        }
-
-        // Create true/false questions in bank
-        const questionIds: string[] = [];
-        for (const q of trueFalseQuestions) {
-          const questionData = {
-            question: q.question,
-            questionType: 'true_false' as const,
-            answers: [
-              { text: 'صحيح', isCorrect: q.correctAnswer, order: 1 },
-              { text: 'خطأ', isCorrect: !q.correctAnswer, order: 2 },
-            ],
-            correctAnswer: q.correctAnswer ? 'صحيح' : 'خطأ',
-            difficulty: 'medium' as const,
-            points: q.points,
-            isGeneral: formData.examType === 'general',
-            course: formData.course,
-            lesson: formData.lesson,
-          };
-          const created = await examService.createQuestion(questionData);
-          questionIds.push(created.data.question._id);
-        }
-
-        const examData: ICreateExamRequest = {
-          ...formData,
-          contentType: 'questions',
-          questions: questionIds.map((id, idx) => ({
-            question: id,
-            points: trueFalseQuestions[idx].points,
-            order: idx + 1,
-          })),
-          teacher: role === UserRole.ADMIN ? formData.teacher : undefined,
-        } as ICreateExamRequest;
-
-        await examService.createExam({ ...examData, status });
       }
 
       toast({
         title: 'نجح',
-        description: 'تم إنشاء الامتحان بنجاح',
+        description: 'تم التعامل مع الامتحان بنجاح',
         status: 'success',
       });
       onSuccess();
@@ -560,7 +522,7 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
     } catch (error: any) {
       toast({
         title: 'خطأ',
-        description: error.response?.data?.message || 'فشل في إنشاء الامتحان',
+        description: error.response?.data?.message || 'فشل في حفظ الامتحان',
         status: 'error',
       });
     } finally {
@@ -584,13 +546,13 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
         shuffleQuestions: false,
         shuffleAnswers: false,
         requireAll: true,
+        requiredBeforeNextLesson: false,
       },
     });
     setNewQuestions([]);
     setSelectedQuestions([]);
     setPdfFile(null);
     setPdfPreview(null);
-    setTrueFalseQuestions([]);
     setSelectedCourseId('');
     setCreationMethod('new');
     setActiveTab(0);
@@ -615,6 +577,23 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
   const updateNewQuestion = (index: number, field: string, value: any) => {
     const updated = [...newQuestions];
     updated[index] = { ...updated[index], [field]: value };
+    
+    // Handle special case for type switching
+    if (field === 'questionType') {
+        if (value === 'true_false') {
+             updated[index].answers = [
+                { text: 'صحيح', isCorrect: true, order: 1 },
+                { text: 'خطأ', isCorrect: false, order: 2 },
+            ];
+        } else if (value === 'mcq') {
+             // Reset to at least 2 empty answers for MCQ
+             updated[index].answers = [
+                { text: '', isCorrect: false, order: 1 },
+                { text: '', isCorrect: false, order: 2 },
+            ];
+        }
+    }
+
     setNewQuestions(updated);
   };
 
@@ -637,20 +616,6 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
     setNewQuestions(updated);
   };
 
-  const addTrueFalseQuestion = () => {
-    setTrueFalseQuestions([...trueFalseQuestions, {
-      question: '',
-      correctAnswer: true,
-      points: 1,
-    }]);
-  };
-
-  const updateTrueFalseQuestion = (index: number, field: string, value: any) => {
-    const updated = [...trueFalseQuestions];
-    updated[index] = { ...updated[index], [field]: value };
-    setTrueFalseQuestions(updated);
-  };
-
   const toggleQuestionSelection = (questionId: string) => {
     setSelectedQuestions(prev =>
       prev.includes(questionId)
@@ -663,906 +628,566 @@ export default function CreateExam({ onSuccess, trigger, examId }: CreateExamPro
     <>
       <Box onClick={onOpen}>{trigger}</Box>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="6xl" scrollBehavior="inside">
-        <ModalOverlay />
-        <ModalContent dir="rtl">
-          <ModalHeader>إنشاء امتحان جديد</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Stack spacing={6}>
-              {/* Basic Info */}
-              <Stack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>عنوان الامتحان</FormLabel>
-                  <Input
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="أدخل عنوان الامتحان"
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>الوصف</FormLabel>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="وصف الامتحان (اختياري)"
-                    rows={3}
-                  />
-                </FormControl>
-
-                <HStack>
-                  <FormControl isRequired>
-                    <FormLabel>نوع الامتحان</FormLabel>
-                    <Select
-                      value={formData.examType}
-                      onChange={(e) => {
-                        const examType = e.target.value as any;
-                        setFormData({ ...formData, examType, course: undefined, lesson: undefined });
-                        setSelectedCourseId('');
-                      }}
-                    >
-                      <option value="general">عام</option>
-                      <option value="course">كورس</option>
-                      <option value="lesson">درس</option>
-                    </Select>
-                  </FormControl>
-
-                  {formData.examType === 'course' && (
-                    <FormControl isRequired>
-                      <FormLabel>الكورس</FormLabel>
-                      <Select
-                        value={selectedCourseId}
-                        onChange={(e) => {
-                          setSelectedCourseId(e.target.value);
-                          setFormData({ ...formData, course: e.target.value, lesson: undefined });
-                        }}
-                        placeholder="اختر الكورس"
-                      >
-                        {courses.map((course) => (
-                          <option key={course._id} value={course._id}>
-                            {course.title}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  )}
-
-                  {formData.examType === 'lesson' && (
-                    <>
-                      <FormControl isRequired>
-                        <FormLabel>الكورس</FormLabel>
-                        <Select
-                          value={selectedCourseId}
-                          onChange={(e) => {
-                            setSelectedCourseId(e.target.value);
-                            setFormData({ ...formData, course: e.target.value, lesson: undefined });
-                          }}
-                          placeholder="اختر الكورس"
-                        >
-                          {courses.map((course) => (
-                            <option key={course._id} value={course._id}>
-                              {course.title}
-                            </option>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      <FormControl isRequired>
-                        <FormLabel>الدرس</FormLabel>
-                        <Select
-                          value={formData.lesson || ''}
-                          onChange={(e) => setFormData({ ...formData, lesson: e.target.value })}
-                          placeholder="اختر الدرس"
-                          isDisabled={!selectedCourseId}
-                        >
-                          {lessons.map((lesson) => (
-                            <option key={lesson._id} value={lesson._id}>
-                              {lesson.title}
-                            </option>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </>
-                  )}
-
-                  {role === UserRole.ADMIN && (
-                    <FormControl isRequired>
-                      <FormLabel>المدرس</FormLabel>
-                      <Select
-                        value={formData.teacher || ''}
-                        onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-                        placeholder="اختر المدرس"
-                      >
-                        <option value="">-- اختر المدرس --</option>
-                        {teachers.map((teacher) => (
-                          <option key={teacher._id} value={teacher._id}>
-                            {teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim()}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  )}
-                </HStack>
-              </Stack>
-
-              <Divider />
-
-              {/* Creation Methods */}
-              <Tabs index={activeTab} onChange={setActiveTab}>
-                <TabList>
-                  <Tab onClick={() => setCreationMethod('new')}>أسئلة جديدة</Tab>
-                  <Tab onClick={() => setCreationMethod('bank')}>من بنك الأسئلة</Tab>
-                  <Tab onClick={() => setCreationMethod('pdf')}>PDF فقط</Tab>
-                  <Tab onClick={() => setCreationMethod('true_false')}>صحيح/خطأ</Tab>
-                </TabList>
-
-                <TabPanels>
-                  {/* Method 1: New Questions */}
-                  <TabPanel>
-                    <Stack spacing={4}>
-                      <Button
-                        leftIcon={<Icon icon="lucide:plus" />}
-                        onClick={addNewQuestion}
-                        colorScheme="blue"
-                        size="sm"
-                      >
-                        إضافة سؤال جديد
+      <Modal isOpen={isOpen} onClose={onClose} size="full" scrollBehavior="inside">
+        <ModalOverlay backdropFilter="blur(5px)" bg="blackAlpha.300" />
+        <ModalContent dir="rtl" minH="100vh" borderRadius={0} bg="gray.50">
+          
+          {/* Header */}
+          <ModalHeader p={0}>
+              <Box 
+                bgGradient="linear(to-r, teal.600, blue.500)" 
+                color="white" 
+                px={{ base: 4, md: 8 }} 
+                py={{ base: 4, md: 6 }}
+                shadow="md"
+              >
+                  <Stack direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'stretch', md: 'center' }} spacing={4}>
+                    <HStack spacing={4}>
+                      <Box p={3} bg="whiteAlpha.200" borderRadius="xl" display={{ base: 'none', md: 'block' }}>
+                        <Icon icon="solar:document-add-bold-duotone" width={32} height={32} />
+                      </Box>
+                      <Box>
+                        <Heading size={{ base: 'md', md: 'lg' }} fontWeight="bold">{examId ? 'تعديل الامتحان' : 'إنشاء امتحان جديد'}</Heading>
+                        <Text opacity={0.9} fontSize="sm" mt={1} display={{ base: 'none', md: 'block' }}>قم بإدخال تفاصيل الامتحان والأسئلة المرتبطة به</Text>
+                      </Box>
+                    </HStack>
+                    
+                    <Stack direction={{ base: 'row-reverse', md: 'row' }} spacing={2} w={{ base: 'full', md: 'auto' }} justify={{ base: 'space-between', md: 'flex-start' }}>
+                      <Button variant="ghost" color="white" onClick={onClose} _hover={{ bg: "whiteAlpha.200" }} size={{ base: 'sm', md: 'md' }}>
+                           إلغاء
                       </Button>
+                      <Button 
+                        colorScheme="orange" 
+                        variant="solid" 
+                        leftIcon={<Icon icon="solar:diskette-bold-duotone" width="18" />}
+                        onClick={() => handleSubmit('draft')}
+                        isLoading={loading}
+                        boxShadow="lg"
+                        _hover={{ transform: 'translateY(-2px)' }}
+                        size={{ base: 'sm', md: 'md' }}
+                      >
+                         مسودة
+                      </Button>
+                      <Button 
+                        bg="white" 
+                        color="teal.600" 
+                        leftIcon={<Icon icon="solar:plain-bold-duotone" width="18" />}
+                        onClick={() => handleSubmit('published')}
+                        isLoading={loading}
+                        boxShadow="lg"
+                        _hover={{ transform: 'translateY(-2px)', bg: 'gray.100' }}
+                        size={{ base: 'sm', md: 'md' }}
+                      >
+                        نشر
+                      </Button>
+                    </Stack>
+                  </Stack>
+              </Box>
+          </ModalHeader>
 
-                      {newQuestions.map((q, qIdx) => (
-                        <Box key={qIdx} p={4} border="1px" borderColor="gray.200" rounded="md">
-                          <Stack spacing={3}>
-                            <HStack justify="space-between">
-                              <Text fontWeight="bold">السؤال {qIdx + 1}</Text>
-                              <IconButton
-                                icon={<Icon icon="lucide:trash-2" />}
-                                size="sm"
-                                colorScheme="red"
-                                variant="ghost"
-                                onClick={() => {
-                                  setNewQuestions(newQuestions.filter((_, i) => i !== qIdx));
-                                }}
-                                aria-label="حذف السؤال"
-                              />
-                            </HStack>
+          <ModalBody p={0} bg="gray.50">
+            <Container maxW="8xl" py={{ base: 4, md: 8 }} px={{ base: 4, md: 8 }}>
+                <Grid templateColumns={{ base: '1fr', lg: '300px 1fr' }} gap={{ base: 6, lg: 8 }}>
+                    {/* Sidebar / Settings */}
+                    <Stack spacing={6} order={{ base: 2, lg: 1 }}>
+                        <Card shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100">
+                            <CardBody>
+                                <Stack spacing={5}>
+                                    <Heading size="sm" color="gray.700">بيانات الامتحان</Heading>
+                                    
+                                     <FormControl isRequired>
+                                        <FormLabel fontSize="sm" color="gray.600">عنوان الامتحان</FormLabel>
+                                        <Input
+                                            value={formData.title}
+                                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                            placeholder="أدخل عنوان مميز"
+                                            size="lg"
+                                            variant="filled"
+                                        />
+                                    </FormControl>
 
-                            <FormControl>
-                              <FormLabel>نص السؤال (اختياري إذا تم رفع صورة)</FormLabel>
-                              <Textarea
-                                value={q.question}
-                                onChange={(e) => updateNewQuestion(qIdx, 'question', e.target.value)}
-                                placeholder="أدخل نص السؤال أو ارفع صورة أدناه"
-                              />
-                            </FormControl>
+                                    <FormControl>
+                                        <FormLabel fontSize="sm" color="gray.600">الوصف</FormLabel>
+                                        <Textarea
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                            placeholder="وصف مختصر لمحتوى الامتحان"
+                                            variant="filled"
+                                            rows={2}
+                                        />
+                                    </FormControl>
 
-                            <FormControl>
-                              <FormLabel>صورة السؤال (اختياري إذا تم إدخال نص)</FormLabel>
-                              <Input
-                                type="file"
-                                accept="image/*"
-                                display="none"
-                                id={`question-image-${qIdx}`}
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    if (file.type.startsWith('image/')) {
-                                      updateNewQuestion(qIdx, 'imageFile', file);
-                                      const reader = new FileReader();
-                                      reader.onloadend = () => {
-                                        updateNewQuestion(qIdx, 'imagePreview', reader.result as string);
-                                      };
-                                      reader.readAsDataURL(file);
-                                    } else {
-                                      toast({
-                                        title: 'خطأ',
-                                        description: 'الرجاء اختيار ملف صورة',
-                                        status: 'error',
-                                      });
-                                    }
-                                  }
-                                }}
-                              />
-                              <HStack spacing={2}>
-                                <Button
-                                  as="label"
-                                  htmlFor={`question-image-${qIdx}`}
-                                  size="sm"
-                                  leftIcon={<Icon icon="solar:gallery-bold-duotone" width="16" height="16" />}
-                                  cursor="pointer"
-                                  variant="outline"
-                                >
-                                  {q.imagePreview ? 'تغيير الصورة' : 'اختر صورة'}
-                                </Button>
-                                {q.imagePreview && (
-                                  <Button
-                                    size="sm"
-                                    colorScheme="red"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      updateNewQuestion(qIdx, 'imageFile', null);
-                                      updateNewQuestion(qIdx, 'imagePreview', null);
-                                      updateNewQuestion(qIdx, 'imageUrl', undefined);
-                                    }}
-                                  >
-                                    إزالة
-                                  </Button>
-                                )}
-                              </HStack>
-                              {q.imagePreview && (
-                                <Box mt={2}>
-                                  <Image src={q.imagePreview} alt="Preview" maxH="200px" borderRadius="md" />
-                                </Box>
-                              )}
-                            </FormControl>
+                                    <Divider />
 
-                            <HStack>
-                              <FormControl>
-                                <FormLabel>نوع السؤال</FormLabel>
-                                <Select
-                                  value={q.questionType}
-                                  onChange={(e) => {
-                                    const type = e.target.value as any;
-                                    updateNewQuestion(qIdx, 'questionType', type);
-                                    if (type === 'true_false') {
-                                      updateNewQuestion(qIdx, 'answers', [
-                                        { text: 'صحيح', isCorrect: true, order: 1 },
-                                        { text: 'خطأ', isCorrect: false, order: 2 },
-                                      ]);
-                                    }
-                                  }}
-                                >
-                                  <option value="mcq">اختيار من متعدد</option>
-                                  <option value="true_false">صحيح/خطأ</option>
-                                </Select>
-                              </FormControl>
+                                    <FormControl isRequired>
+                                        <FormLabel fontSize="sm" color="gray.600">نوع الارتباط</FormLabel>
+                                        <Select
+                                            value={formData.examType}
+                                            onChange={(e) => {
+                                                const examType = e.target.value as any;
+                                                setFormData({ ...formData, examType, course: undefined, lesson: undefined });
+                                                setSelectedCourseId('');
+                                            }}
+                                            variant="filled"
+                                            size="md"
+                                        >
+                                            <option value="general">عام (غير مرتبط)</option>
+                                            <option value="course">مرتبط بكورس</option>
+                                            <option value="lesson">مرتبط بدرس</option>
+                                        </Select>
+                                    </FormControl>
 
-                              <FormControl>
-                                <FormLabel>النقاط</FormLabel>
-                                <NumberInput
-                                  value={q.points}
-                                  onChange={(_, val) => updateNewQuestion(qIdx, 'points', val)}
-                                  min={1}
-                                >
-                                  <NumberInputField />
-                                  <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
-                                  </NumberInputStepper>
-                                </NumberInput>
-                              </FormControl>
-
-                              <FormControl>
-                                <FormLabel>الصعوبة</FormLabel>
-                                <Select
-                                  value={q.difficulty}
-                                  onChange={(e) => updateNewQuestion(qIdx, 'difficulty', e.target.value)}
-                                >
-                                  <option value="easy">سهل</option>
-                                  <option value="medium">متوسط</option>
-                                  <option value="hard">صعب</option>
-                                </Select>
-                              </FormControl>
-                            </HStack>
-
-                            {q.questionType === 'mcq' && (
-                              <Stack spacing={2}>
-                                <HStack justify="space-between">
-                                  <FormLabel>الإجابات</FormLabel>
-                                  <Button
-                                    size="xs"
-                                    leftIcon={<Icon icon="lucide:plus" />}
-                                    onClick={() => addAnswerToQuestion(qIdx)}
-                                  >
-                                    إضافة إجابة
-                                  </Button>
-                                </HStack>
-                                {q.answers.map((answer, aIdx) => (
-                                  <HStack key={aIdx}>
-                                    <Input
-                                      value={answer.text}
-                                      onChange={(e) => {
-                                        const updated = [...newQuestions];
-                                        updated[qIdx].answers[aIdx].text = e.target.value;
-                                        setNewQuestions(updated);
-                                      }}
-                                      placeholder={`الإجابة ${aIdx + 1}`}
-                                    />
-                                    <Checkbox
-                                      isChecked={answer.isCorrect}
-                                      onChange={(e) => {
-                                        const updated = [...newQuestions];
-                                        updated[qIdx].answers[aIdx].isCorrect = e.target.checked;
-                                        setNewQuestions(updated);
-                                      }}
-                                    >
-                                      صحيح
-                                    </Checkbox>
-                                    {q.answers.length > 2 && (
-                                      <IconButton
-                                        icon={<Icon icon="lucide:trash-2" />}
-                                        size="sm"
-                                        colorScheme="red"
-                                        variant="ghost"
-                                        onClick={() => removeAnswerFromQuestion(qIdx, aIdx)}
-                                        aria-label="حذف الإجابة"
-                                      />
+                                    {(formData.examType === 'course' || formData.examType === 'lesson') && (
+                                        <FormControl isRequired>
+                                            <FormLabel fontSize="sm" color="gray.600">الكورس</FormLabel>
+                                            <Select
+                                                value={selectedCourseId}
+                                                onChange={(e) => {
+                                                    setSelectedCourseId(e.target.value);
+                                                    setFormData({ ...formData, course: e.target.value, lesson: undefined });
+                                                }}
+                                                placeholder="اختر الكورس"
+                                                variant="filled"
+                                            >
+                                                {courses.map((course) => (
+                                                    <option key={course._id} value={course._id}>{course.title}</option>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
                                     )}
-                                  </HStack>
-                                ))}
-                              </Stack>
-                            )}
 
-                          </Stack>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </TabPanel>
+                                    {formData.examType === 'lesson' && (
+                                        <FormControl isRequired>
+                                            <FormLabel fontSize="sm" color="gray.600">الدرس</FormLabel>
+                                            <Select
+                                                value={formData.lesson || ''}
+                                                onChange={(e) => setFormData({ ...formData, lesson: e.target.value })}
+                                                placeholder="اختر الدرس"
+                                                isDisabled={!selectedCourseId}
+                                                variant="filled"
+                                            >
+                                                {lessons.map((lesson) => (
+                                                    <option key={lesson._id} value={lesson._id}>{lesson.title}</option>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    )}
 
-                  {/* Method 2: From Bank */}
-                  <TabPanel>
-                    <Stack spacing={4}>
-                      {/* Teacher Selection Required for Admin */}
-                      {role === UserRole.ADMIN && !formData.teacher && (
-                        <Box p={4} bg="orange.50" borderRadius="lg" border="1px" borderColor="orange.200">
-                          <HStack spacing={3} mb={3}>
-                            <Icon icon="solar:info-circle-bold-duotone" width="24" height="24" style={{ color: 'var(--chakra-colors-orange-600)' }} />
-                            <Heading size="sm" color="orange.700">
-                              يجب اختيار المدرس أولاً
-                            </Heading>
-                          </HStack>
-                          <Text fontSize="sm" color="gray.600" mb={4}>
-                            يرجى اختيار المدرس من الأعلى لعرض أسئلته من بنك الأسئلة
-                          </Text>
-                        </Box>
-                      )}
-
-                      {((role === UserRole.ADMIN && formData.teacher) || role !== UserRole.ADMIN) && (
-                        <>
-                          <Box p={4} bg="purple.50" borderRadius="lg" border="1px" borderColor="purple.200">
-                            <Heading size="sm" mb={3} color="purple.700">
-                              إنشاء امتحان عشوائي من بنك الأسئلة
-                            </Heading>
-                            <Text fontSize="sm" color="gray.600" mb={4}>
-                              اختر عدد الأسئلة لكل مستوى صعوبة. سيتم اختيار الأسئلة بشكل عشوائي وخلطها تلقائياً.
-                            </Text>
-                            <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={4}>
-                              <FormControl>
-                                <FormLabel>
-                                  عدد الأسئلة السهلة
-                                  {availableQuestionCounts.easy > 0 && (
-                                    <Text as="span" fontSize="xs" color="gray.500" fontWeight="normal" mr={2}>
-                                      (المتاح: {availableQuestionCounts.easy})
-                                    </Text>
-                                  )}
-                                </FormLabel>
-                                <NumberInput
-                                  value={generateCriteria.easy}
-                                  onChange={(_, val) => {
-                                    const numVal = isNaN(val) ? 0 : val;
-                                    const maxVal = Math.min(Math.max(0, numVal), availableQuestionCounts.easy);
-                                    setGenerateCriteria({ ...generateCriteria, easy: maxVal });
-                                  }}
-                                  onBlur={(e) => {
-                                    const val = parseInt(e.target.value) || 0;
-                                    const maxVal = Math.min(val, availableQuestionCounts.easy);
-                                    if (val !== maxVal) {
-                                      setGenerateCriteria({ ...generateCriteria, easy: maxVal });
-                                    }
-                                  }}
-                                  min={0}
-                                  max={availableQuestionCounts.easy}
-                                  isDisabled={availableQuestionCounts.easy === 0}
-                                >
-                                  <NumberInputField />
-                                  <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
-                                  </NumberInputStepper>
-                                </NumberInput>
-                                {availableQuestionCounts.easy === 0 && (
-                                  <Text fontSize="xs" color="orange.500" mt={1}>
-                                    لا توجد أسئلة سهلة متاحة
-                                  </Text>
-                                )}
-                              </FormControl>
-                              <FormControl>
-                                <FormLabel>
-                                  عدد الأسئلة المتوسطة
-                                  {availableQuestionCounts.medium > 0 && (
-                                    <Text as="span" fontSize="xs" color="gray.500" fontWeight="normal" mr={2}>
-                                      (المتاح: {availableQuestionCounts.medium})
-                                    </Text>
-                                  )}
-                                </FormLabel>
-                                <NumberInput
-                                  value={generateCriteria.medium}
-                                  onChange={(_, val) => {
-                                    const numVal = isNaN(val) ? 0 : val;
-                                    const maxVal = Math.min(Math.max(0, numVal), availableQuestionCounts.medium);
-                                    setGenerateCriteria({ ...generateCriteria, medium: maxVal });
-                                  }}
-                                  onBlur={(e) => {
-                                    const val = parseInt(e.target.value) || 0;
-                                    const maxVal = Math.min(val, availableQuestionCounts.medium);
-                                    if (val !== maxVal) {
-                                      setGenerateCriteria({ ...generateCriteria, medium: maxVal });
-                                    }
-                                  }}
-                                  min={0}
-                                  max={availableQuestionCounts.medium}
-                                  isDisabled={availableQuestionCounts.medium === 0}
-                                >
-                                  <NumberInputField />
-                                  <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
-                                  </NumberInputStepper>
-                                </NumberInput>
-                                {availableQuestionCounts.medium === 0 && (
-                                  <Text fontSize="xs" color="orange.500" mt={1}>
-                                    لا توجد أسئلة متوسطة متاحة
-                                  </Text>
-                                )}
-                              </FormControl>
-                              <FormControl>
-                                <FormLabel>
-                                  عدد الأسئلة الصعبة
-                                  {availableQuestionCounts.hard > 0 && (
-                                    <Text as="span" fontSize="xs" color="gray.500" fontWeight="normal" mr={2}>
-                                      (المتاح: {availableQuestionCounts.hard})
-                                    </Text>
-                                  )}
-                                </FormLabel>
-                                <NumberInput
-                                  value={generateCriteria.hard}
-                                  onChange={(_, val) => {
-                                    const numVal = isNaN(val) ? 0 : val;
-                                    const maxVal = Math.min(Math.max(0, numVal), availableQuestionCounts.hard);
-                                    setGenerateCriteria({ ...generateCriteria, hard: maxVal });
-                                  }}
-                                  onBlur={(e) => {
-                                    const val = parseInt(e.target.value) || 0;
-                                    const maxVal = Math.min(val, availableQuestionCounts.hard);
-                                    if (val !== maxVal) {
-                                      setGenerateCriteria({ ...generateCriteria, hard: maxVal });
-                                    }
-                                  }}
-                                  min={0}
-                                  max={availableQuestionCounts.hard}
-                                  isDisabled={availableQuestionCounts.hard === 0}
-                                >
-                                  <NumberInputField />
-                                  <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
-                                  </NumberInputStepper>
-                                </NumberInput>
-                                {availableQuestionCounts.hard === 0 && (
-                                  <Text fontSize="xs" color="orange.500" mt={1}>
-                                    لا توجد أسئلة صعبة متاحة
-                                  </Text>
-                                )}
-                              </FormControl>
-                            </Grid>
-                            <FormControl mt={4}>
-                              <FormLabel>النقاط لكل سؤال</FormLabel>
-                              <NumberInput
-                                value={generateCriteria.pointsPerQuestion}
-                                onChange={(_, val) => setGenerateCriteria({ ...generateCriteria, pointsPerQuestion: val })}
-                                min={1}
-                              >
-                                <NumberInputField />
-                                <NumberInputStepper>
-                                  <NumberIncrementStepper />
-                                  <NumberDecrementStepper />
-                                </NumberInputStepper>
-                              </NumberInput>
-                            </FormControl>
-                            <HStack justify="space-between" mt={2}>
-                              <Text fontSize="xs" color="gray.500">
-                                إجمالي الأسئلة: {generateCriteria.easy + generateCriteria.medium + generateCriteria.hard}
-                              </Text>
-                              <Text fontSize="xs" color="gray.500">
-                                المتاح: {availableQuestionCounts.easy + availableQuestionCounts.medium + availableQuestionCounts.hard}
-                              </Text>
-                            </HStack>
-                            {(generateCriteria.easy > availableQuestionCounts.easy ||
-                              generateCriteria.medium > availableQuestionCounts.medium ||
-                              generateCriteria.hard > availableQuestionCounts.hard) && (
-                                <Text fontSize="xs" color="red.500" mt={1}>
-                                  ⚠️ العدد المدخل يتجاوز المتاح. سيتم استخدام الحد الأقصى المتاح.
-                                </Text>
-                              )}
-                          </Box>
-
-                          <Divider />
-
-                          <Box>
-                            <Heading size="sm" mb={3}>
-                              أو اختر الأسئلة يدوياً
-                            </Heading>
-                            <HStack mb={4}>
-                              <FormControl>
-                                <FormLabel>نوع السؤال</FormLabel>
-                                <Select
-                                  value={bankFilters.questionType}
-                                  onChange={(e) => setBankFilters({ ...bankFilters, questionType: e.target.value as any })}
-                                  placeholder="الكل"
-                                >
-                                  <option value="">الكل</option>
-                                  <option value="mcq">اختيار من متعدد</option>
-                                  <option value="true_false">صحيح/خطأ</option>
-                                </Select>
-                              </FormControl>
-                              <FormControl>
-                                <FormLabel>الصعوبة</FormLabel>
-                                <Select
-                                  value={bankFilters.difficulty}
-                                  onChange={(e) => setBankFilters({ ...bankFilters, difficulty: e.target.value as any })}
-                                  placeholder="الكل"
-                                >
-                                  <option value="">الكل</option>
-                                  <option value="easy">سهل</option>
-                                  <option value="medium">متوسط</option>
-                                  <option value="hard">صعب</option>
-                                </Select>
-                              </FormControl>
-                            </HStack>
-
-                            <Box maxH="400px" overflowY="auto" border="1px" borderColor="gray.200" rounded="md" p={4}>
-                              {bankQuestions.length === 0 ? (
-                                <Box textAlign="center" py={8}>
-                                  <Text color="gray.500">لا توجد أسئلة متاحة</Text>
-                                </Box>
-                              ) : (
-                                <Stack spacing={2}>
-                                  {bankQuestions.map((question) => (
-                                    <HStack
-                                      key={question._id}
-                                      p={3}
-                                      border="1px"
-                                      borderColor={selectedQuestions.includes(question._id) ? 'blue.500' : 'gray.200'}
-                                      rounded="md"
-                                      cursor="pointer"
-                                      onClick={() => toggleQuestionSelection(question._id)}
-                                      _hover={{ bg: 'gray.50' }}
-                                    >
-                                      <Checkbox
-                                        isChecked={selectedQuestions.includes(question._id)}
-                                        onChange={() => toggleQuestionSelection(question._id)}
-                                      />
-                                      <Box flex={1}>
-                                        <Text fontWeight="medium" noOfLines={2}>
-                                          {question.question}
-                                        </Text>
-                                        <HStack mt={1}>
-                                          <Badge>{question.questionType}</Badge>
-                                          <Badge colorScheme={question.difficulty === 'easy' ? 'green' : question.difficulty === 'medium' ? 'yellow' : 'red'}>
-                                            {question.difficulty}
-                                          </Badge>
-                                          <Badge>{question.points} نقطة</Badge>
-                                        </HStack>
-                                      </Box>
-                                    </HStack>
-                                  ))}
+                                    {role === UserRole.ADMIN && (
+                                        <FormControl isRequired>
+                                            <FormLabel fontSize="sm" color="gray.600">المدرس</FormLabel>
+                                            <Select
+                                                value={formData.teacher || ''}
+                                                onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
+                                                placeholder="اختر المدرس"
+                                                variant="filled"
+                                            >
+                                                {teachers.map((t) => (
+                                                    <option key={t._id} value={t._id}>{t.fullName || `${t.firstName || ''} ${t.lastName || ''}`.trim()}</option>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    )}
                                 </Stack>
-                              )}
-                            </Box>
+                            </CardBody>
+                        </Card>
 
-                            <Text fontSize="sm" color="gray.500" mt={2}>
-                              تم اختيار {selectedQuestions.length} سؤال
-                            </Text>
-                          </Box>
-                        </>
-                      )}
+                        <Card shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100">
+                             <CardBody>
+                                <Stack spacing={4}>
+                                    <Heading size="sm" color="gray.700">الإعدادات</Heading>
+                                    
+                                     <FormControl>
+                                        <FormLabel fontSize="sm" color="gray.600">المدة (دقيقة)</FormLabel>
+                                        <InputGroup size="md">
+                                             <InputLeftElement pointerEvents="none" color="gray.400">
+                                                  <Icon icon="solar:clock-circle-bold-duotone" />
+                                             </InputLeftElement>
+                                             <NumberInput
+                                                w="full"
+                                                value={formData.settings?.duration || 0}
+                                                onChange={(_, val) => setFormData({
+                                                    ...formData,
+                                                    settings: { ...formData.settings!, duration: val }
+                                                })}
+                                                min={0}
+                                            >
+                                                <NumberInputField pl={10} placeholder="0 = غير محدود" />
+                                            </NumberInput>
+                                        </InputGroup>
+                                    </FormControl>
+
+                                    <FormControl>
+                                        <FormLabel fontSize="sm" color="gray.600">درجة النجاح (%)</FormLabel>
+                                         <InputGroup size="md">
+                                             <InputLeftElement pointerEvents="none" color="gray.400">
+                                                  <Icon icon="solar:verified-check-bold" />
+                                             </InputLeftElement>
+                                            <NumberInput
+                                                w="full"
+                                                value={formData.settings?.passingScore || 50}
+                                                onChange={(_, val) => setFormData({
+                                                    ...formData,
+                                                    settings: { ...formData.settings!, passingScore: val }
+                                                })}
+                                                min={0}
+                                                max={100}
+                                            >
+                                                <NumberInputField pl={10} />
+                                            </NumberInput>
+                                        </InputGroup>
+                                    </FormControl>
+
+                                    <Divider my={2} />
+
+                                    <Stack spacing={3}>
+                                         {[
+                                            { label: 'إظهار النتائج', key: 'showResults', icon: 'solar:chart-2-bold-duotone' },
+                                            { label: 'إظهار الحل الصحيح', key: 'showCorrectAnswers', icon: 'solar:check-read-bold-duotone' },
+                                            { label: 'إعادة المحاولة', key: 'allowRetake', icon: 'solar:restart-bold-duotone' },
+                                            { label: 'خلط الأسئلة', key: 'shuffleQuestions', icon: 'solar:shuffle-bold-duotone' },
+                                            { label: 'خلط الإجابات', key: 'shuffleAnswers', icon: 'solar:sort-from-top-to-bottom-bold-duotone' },
+                                            { label: 'إلزام الحل', key: 'requireAll', icon: 'solar:clipboard-check-bold-duotone' },
+                                            { label: 'مطلوب لفتح الدرس التالي', key: 'requiredBeforeNextLesson', icon: 'solar:lock-password-bold-duotone' },
+                                         ].map((setting) => (
+                                              <HStack key={setting.key} justify="space-between">
+                                                  <HStack>
+                                                      <Icon icon={setting.icon} width="20" color="gray.500" />
+                                                      <Text fontSize="sm" color="gray.700">{setting.label}</Text>
+                                                  </HStack>
+                                                  <Switch 
+                                                      size="sm"
+                                                      isChecked={formData.settings?.[setting.key as keyof typeof formData.settings] as boolean}
+                                                      onChange={(e) => setFormData({
+                                                          ...formData,
+                                                          settings: { ...formData.settings!, [setting.key]: e.target.checked }
+                                                      })}
+                                                  />
+                                              </HStack>
+                                         ))}
+                                    </Stack>
+                                </Stack>
+                             </CardBody>
+                        </Card>
                     </Stack>
-                  </TabPanel>
 
-                  {/* Method 3: PDF Only */}
-                  <TabPanel>
-                    <FormControl isRequired>
-                      <FormLabel>ملف PDF</FormLabel>
-                      <Input
-                        ref={pdfInputRef}
-                        type="file"
-                        accept="application/pdf"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            if (file.type === 'application/pdf') {
-                              setPdfFile(file);
-                              setPdfPreview(file.name);
-                            } else {
-                              toast({
-                                status: 'error',
-                                description: 'الرجاء اختيار ملف PDF',
-                              });
-                            }
-                          }
-                        }}
-                        display="none"
-                      />
-                      <Stack direction="row" spacing={2} align="center">
-                        <Button
-                          size="sm"
-                          onClick={() => pdfInputRef.current?.click()}
-                          type="button"
-                        >
-                          {pdfFile ? 'تغيير الملف' : 'اختر ملف PDF'}
-                        </Button>
-                        {pdfFile && (
-                          <Button
-                            size="sm"
-                            colorScheme="red"
-                            variant="ghost"
-                            onClick={() => {
-                              setPdfFile(null);
-                              setPdfPreview(null);
-                              if (pdfInputRef.current) {
-                                pdfInputRef.current.value = '';
-                              }
-                            }}
-                            type="button"
-                          >
-                            إزالة
-                          </Button>
-                        )}
-                      </Stack>
-                      {pdfPreview && (
-                        <Stack mt={2} spacing={2}>
-                          <Text fontSize="sm" color="gray.600">
-                            {typeof pdfPreview === 'string' && (pdfPreview.startsWith('http') || pdfPreview.startsWith('/')) ? 'الملف الحالي:' : 'الملف المحدد:'} {typeof pdfPreview === 'string' && (pdfPreview.startsWith('http') || pdfPreview.startsWith('/')) ? '' : pdfPreview}
-                          </Text>
-                          {typeof pdfPreview === 'string' && (pdfPreview.startsWith('http') || pdfPreview.startsWith('/')) && (
-                            <Button
-                              size="sm"
-                              as="a"
-                              href={getImageUrl(pdfPreview)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              leftIcon={<Icon icon="solar:file-download-bold" width="16" height="16" />}
-                            >
-                              عرض/تحميل PDF الحالي
-                            </Button>
-                          )}
-                        </Stack>
-                      )}
-                    </FormControl>
-                  </TabPanel>
+                    {/* Main Content Area */}
+                    <Stack spacing={6} order={{ base: 1, lg: 2 }}>
+                        {/* Creation Method Tabs */}
+                        <Box bg="white" p={2} borderRadius="2xl" shadow="sm" border="1px solid" borderColor="gray.100">
+                            <Tabs index={activeTab} onChange={setActiveTab} variant="soft-rounded" colorScheme="teal" size="sm" isFitted>
+                                <TabList overflowX="auto" py={1} display="flex" css={{ scrollbarWidth: 'none', '::-webkit-scrollbar': { display: 'none' } }}>
+                                    <Tab 
+                                        flexShrink={0}
+                                        onClick={() => setCreationMethod('new')}
+                                        _selected={{ bg: 'teal.50', color: 'teal.600', shadow: 'sm' }}
+                                    >
+                                        <HStack>
+                                            <Icon icon="solar:pen-new-square-bold-duotone" width="20" />
+                                            <Text>أسئلة جديدة</Text>
+                                        </HStack>
+                                    </Tab>
+                                    <Tab 
+                                        flexShrink={0}
+                                        onClick={() => setCreationMethod('bank')}
+                                        _selected={{ bg: 'teal.50', color: 'teal.600', shadow: 'sm' }}
+                                    >
+                                         <HStack>
+                                            <Icon icon="solar:library-bold-duotone" width="20" />
+                                            <Text>بنك الأسئلة</Text>
+                                        </HStack>
+                                    </Tab>
+                                    <Tab 
+                                        flexShrink={0}
+                                        onClick={() => setCreationMethod('pdf')}
+                                        _selected={{ bg: 'teal.50', color: 'teal.600', shadow: 'sm' }}
+                                    >
+                                         <HStack>
+                                            <Icon icon="solar:file-text-bold-duotone" width="20" />
+                                            <Text>PDF</Text>
+                                        </HStack>
+                                    </Tab>
+                                </TabList>
 
-                  {/* Method 4: True/False */}
-                  <TabPanel>
-                    <Stack spacing={4}>
-                      <Button
-                        leftIcon={<Icon icon="lucide:plus" />}
-                        onClick={addTrueFalseQuestion}
-                        colorScheme="blue"
-                        size="sm"
-                      >
-                        إضافة سؤال صحيح/خطأ
-                      </Button>
+                                <TabPanels mt={4}>
+                                    <TabPanel p={0} pt={4}>
+                                        <Stack spacing={4}>
+                                            {newQuestions.length === 0 && (
+                                                <Box textAlign="center" py={12} bg="gray.50" borderRadius="xl" border="2px dashed" borderColor="gray.200">
+                                                    <Icon icon="solar:question-circle-bold-duotone" width="48" height="48" style={{ color: '#CBD5E0', margin: '0 auto' }} />
+                                                    <Text color="gray.500" mt={4} fontWeight="medium">لم يتم إضافة أي أسئلة بعد</Text>
+                                                    <Button mt={4} colorScheme="teal" onClick={addNewQuestion} leftIcon={<Icon icon="solar:add-circle-bold-duotone" />}>
+                                                        ابدأ بإضافة سؤال
+                                                    </Button>
+                                                </Box>
+                                            )}
 
-                      {trueFalseQuestions.map((q, qIdx) => (
-                        <Box key={qIdx} p={4} border="1px" borderColor="gray.200" rounded="md">
-                          <Stack spacing={3}>
-                            <HStack justify="space-between">
-                              <Text fontWeight="bold">السؤال {qIdx + 1}</Text>
-                              <IconButton
-                                icon={<Icon icon="lucide:trash-2" />}
-                                size="sm"
-                                colorScheme="red"
-                                variant="ghost"
-                                onClick={() => {
-                                  setTrueFalseQuestions(trueFalseQuestions.filter((_, i) => i !== qIdx));
-                                }}
-                                aria-label="حذف السؤال"
-                              />
-                            </HStack>
+                                            {newQuestions.map((q, qIdx) => (
+                                                <Card key={qIdx} borderRadius="xl" shadow="sm" border="1px solid" borderColor="gray.200" overflow="hidden">
+                                                    <Box bg="gray.50" px={4} py={3} borderBottom="1px solid" borderColor="gray.100">
+                                                         <Stack direction={{ base: 'column', sm: 'row' }} justify="space-between" align={{ base: 'flex-start', sm: 'center' }} spacing={3}>
+                                                            <Stack direction="row" flexWrap="wrap" align="center" spacing={2} w="full">
+                                                                <Badge colorScheme="teal" borderRadius="full" px={2}>سؤال {qIdx + 1}</Badge>
+                                                                <Select 
+                                                                    size="xs" 
+                                                                    w="auto"
+                                                                    minW="120px"
+                                                                    bg="white" 
+                                                                    value={q.questionType}
+                                                                    onChange={(e) => updateNewQuestion(qIdx, 'questionType', e.target.value)}
+                                                                >
+                                                                    <option value="mcq">اختيار من متعدد</option>
+                                                                    <option value="true_false">صحيح/خطأ</option>
+                                                                </Select>
+                                                                <Select 
+                                                                    size="xs" 
+                                                                    w="auto"
+                                                                    minW="80px"
+                                                                    bg="white" 
+                                                                    value={q.difficulty}
+                                                                    onChange={(e) => updateNewQuestion(qIdx, 'difficulty', e.target.value)}
+                                                                >
+                                                                    <option value="easy">سهل</option>
+                                                                    <option value="medium">متوسط</option>
+                                                                    <option value="hard">صعب</option>
+                                                                </Select>
+                                                            </Stack>
+                                                            <IconButton
+                                                                icon={<Icon icon="solar:trash-bin-trash-bold-duotone" />}
+                                                                size="sm"
+                                                                colorScheme="red"
+                                                                variant="ghost"
+                                                                onClick={() => setNewQuestions(newQuestions.filter((_, i) => i !== qIdx))}
+                                                                aria-label="حذف السؤال"
+                                                                alignSelf={{ base: 'flex-end', sm: 'auto' }}
+                                                            />
+                                                         </Stack>
+                                                    </Box>
+                                                    <CardBody p={5}>
+                                                        <Stack spacing={4}>
+                                                            <FormControl>
+                                                                <Textarea
+                                                                    placeholder="أدخل نص السؤال هنا..."
+                                                                    value={q.question}
+                                                                    onChange={(e) => updateNewQuestion(qIdx, 'question', e.target.value)}
+                                                                    borderRadius="lg"
+                                                                    bg="white"
+                                                                />
+                                                            </FormControl>
+                                                            <HStack align="start">
+                                                                <FormControl w="auto">
+                                                                     <Button
+                                                                        as="label"
+                                                                        htmlFor={`q-img-${qIdx}`}
+                                                                        cursor="pointer"
+                                                                        size="sm"
+                                                                        leftIcon={<Icon icon="solar:camera-minimalistic-bold-duotone" />}
+                                                                        variant="outline"
+                                                                     >
+                                                                        صورة للسؤال
+                                                                     </Button>
+                                                                     <Input type="file" id={`q-img-${qIdx}`} hidden accept="image/*" onChange={(e) => {
+                                                                         const file = e.target.files?.[0];
+                                                                         if(file) {
+                                                                             updateNewQuestion(qIdx, 'imageFile', file);
+                                                                             const reader = new FileReader();
+                                                                             reader.onloadend = () => updateNewQuestion(qIdx, 'imagePreview', reader.result);
+                                                                             reader.readAsDataURL(file);
+                                                                         }
+                                                                     }} />
+                                                                </FormControl>
+                                                                {q.imagePreview && <Image src={q.imagePreview} h="40px" borderRadius="md" />}
+                                                            </HStack>
 
-                            <FormControl>
-                              <FormLabel>نص السؤال</FormLabel>
-                              <Textarea
-                                value={q.question}
-                                onChange={(e) => updateTrueFalseQuestion(qIdx, 'question', e.target.value)}
-                                placeholder="أدخل نص السؤال"
-                              />
-                            </FormControl>
+                                                            <Divider />
 
-                            <HStack>
-                              <FormControl>
-                                <FormLabel>الإجابة الصحيحة</FormLabel>
-                                <Select
-                                  value={q.correctAnswer ? 'true' : 'false'}
-                                  onChange={(e) => updateTrueFalseQuestion(qIdx, 'correctAnswer', e.target.value === 'true')}
-                                >
-                                  <option value="true">صحيح</option>
-                                  <option value="false">خطأ</option>
-                                </Select>
-                              </FormControl>
+                                                            {q.questionType === 'mcq' && (
+                                                                <Stack spacing={3}>
+                                                                    {q.answers.map((ans, aIdx) => (
+                                                                        <HStack key={aIdx}>
+                                                                            <Tooltip label="إجابة صحيحة؟">
+                                                                                <Checkbox 
+                                                                                    isChecked={ans.isCorrect}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = [...newQuestions];
+                                                                                        updated[qIdx].answers[aIdx].isCorrect = e.target.checked;
+                                                                                        setNewQuestions(updated);
+                                                                                    }}
+                                                                                    colorScheme="green"
+                                                                                    size="lg"
+                                                                                />
+                                                                            </Tooltip>
+                                                                            <Input 
+                                                                                placeholder={`الإجابة ${aIdx + 1}`}
+                                                                                value={ans.text}
+                                                                                onChange={(e) => {
+                                                                                    const updated = [...newQuestions];
+                                                                                    updated[qIdx].answers[aIdx].text = e.target.value;
+                                                                                    setNewQuestions(updated);
+                                                                                }}
+                                                                            />
+                                                                            <IconButton icon={<Icon icon="solar:close-circle-bold-duotone" />} size="sm" variant="ghost" colorScheme="red" aria-label="remove" onClick={() => removeAnswerFromQuestion(qIdx, aIdx)} />
+                                                                        </HStack>
+                                                                    ))}
+                                                                    <Button size="sm" variant="ghost" leftIcon={<Icon icon="solar:add-circle-linear" />} onClick={() => addAnswerToQuestion(qIdx)}>إضافة خيار</Button>
+                                                                </Stack>
+                                                            )}
 
-                              <FormControl>
-                                <FormLabel>النقاط</FormLabel>
-                                <NumberInput
-                                  value={q.points}
-                                  onChange={(_, val) => updateTrueFalseQuestion(qIdx, 'points', val)}
-                                  min={1}
-                                >
-                                  <NumberInputField />
-                                  <NumberInputStepper>
-                                    <NumberIncrementStepper />
-                                    <NumberDecrementStepper />
-                                  </NumberInputStepper>
-                                </NumberInput>
-                              </FormControl>
-                            </HStack>
-                          </Stack>
+                                                            {q.questionType === 'true_false' && (
+                                                                <FormControl as="fieldset">
+                                                                    <FormLabel as="legend" fontSize="sm" fontWeight="bold">الإجابة الصحيحة:</FormLabel>
+                                                                    <RadioGroup 
+                                                                        value={q.answers.some(a => a.isCorrect && a.text === 'صحيح') ? 'صحيح' : q.answers.some(a => a.isCorrect && a.text === 'خطأ') ? 'خطأ' : ''} 
+                                                                        onChange={(val) => {
+                                                                            const updated = [...newQuestions];
+                                                                            updated[qIdx].answers = [
+                                                                                { text: 'صحيح', isCorrect: val === 'صحيح', order: 1 },
+                                                                                { text: 'خطأ', isCorrect: val === 'خطأ', order: 2 }
+                                                                            ];
+                                                                            setNewQuestions(updated);
+                                                                        }}
+                                                                    >
+                                                                        <HStack spacing={6}>
+                                                                            <Radio value="صحيح" colorScheme="green" size="lg">صحيح</Radio>
+                                                                            <Radio value="خطأ" colorScheme="red" size="lg">خطأ</Radio>
+                                                                        </HStack>
+                                                                    </RadioGroup>
+                                                                </FormControl>
+                                                            )}
+                                                        </Stack>
+                                                    </CardBody>
+                                                </Card>
+                                            ))}
+
+                                            {newQuestions.length > 0 && (
+                                                <Button size="lg" colorScheme="gray" variant="outline" borderStyle="dashed" onClick={addNewQuestion} leftIcon={<Icon icon="solar:add-circle-bold-duotone" />}>
+                                                    إضافة سؤال آخر
+                                                </Button>
+                                            )}
+                                        </Stack>
+                                    </TabPanel>
+
+                                    <TabPanel p={0} pt={4}>
+                                        <Stack spacing={5}>
+                                            <SimpleGrid columns={{base: 1, md: 2}} spacing={4}>
+                                                 <FormControl>
+                                                    <FormLabel fontSize="sm">التصفية حسب نوع السؤال</FormLabel>
+                                                    <Select value={bankFilters.questionType} onChange={(e) => setBankFilters({...bankFilters, questionType: e.target.value as any})} fontSize="sm">
+                                                        <option value="">الكل</option>
+                                                        <option value="mcq">اختيار من متعدد</option>
+                                                        <option value="true_false">صواب/خطأ</option>
+                                                    </Select>
+                                                 </FormControl>
+                                                 <FormControl>
+                                                    <FormLabel fontSize="sm">التصفية حسب الصعوبة</FormLabel>
+                                                    <Select value={bankFilters.difficulty} onChange={(e) => setBankFilters({...bankFilters, difficulty: e.target.value as any})} fontSize="sm">
+                                                        <option value="">الكل</option>
+                                                        <option value="easy">سهل</option>
+                                                        <option value="medium">متوسط</option>
+                                                        <option value="hard">صعب</option>
+                                                    </Select>
+                                                 </FormControl>
+                                            </SimpleGrid>
+
+                                            <Card variant="outline">
+                                                <CardBody p={4}>
+                                                   <Stack spacing={4}>
+                                                       <HStack>
+                                                           <Icon icon="solar:magic-stick-3-bold-duotone" color="purple.500" width="24" />
+                                                           <Heading size="sm">توليد عشوائي</Heading>
+                                                       </HStack>
+                                                       <SimpleGrid columns={3} spacing={4}>
+                                                           <FormControl>
+                                                               <FormLabel fontSize="xs">سهل ({availableQuestionCounts.easy})</FormLabel>
+                                                               <NumberInput size="sm" min={0} max={availableQuestionCounts.easy} value={generateCriteria.easy} onChange={(_, v) => setGenerateCriteria({...generateCriteria, easy: Number(v)})}>
+                                                                   <NumberInputField />
+                                                                   <NumberInputStepper><NumberIncrementStepper/><NumberDecrementStepper/></NumberInputStepper>
+                                                               </NumberInput>
+                                                           </FormControl>
+                                                           <FormControl>
+                                                               <FormLabel fontSize="xs">متوسط ({availableQuestionCounts.medium})</FormLabel>
+                                                               <NumberInput size="sm" min={0} max={availableQuestionCounts.medium} value={generateCriteria.medium} onChange={(_, v) => setGenerateCriteria({...generateCriteria, medium: Number(v)})}>
+                                                                   <NumberInputField />
+                                                                   <NumberInputStepper><NumberIncrementStepper/><NumberDecrementStepper/></NumberInputStepper>
+                                                               </NumberInput>
+                                                           </FormControl>
+                                                           <FormControl>
+                                                               <FormLabel fontSize="xs">صعب ({availableQuestionCounts.hard})</FormLabel>
+                                                               <NumberInput size="sm" min={0} max={availableQuestionCounts.hard} value={generateCriteria.hard} onChange={(_, v) => setGenerateCriteria({...generateCriteria, hard: Number(v)})}>
+                                                                   <NumberInputField />
+                                                                   <NumberInputStepper><NumberIncrementStepper/><NumberDecrementStepper/></NumberInputStepper>
+                                                               </NumberInput>
+                                                           </FormControl>
+                                                       </SimpleGrid>
+                                                   </Stack>
+                                                </CardBody>
+                                            </Card>
+
+                                            <Divider />
+                                             <Heading size="sm">أو اختر يدوياً:</Heading>
+                                            <Box maxH="500px" overflowY="auto" borderWidth="1px" borderRadius="xl" borderColor="gray.200">
+                                                {bankQuestions.map((q) => (
+                                                    <HStack key={q._id} p={3} borderBottomWidth="1px" _last={{borderBottomWidth: 0}} _hover={{bg: 'gray.50'}}>
+                                                        <Checkbox isChecked={selectedQuestions.includes(q._id)} onChange={() => toggleQuestionSelection(q._id)} />
+                                                        <Box flex={1}>
+                                                            <Text fontSize="sm" fontWeight="medium">{q.question}</Text>
+                                                            <HStack mt={1} spacing={2}>
+                                                                <Badge size="sm" colorScheme={q.difficulty === 'easy' ? 'green' : q.difficulty === 'medium' ? 'yellow' : 'red'}>{q.difficulty}</Badge>
+                                                                <Badge size="sm">{q.questionType}</Badge>
+                                                            </HStack>
+                                                        </Box>
+                                                    </HStack>
+                                                ))}
+                                                {bankQuestions.length === 0 && <Text p={4} textAlign="center" color="gray.500">لا توجد أسئلة</Text>}
+                                            </Box>
+                                        </Stack>
+                                    </TabPanel>
+
+                                    <TabPanel p={0} pt={4}>
+                                        <Card variant="outline" borderStyle="dashed" borderWidth="2px">
+                                            <CardBody textAlign="center" py={10}>
+                                                <Icon icon="solar:file-text-bold-duotone" width="64" height="64" style={{margin: '0 auto', color: '#718096'}} />
+                                                <Text mt={4} fontSize="lg" fontWeight="bold">رفع ملف الامتحان (PDF)</Text>
+                                                <Text fontSize="sm" color="gray.500" mb={6}>سيتم عرض الملف للطالب للإجابة عليه</Text>
+                                                
+                                                <FormControl>
+                                                    <Input 
+                                                        type="file" 
+                                                        accept="application/pdf" 
+                                                        hidden 
+                                                        id="pdf-upload"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if(file) {
+                                                                setPdfFile(file);
+                                                                setPdfPreview(file.name);
+                                                            }
+                                                        }} 
+                                                    />
+                                                    <Stack align="center" spacing={3}>
+                                                        <Button as="label" htmlFor="pdf-upload" colorScheme="teal" cursor="pointer" leftIcon={<Icon icon="solar:upload-minimalistic-bold-duotone"/>}>
+                                                            {pdfFile ? 'تغيير الملف' : 'اختر ملف PDF'}
+                                                        </Button>
+                                                        {pdfPreview && (
+                                                            <HStack bg="teal.50" px={4} py={2} borderRadius="md">
+                                                                <Icon icon="solar:document-bold" color="teal.500" />
+                                                                <Text fontSize="sm" color="teal.700" noOfLines={1}>{typeof pdfPreview === 'string' && (pdfPreview.startsWith('http') || pdfPreview.startsWith('/')) ? 'ملف حالي' : pdfPreview}</Text>
+                                                            </HStack>
+                                                        )}
+                                                    </Stack>
+                                                </FormControl>
+                                            </CardBody>
+                                        </Card>
+                                    </TabPanel>
+                                </TabPanels>
+                            </Tabs>
                         </Box>
-                      ))}
                     </Stack>
-                  </TabPanel>
-                </TabPanels>
-              </Tabs>
-
-              <Divider />
-
-              {/* Exam Settings */}
-              <Stack spacing={4}>
-                <Heading size="md">إعدادات الامتحان</Heading>
-
-                <HStack>
-                  <FormControl>
-                    <FormLabel>مدة الامتحان (دقيقة)</FormLabel>
-                    <NumberInput
-                      value={formData.settings?.duration || 0}
-                      onChange={(_, val) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, duration: val }
-                      })}
-                      min={0}
-                    >
-                      <NumberInputField />
-                      <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                      </NumberInputStepper>
-                    </NumberInput>
-                  </FormControl>
-
-                  <FormControl>
-                    <FormLabel>درجة النجاح (%)</FormLabel>
-                    <NumberInput
-                      value={formData.settings?.passingScore || 50}
-                      onChange={(_, val) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, passingScore: val }
-                      })}
-                      min={0}
-                      max={100}
-                    >
-                      <NumberInputField />
-                      <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                      </NumberInputStepper>
-                    </NumberInput>
-                  </FormControl>
-
-                  <FormControl>
-                    <FormLabel>الحد الأقصى للمحاولات</FormLabel>
-                    <NumberInput
-                      value={formData.settings?.maxAttempts || 0}
-                      onChange={(_, val) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, maxAttempts: val }
-                      })}
-                      min={0}
-                    >
-                      <NumberInputField />
-                      <NumberInputStepper>
-                        <NumberIncrementStepper />
-                        <NumberDecrementStepper />
-                      </NumberInputStepper>
-                    </NumberInput>
-                    <Text fontSize="xs" color="gray.500">0 = غير محدود</Text>
-                  </FormControl>
-                </HStack>
-
-                <Stack>
-                  <FormControl display="flex" alignItems="center">
-                    <FormLabel mb={0}>إظهار النتائج</FormLabel>
-                    <Switch
-                      isChecked={formData.settings?.showResults}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, showResults: e.target.checked }
-                      })}
-                    />
-                  </FormControl>
-
-                  <FormControl display="flex" alignItems="center">
-                    <FormLabel mb={0}>إظهار الإجابات الصحيحة</FormLabel>
-                    <Switch
-                      isChecked={formData.settings?.showCorrectAnswers}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, showCorrectAnswers: e.target.checked }
-                      })}
-                    />
-                  </FormControl>
-
-                  <FormControl display="flex" alignItems="center">
-                    <FormLabel mb={0}>السماح بإعادة المحاولة</FormLabel>
-                    <Switch
-                      isChecked={formData.settings?.allowRetake}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, allowRetake: e.target.checked }
-                      })}
-                    />
-                  </FormControl>
-
-                  <FormControl display="flex" alignItems="center">
-                    <FormLabel mb={0}>خلط الأسئلة</FormLabel>
-                    <Switch
-                      isChecked={formData.settings?.shuffleQuestions}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, shuffleQuestions: e.target.checked }
-                      })}
-                    />
-                  </FormControl>
-
-                  <FormControl display="flex" alignItems="center">
-                    <FormLabel mb={0}>خلط الإجابات</FormLabel>
-                    <Switch
-                      isChecked={formData.settings?.shuffleAnswers}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, shuffleAnswers: e.target.checked }
-                      })}
-                    />
-                  </FormControl>
-
-                  <FormControl display="flex" alignItems="center">
-                    <FormLabel mb={0}>إلزام الإجابة على جميع الأسئلة</FormLabel>
-                    <Switch
-                      isChecked={formData.settings?.requireAll}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        settings: { ...formData.settings!, requireAll: e.target.checked }
-                      })}
-                    />
-                  </FormControl>
-                </Stack>
-              </Stack>
-            </Stack>
+                </Grid>
+            </Container>
           </ModalBody>
-
-          <ModalFooter gap={3}>
-            <Button variant="ghost" onClick={onClose}>
-              إلغاء
-            </Button>
-            <Button
-              colorScheme="orange"
-              variant="outline"
-              onClick={() => handleSubmit('draft')}
-              isLoading={loading}
-              isDisabled={loading}
-            >
-              حفظ كمسودة
-            </Button>
-            <Button
-              colorScheme="blue"
-              onClick={() => handleSubmit('published')}
-              isLoading={loading}
-              isDisabled={loading}
-            >
-              نشر الامتحان
-            </Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </>
   );
 }
-

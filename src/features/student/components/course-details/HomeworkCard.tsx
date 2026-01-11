@@ -56,7 +56,7 @@ export default function HomeworkCard({ hw, isLocked, onOpenSubmit }: HomeworkCar
                 <Center position="absolute" inset={0} bg="rgba(0,0,0,0.02)" zIndex={1} backdropFilter="blur(1px)">
                     <Badge py={1} px={2} rounded="md" colorScheme="orange" display="flex" alignItems="center" gap={1}>
                         <Lock size={12} />
-                        <Text as="span">الدرس مقفول</Text>
+                        <Text as="span">مقفل (أكمل السابق)</Text>
                     </Badge>
                 </Center>
             )}

@@ -24,6 +24,7 @@ export interface ICreateQuestionBankRequest {
   tags?: string[];
   points?: number;
   estimatedTime?: number;
+  imageUrl?: string;
 }
 
 export interface IUpdateQuestionBankRequest {
@@ -40,6 +41,7 @@ export interface IUpdateQuestionBankRequest {
   points?: number;
   estimatedTime?: number;
   isActive?: boolean;
+  imageUrl?: string;
 }
 
 export interface IGetQuestionBankQuery {
@@ -88,6 +90,7 @@ export interface IQuestionBankResponse {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  imageUrl?: string;
 }
 
 export interface IQuestionBankListResponse {

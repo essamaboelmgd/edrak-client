@@ -1,8 +1,8 @@
-import { TabPanel, TabPanels, Box, Text, Center, Stack, Icon, SimpleGrid, useToast } from "@chakra-ui/react";
+import { TabPanel, TabPanels, Box, Text, Center, Stack, Icon, SimpleGrid, useToast, Button } from "@chakra-ui/react";
 import { BookOpen } from "lucide-react";
 import LessonDetails from "./LessonDetails";
 import LessonList from "./LessonList";
-import { IStudentCourse, IStudentCourseSection, IStudentLesson, IStudentHomework } from "../../types";
+import { IStudentCourse, IStudentCourseSection, IStudentHomework } from "../../types";
 import { ExamCard } from "./ExamCard";
 import HomeworkCard from "./HomeworkCard";
 import SubmitHomeworkModal from "./SubmitHomeworkModal";
@@ -83,7 +83,33 @@ export default function CourseTabPanels({
 
                             {/* Main Content (Video/Exam/etc) */}
                             <Box flex={1} w="100%">
-                                {selectedContent ? (
+                                {selectedContent ? ((() => {
+                                    // Calculate Lock Status for Selected Content
+                                    // This logic mirrors LessonList.tsx for consistency
+                                    let isSequenceLocked = false;
+                                    
+                                    // Flatten all items
+                                    const allItems = sections.flatMap(s => ((s.items && s.items.length > 0) ? s.items : (s.lessons || [])) as any[]);
+                                    
+                                    for (const item of allItems) {
+                                        if (item._id === selectedContent._id) break; // Reached current item
+                                        
+                                        // Check if this previous item breaks the sequence
+                                        const settings = item.settings || {};
+                                        const isMandatory = item.isMandatory || settings.requireAll || settings.requiredBeforeNextLesson;
+                                        const isCompleted = item.isCompleted || item.isPassed || item.isSubmitted;
+                                        
+                                        if (isMandatory && !isCompleted) {
+                                            isSequenceLocked = true;
+                                            break;
+                                        }
+                                    }
+
+                                    // Strict Sequential Locking as per user request
+                                    // Ignored explicitLock and subscriptionLock for now to ensure we start "Open" and only lock based on sequence.
+                                    const isLocked = isSequenceLocked;
+
+                                    return (
                                     <>
                                         {selectedContent.type === 'lesson' && (
                                             <LessonDetails 
@@ -91,19 +117,33 @@ export default function CourseTabPanels({
                                                 course={course} 
                                                 isSubscribed={isSubscribed} 
                                                 exams={exams}
+                                                isLocked={isLocked}
                                             />
                                         )}
                                         {selectedContent.type === 'exam' && (
-                                            <Box bg="white" p={8} borderRadius="xl" shadow="sm" textAlign="center">
+                                            <Box bg="white" p={8} borderRadius="xl" shadow="sm" textAlign="center" position="relative" overflow="hidden">
+                                                {isLocked && (
+                                                    <Center position="absolute" inset={0} bg="whiteAlpha.800" zIndex={10}>
+                                                        <Stack align="center" spacing={3}>
+                                                            <Icon as={BookOpen} boxSize={10} color="orange.400" />
+                                                            <Text fontWeight="bold" fontSize="lg">الامتحان مقفل</Text>
+                                                            <Text color="gray.600">يجب إكمال المتطلبات السابقة من دروس وواجبات أولاً</Text>
+                                                        </Stack>
+                                                    </Center>
+                                                )}
                                                 <Text fontSize="xl" fontWeight="bold" mb={4}>{selectedContent.title}</Text>
                                                 <Text color="gray.600" mb={6}>{selectedContent.description || 'امتحان شامل'}</Text>
                                                 <Box p={4} bg="orange.50" color="orange.700" borderRadius="lg" mb={6}>
-                                                    تنبيه: هذا الامتحان {selectedContent.isMandatory ? 'إلزامي' : 'اختياري'} ويجب اجتيازه للمتابعة.
+                                                    تنبيه: هذا الامتحان {selectedContent.isMandatory || selectedContent.settings?.requireAll ? 'إلزامي' : 'اختياري'} ويجب اجتيازه للمتابعة.
                                                 </Box>
                                                 <Box p={4} border="1px dashed" borderColor="gray.300" borderRadius="lg">
                                                     <Text mb={2}>مكون الامتحان (سيتم إضافته قريباً)</Text>
                                                     <Text fontSize="sm" color="gray.500">Duration: {selectedContent.settings?.duration || 0} mins | Pass: {selectedContent.settings?.passingScore || 50}%</Text>
                                                 </Box>
+                                                {/* Start Exam Button Placeholder */}
+                                                <Button mt={4} colorScheme="blue" isDisabled={isLocked}>
+                                                    ابدأ الامتحان
+                                                </Button>
                                             </Box>
                                         )}
                                         {selectedContent.type === 'homework' && (
@@ -111,13 +151,14 @@ export default function CourseTabPanels({
                                                 <Text fontSize="xl" fontWeight="bold">واجب: {selectedContent.title}</Text>
                                                 <HomeworkCard 
                                                     hw={selectedContent} 
-                                                    isLocked={!isSubscribed && !selectedContent.isFree} // Basic lock check
+                                                    isLocked={isLocked} 
                                                     onOpenSubmit={handleOpenSubmit}
                                                 />
                                             </Box>
                                         )}
                                     </>
-                                ) : (
+                                    );
+                                })()) : (
                                     <Center h="400px" bg="gray.50" borderRadius="xl" border="1px dashed" borderColor="gray.300">
                                         <Stack spacing={4} align="center">
                                             <Icon as={BookOpen} boxSize={12} color="gray.300" />

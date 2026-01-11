@@ -129,6 +129,15 @@ class CourseService {
         );
         return response.data;
     }
+    /**
+     * Get lesson sections for a specific course
+     */
+    async getLessonSections(courseId: string): Promise<ApiResponse<{ lessonSections: any[], total: number }>> {
+        const response = await axiosInstance.get<ApiResponse<{ lessonSections: any[], total: number }>>(
+            `${this.BASE_PATH}/${courseId}/lesson-sections`
+        );
+        return response.data;
+    }
 }
 
 // Export singleton instance

@@ -31,15 +31,25 @@ export default function LessonList({ sections, selectedContentId, onContentClick
         }
     };
 
-
+    // Sequential Locking Calculation
+    // We need to determine which items are locked because a previous mandatory item is incomplete.
+    let isGlobalSequenceLocked = false;
+    // Helper to check if an item should trigger a lock for future items
+    const checkIsMandatoryAndIncomplete = (item: any) => {
+        // Mandatory condition: Check settings for requireAll (Exam) or equivalent
+        const settings = item.settings || {};
+        const isMandatory = item.isMandatory || settings.requireAll || settings.requiredBeforeNextLesson;
+        const isCompleted = item.isCompleted || item.isPassed || item.isSubmitted;
+        return isMandatory && !isCompleted;
+    };
 
     return (
         <Accordion allowMultiple defaultIndex={[0]} bg="white" borderRadius="lg" overflow="hidden" boxShadow="sm" border="1px" borderColor="gray.200">
             {sections.map((section) => {
-                // Determine items source: Unified 'items' or legacy 'lessons'
-                // Filter to show ONLY lessons in the sidebar (Legacy Parity)
+                // Determine items source
                 const allItems: any[] = (section.items && section.items.length > 0) ? section.items : (section.lessons || []);
-                const items = allItems.filter((i: any) => i.type === 'lesson' || !i.type);
+                // Keep all items for display
+                const items = allItems;
                 
                 return (
                     <AccordionItem key={section._id} border="none" borderBottom="1px" borderColor="gray.100" _last={{ borderBottom: "none" }}>
@@ -56,18 +66,29 @@ export default function LessonList({ sections, selectedContentId, onContentClick
                         </h2>
                         <AccordionPanel pb={0} px={0}>
                             <List spacing={0}>
-                                {items.map((item: any) => {
-                                    const isSelected = selectedContentId === item._id;
-                                    // Locking logic: Backend should provide 'isLocked' in items. 
-                                    // For legacy 'lessons', we use isSubscribed && !isFree.
-                                    // If item has `isLocked` (from backend refactor), use it.
-                                    // Otherwise fallback to basic subscription check.
-                                    const explicitLock = item.isLocked; 
-                                    const subscriptionLock = !isSubscribed && !item.isFree;
-                                    const isLocked = explicitLock !== undefined ? explicitLock : subscriptionLock;
+                                {allItems.map((item: any) => {
+                                    // 1. Checks current lock state for this item
+                                    const sequenceLocked = isGlobalSequenceLocked;
+                                    
+                                    // 2. Check if this item triggers a lock for FUTURE items
+                                    if (checkIsMandatoryAndIncomplete(item)) {
+                                        isGlobalSequenceLocked = true;
+                                    }
 
+                                    // 3. Render all items
+                                    // if (item.type !== 'lesson' && item.type) return null;
+
+                                    // Determine lock status
+                                    // User requested to make everything open by default and ONLY lock based on sequence
+                                    
+                                    // STRICT SEQUENTIAL LOCKING ONLY as per user request
+                                    // We ignore explicitLock and subscriptionLock for the 'isLocked' state to ensure
+                                    // we only lock subsequent items if a mandatory item is incomplete.
+                                    const isLocked = sequenceLocked;
+
+                                    const isSelected = selectedContentId === item._id;
                                     const isCompleted = item.isCompleted || item.isPassed || item.isSubmitted;
-                                    const isExam = item.type === 'exam';
+                                    const isMandatory = item.isMandatory || item.settings?.requireAll || item.settings?.requiredBeforeNextLesson;
 
                                     return (
                                         <ListItem
@@ -81,7 +102,7 @@ export default function LessonList({ sections, selectedContentId, onContentClick
                                                 textAlign="start"
                                                 onClick={() => !isLocked && onContentClick(item)}
                                                 p={3}
-                                                rounded="md" // rounded={5}
+                                                rounded="md"
                                                 bg={isSelected ? "blue.50" : "gray.50"}
                                                 border={isSelected ? "2px solid" : "1px solid"}
                                                 borderColor={isSelected ? "blue.300" : "gray.300"}
@@ -107,12 +128,12 @@ export default function LessonList({ sections, selectedContentId, onContentClick
                                                         {item.title}
                                                     </Text>
 
-                                                    {/* Right side: Duration or Progress */}
                                                     <Stack align="end" spacing={0}>
-                                                         {item.isFree && !isSubscribed && (
+                                                         {item.isFree && !isSubscribed && !isLocked && (
                                                             <Badge colorScheme="green" fontSize="xs" px={1.5} mb={1}>مجاني</Badge>
                                                         )}
-                                                         {isExam && item.isMandatory && (
+                                                         {/* Show mandatory badge for any mandatory item */}
+                                                         {isMandatory && (
                                                             <Badge colorScheme="red" fontSize="xs" px={1.5} mb={1}>إلزامي</Badge>
                                                         )}
                                                         <HStack fontSize="xs" color="gray.500">
@@ -120,18 +141,20 @@ export default function LessonList({ sections, selectedContentId, onContentClick
                                                                 <Text>{item.duration || 0} دقيقة</Text>
                                                             )}
                                                              {item.type === 'exam' && (
-                                                                <Text>{item.questionsCount || 0} سؤال</Text>
+                                                                <Text>{item.questionsCount || item.questions?.length || 0} سؤال</Text>
+                                                            )}
+                                                             {item.type === 'homework' && (
+                                                                <Text>{item.totalPoints || 0} درجة</Text>
                                                             )}
                                                         </HStack>
                                                     </Stack>
                                                 </HStack>
 
-                                                {/* Lock Overlay */}
                                                 {isLocked && (
                                                     <Center position="absolute" inset={0} bg="whiteAlpha.600" rounded="md">
                                                        <Badge colorScheme="orange" py={1} px={2} rounded="md" display="flex" alignItems="center" gap={1}>
                                                             <Icon as={Lock} boxSize={3} />
-                                                            يجب الاشتراك
+                                                            أكمل السابق أولاً
                                                        </Badge>
                                                     </Center>
                                                 )}

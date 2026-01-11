@@ -20,6 +20,7 @@ interface AdminQuestionFormProps {
     onSave: (data: ICreateQuestionBankRequest | IUpdateQuestionBankRequest) => Promise<void>;
     onCancel: () => void;
     isLoading?: boolean;
+    isTeacher?: boolean;
 }
 
 interface QuestionFormData {
@@ -38,7 +39,7 @@ interface QuestionFormData {
     estimatedTime: number;
 }
 
-export default function AdminQuestionForm({ question, teachers, onSave, onCancel, isLoading = false }: AdminQuestionFormProps) {
+export default function AdminQuestionForm({ question, teachers, onSave, onCancel, isLoading = false, isTeacher = false }: AdminQuestionFormProps): JSX.Element {
     const [tagInput, setTagInput] = useState('');
     const [selectedTeacherId, setSelectedTeacherId] = useState<string>(question?.teacher?._id || '');
     const [selectedCourseId, setSelectedCourseId] = useState<string>(question?.course?._id || '');
@@ -83,13 +84,15 @@ export default function AdminQuestionForm({ question, teachers, onSave, onCancel
 
     // Fetch courses for selected teacher
     const { data: coursesData, isLoading: coursesLoading } = useQuery({
-        queryKey: ['adminCourses', selectedTeacherId],
-        queryFn: () => coursesService.getAllCourses({
-            page: 1,
-            limit: 1000,
-            teacher: selectedTeacherId,
-        }),
-        enabled: !!selectedTeacherId && !isGeneral,
+        queryKey: isTeacher ? ['teacherCourses'] : ['adminCourses', selectedTeacherId],
+         queryFn: () => isTeacher 
+            ? courseService.getMyCourses({ limit: 100 }) 
+            : coursesService.getAllCourses({
+                page: 1,
+                limit: 1000,
+                teacher: selectedTeacherId,
+            }),
+        enabled: isTeacher || (!!selectedTeacherId && !isGeneral),
     });
 
     // Fetch lessons for selected course
@@ -189,7 +192,7 @@ export default function AdminQuestionForm({ question, teachers, onSave, onCancel
 
     const onSubmit = async (data: QuestionFormData) => {
         // Validate teacher for new questions
-        if (!question && !data.teacher) {
+        if (!question && !data.teacher && !isTeacher) {
             alert('يجب اختيار المدرس');
             return;
         }
@@ -277,11 +280,12 @@ export default function AdminQuestionForm({ question, teachers, onSave, onCancel
 
             await onSave(dataToSave);
         };
+    };
 
         return (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" dir="rtl">
                 {/* Teacher Selection - Only for admin creating new questions */}
-                {!question && (
+                {!question && !isTeacher && (
                     <div className="p-4 bg-red-50 rounded-xl border border-red-200">
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                             المدرس *
@@ -544,8 +548,8 @@ export default function AdminQuestionForm({ question, teachers, onSave, onCancel
                     </label>
                 </div>
 
-                {/* Course/Lesson Selection - Only show if not general and teacher is selected */}
-                {!isGeneral && watchedTeacher && (
+                {/* Course/Lesson Selection - Only show if not general and (teacher is selected OR isTeacher) */}
+                {!isGeneral && (watchedTeacher || isTeacher) && (
                     <div className="space-y-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
                         <h3 className="text-sm font-semibold text-gray-700 mb-3">ربط السؤال</h3>
 
@@ -641,5 +645,3 @@ export default function AdminQuestionForm({ question, teachers, onSave, onCancel
             </form>
         );
     }
-
-}

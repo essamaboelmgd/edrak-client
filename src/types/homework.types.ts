@@ -55,6 +55,7 @@ export interface IHomeworkSettings {
     showSolutionAlways: boolean;
     allowMultipleAttempts: boolean;
     maxAttempts: number;
+    requiredBeforeNextLesson?: boolean;
 }
 
 export interface IGetHomeworkQuery {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import {
     Box,
     Button,
@@ -70,6 +71,7 @@ export default function TrialCountdown() {
     const [isMinimized, setIsMinimized] = useState(!!dismissed);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const hasInitialized = useRef(false);
+    const constraintsRef = useRef(null);
 
     useEffect(() => {
         // Only show for teachers in trial
@@ -138,7 +140,26 @@ export default function TrialCountdown() {
     if (isMinimized) {
         return (
             <>
+                {/* Constraints container - invisible and allows clicks to pass through */}
+                <Box 
+                    ref={constraintsRef} 
+                    position="fixed" 
+                    top={0} 
+                    left={0} 
+                    right={0} 
+                    bottom={0} 
+                    zIndex={0}
+                    pointerEvents="none" 
+                />
+
                 <Box
+                    as={motion.div}
+                    drag
+                    dragConstraints={constraintsRef}
+                    dragElastic={0.2}
+                    dragMomentum={false}
+                    whileHover={{ cursor: 'grab' }}
+                    whileTap={{ cursor: 'grabbing' }}
                     position="fixed"
                     bottom={4}
                     right={4}
@@ -150,13 +171,10 @@ export default function TrialCountdown() {
                     borderColor="orange.300"
                     p={3}
                     minW="200px"
-                    _hover={{
-                        boxShadow: '2xl',
-                        transform: 'translateY(-2px)',
+                    transition="box-shadow 0.2s"
+                    onClick={() => {
+                         handleOpenFromMinimized();
                     }}
-                    transition="all 0.2s"
-                    cursor="pointer"
-                    onClick={handleOpenFromMinimized}
                 >
                     <HStack spacing={3} alignItems="center">
                         <Box

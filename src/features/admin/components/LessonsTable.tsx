@@ -31,9 +31,10 @@ interface LessonsTableProps {
   onToggleStatus?: (lessonId: string, currentStatus: string) => void;
   onDelete?: (lessonId: string) => void;
   loading?: boolean;
+  basePath?: string;
 }
 
-export default function LessonsTable({ lessons, onToggleStatus, onDelete, loading }: LessonsTableProps) {
+export default function LessonsTable({ lessons, onToggleStatus, onDelete, loading, basePath = '/admin/lessons' }: LessonsTableProps) {
   const navigate = useNavigate();
   const getStatusBadge = (lesson: ILessonAdmin) => {
     if (lesson.status === 'active' || lesson.status === 'published') {
@@ -114,7 +115,7 @@ export default function LessonsTable({ lessons, onToggleStatus, onDelete, loadin
                 <Tr 
                   key={lesson._id}
                   _hover={{ bg: 'gray.50', cursor: 'pointer' }}
-                  onClick={() => navigate(`/admin/lessons/${lesson._id}`)}
+                  onClick={() => navigate(`${basePath}/${lesson._id}`)}
                 >
                   <Td>
                     <HStack spacing={3}>

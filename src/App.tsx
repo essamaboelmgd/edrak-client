@@ -44,6 +44,8 @@ const TeacherEditExam = lazy(() => import('@/pages/teacher/EditExam'))
   const TeacherHomeworks = lazy(() => import('@/pages/teacher/Homeworks'))
   const TeacherHomeworkSubmissions = lazy(() => import('@/pages/teacher/HomeworkSubmissions'))
   const MyStudents = lazy(() => import('@/pages/teacher/MyStudents'))
+const TeacherLessonDetails = lazy(() => import('./pages/teacher/LessonDetails'));
+const TeacherLessons = lazy(() => import('@/pages/teacher/Lessons'))
 const PlatformSubscriptions = lazy(() => import('@/pages/teacher/PlatformSubscriptions'))
 const CreateSubscription = lazy(() => import('@/pages/teacher/CreateSubscription'))
 const StudentSubscriptions = lazy(() => import('@/pages/teacher/StudentSubscriptions'))
@@ -225,7 +227,8 @@ function AppRoutes({ subdomain }: { subdomain: string | null }) {
           <Route path="courses/sections" element={<CourseSections />} />
           <Route path="courses/sections/:sectionId" element={<CoursesList />} />
           <Route path="courses/:courseId/builder" element={<CourseBuilder />} />
-          <Route path="lessons" element={<div>Teacher Lessons Page</div>} />
+          <Route path="lessons" element={<TeacherLessons />} />
+          <Route path="lessons/:id" element={<TeacherLessonDetails />} />
           <Route path="exams" element={<TeacherExams />} />
           <Route path="exams/:id" element={<TeacherViewExam />} />
           <Route path="exams/:id/edit" element={<TeacherEditExam />} />

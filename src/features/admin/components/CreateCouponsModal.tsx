@@ -61,7 +61,7 @@ export default function CreateCouponsModal({
     const [courses, setCourses] = useState<any[]>([]);
     const [lessons, setLessons] = useState<any[]>([]);
     const [courseSections, setCourseSections] = useState<any[]>([]);
-    const [lessonSections] = useState<any[]>([]);
+    const [lessonSections, setLessonSections] = useState<any[]>([]);
 
     // Fetch courses
     useEffect(() => {
@@ -117,6 +117,59 @@ export default function CreateCouponsModal({
         };
         fetchLessons();
     }, [selectedCourse, targetType]);
+
+    // Fetch lesson sections when course is selected (for lessonSection target)
+    useEffect(() => {
+        const fetchLessonSections = async () => {
+            if (!selectedCourse || targetType !== 'lessonSection') {
+                setLessonSections([]);
+                setSelectedLessonSection('');
+                return;
+            }
+            try {
+                const response = await courseService.getLessonSections(selectedCourse);
+                if (response.success && response.data) {
+                    // Start: Fix backend response mapping if needed, assuming data.lessonSections
+                    setLessonSections(response.data.lessonSections || []);
+                }
+            } catch (error) {
+                console.error('Error fetching lesson sections:', error);
+                setLessonSections([]);
+            }
+        };
+        fetchLessonSections();
+    }, [selectedCourse, targetType]);
+
+    const getSelectedPrice = (type: CouponTargetType) => {
+        let price = 0;
+        let item: any = null;
+
+        switch (type) {
+            case 'course':
+                item = courses.find(c => c._id === selectedCourse);
+                break;
+            case 'lesson':
+                item = lessons.find(l => l._id === selectedLesson);
+                break;
+            case 'courseSection':
+                item = courseSections.find(cs => cs._id === selectedCourseSection);
+                break;
+            case 'lessonSection':
+                item = lessonSections.find(ls => ls._id === selectedLessonSection);
+                break;
+        }
+
+        if (item) {
+            price = item.price || 0;
+        }
+        return price;
+    };
+
+    const renderPriceBadge = (price: number) => (
+        <Badge colorScheme="green" variant="subtle" mt={2}>
+            السعر الحالي: {price.toLocaleString()} ج.م
+        </Badge>
+    );
 
     const resetForm = () => {
         setTargetType('course');
@@ -285,6 +338,7 @@ export default function CreateCouponsModal({
                                         </option>
                                     ))}
                                 </Select>
+                                {selectedCourse && renderPriceBadge(getSelectedPrice('course'))}
                             </FormControl>
                         )}
 
@@ -321,6 +375,7 @@ export default function CreateCouponsModal({
                                             </option>
                                         ))}
                                     </Select>
+                                    {selectedLesson && renderPriceBadge(getSelectedPrice('lesson'))}
                                 </FormControl>
                             </>
                         )}
@@ -339,24 +394,25 @@ export default function CreateCouponsModal({
                                         </option>
                                     ))}
                                 </Select>
+                                {selectedCourseSection && renderPriceBadge(getSelectedPrice('courseSection'))}
                             </FormControl>
                         )}
 
                         {targetType === 'lessonSection' && (
                             <>
                                 <FormControl isRequired>
-                                    <FormLabel>قسم الكورسات</FormLabel>
+                                    <FormLabel>الكورس</FormLabel>
                                     <Select
-                                        value={selectedCourseSection}
+                                        value={selectedCourse}
                                         onChange={(e) => {
-                                            setSelectedCourseSection(e.target.value);
+                                            setSelectedCourse(e.target.value);
                                             setSelectedLessonSection('');
                                         }}
-                                        placeholder="اختر قسم الكورسات"
+                                        placeholder="اختر الكورس"
                                     >
-                                        {courseSections.map((section) => (
-                                            <option key={section._id} value={section._id}>
-                                                {section.name || section.title}
+                                        {courses.map((course) => (
+                                            <option key={course._id} value={course._id}>
+                                                {course.title}
                                             </option>
                                         ))}
                                     </Select>
@@ -367,7 +423,7 @@ export default function CreateCouponsModal({
                                         value={selectedLessonSection}
                                         onChange={(e) => setSelectedLessonSection(e.target.value)}
                                         placeholder="اختر قسم الدروس"
-                                        isDisabled={!selectedCourseSection}
+                                        isDisabled={!selectedCourse}
                                     >
                                         {lessonSections.map((section) => (
                                             <option key={section._id} value={section._id}>
@@ -375,6 +431,7 @@ export default function CreateCouponsModal({
                                             </option>
                                         ))}
                                     </Select>
+                                    {selectedLessonSection && renderPriceBadge(getSelectedPrice('lessonSection'))}
                                 </FormControl>
                             </>
                         )}

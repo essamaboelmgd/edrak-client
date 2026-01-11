@@ -7,16 +7,30 @@ import { useNavigate } from 'react-router-dom';
 interface ExamCardProps {
     exam: IStudentExam;
     isSubscribed?: boolean;
+    isLocked?: boolean;
 }
 
-export const ExamCard = ({ exam, isSubscribed = true }: ExamCardProps) => {
+export const ExamCard = ({ exam, isLocked = false }: ExamCardProps) => {
     const navigate = useNavigate();
 
+    // Combined lock state
+    // User requested strictly sequential locking. The parent calculates 'isLocked' based on sequence.
+    // We strictly use that, ignoring subscription status here.
+    const isActuallyLocked = isLocked;
+
     return (
-        <Card boxShadow="md" borderRadius="xl" overflow="hidden" _hover={{ transform: 'translateY(-4px)', transition: 'all 0.2s' }}>
+        <Card boxShadow="md" borderRadius="xl" overflow="hidden" _hover={!isActuallyLocked ? { transform: 'translateY(-4px)', transition: 'all 0.2s' } : {}} opacity={isActuallyLocked ? 0.7 : 1}>
             <Box bg={exam.status === 'published' ? 'blue.500' : 'gray.500'} h="6px" />
-            <CardBody>
-                <Stack spacing={4}>
+            <CardBody position="relative">
+                 {isActuallyLocked && (
+                    <Box position="absolute" inset={0} bg="whiteAlpha.600" zIndex={1} display="flex" alignItems="center" justifyContent="center">
+                        <Badge colorScheme="orange" py={1} px={3} borderRadius="md" display="flex" alignItems="center" gap={2}>
+                            <Icon as={AlertCircle} />
+                            مقفل (أكمل السابق)
+                        </Badge>
+                    </Box>
+                )}
+                <Stack spacing={4} filter={isActuallyLocked ? 'blur(1px)' : 'none'}>
                     <Flex justify="space-between" align="start">
                         <Badge colorScheme="purple" px={2} py={1} borderRadius="full">
                             {exam.course?.title || 'عام'}
@@ -49,7 +63,7 @@ export const ExamCard = ({ exam, isSubscribed = true }: ExamCardProps) => {
                         colorScheme={(exam.myAttempts && exam.myAttempts > 0) ? 'green' : 'blue'}
                         variant={(exam.myAttempts && exam.myAttempts > 0) ? 'outline' : 'solid'}
                         width="full"
-                        isDisabled={(!isSubscribed && !exam.isFree)}
+                        isDisabled={isActuallyLocked}
                         onClick={() => {
                             if (exam.myAttempts && exam.myAttempts > 0) {
                                 navigate(`/student/exams/${exam._id}/results`);
@@ -58,7 +72,8 @@ export const ExamCard = ({ exam, isSubscribed = true }: ExamCardProps) => {
                             }
                         }}
                     >
-                        {!isSubscribed && !exam.isFree ? 'اشترك الان' : ((exam.myAttempts && exam.myAttempts > 0) ? 'عرض النتائج' : 'ابدأ الاختبار')}
+                        {/* Always show exam actions unless locked by sequence. Ignored subscription check as requested */}
+                        {((exam.myAttempts && exam.myAttempts > 0) ? 'عرض النتائج' : 'ابدأ الاختبار')}
                     </Button>
                 </Stack>
             </CardBody>

@@ -1,7 +1,6 @@
 import { Box, Card, CardBody, CardHeader, Heading, Stack, Text, Button, Icon, HStack, Link } from "@chakra-ui/react";
 import { Lock, FileText, Download } from "lucide-react";
 import { IStudentLesson, IStudentCourse, IStudentExam } from "../../types";
-import { useNavigate } from "react-router-dom";
 import DisplayLessonExams from "./DisplayLessonExams";
 
 import VideoPlayer from "@/components/ui/VideoPlayer";
@@ -15,11 +14,13 @@ interface LessonDetailsProps {
     course: IStudentCourse;
     isSubscribed: boolean;
     exams?: IStudentExam[];
+    isLocked?: boolean;
 }
 
-export default function LessonDetails({ lesson, course, isSubscribed, exams = [] }: LessonDetailsProps) {
-    const navigate = useNavigate();
-    const isLocked = !isSubscribed && !lesson.isFree;
+export default function LessonDetails({ lesson, isSubscribed = false, exams = [], isLocked = false }: LessonDetailsProps) {
+    // User requested strictly sequential locking. The parent calculates 'isLocked' based on sequence.
+    // We strictly use that, ignoring subscription status here.
+    const isActuallyLocked = isLocked;
 
     // Use imported VideoPlayer if available, else fallback. 
     // Since I don't recall seeing VideoPlayer in new structure, I'll use a basic implementation or check imports later.
@@ -35,7 +36,7 @@ export default function LessonDetails({ lesson, course, isSubscribed, exams = []
                     <Stack spacing={6}>
                         {lesson.videoUrl && (
                             <Box>
-                                {isLocked ? (
+                                {isActuallyLocked ? (
                                     <Box 
                                         bg="gray.50" 
                                         p={12} 
@@ -50,14 +51,10 @@ export default function LessonDetails({ lesson, course, isSubscribed, exams = []
                                             </Box>
                                             <Box>
                                                 <Text fontWeight="bold" fontSize="lg" color="gray.700">المحتوى مقفول</Text>
-                                                <Text color="gray.500">يجب الاشتراك في الكورس لمشاهدة الفيديو</Text>
+                                                <Text color="gray.500">
+                                                    يجب إكمال المتطلبات السابقة (امتحانات/واجبات) لفتح هذا الدرس
+                                                </Text>
                                             </Box>
-                                            <Button 
-                                                colorScheme="blue" 
-                                                onClick={() => navigate(`/student/courses/${course._id}/subscribe`)}
-                                            >
-                                                اشترك الآن
-                                            </Button>
                                         </Stack>
                                     </Box>
                                 ) : (

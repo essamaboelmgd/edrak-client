@@ -8,9 +8,10 @@ interface LessonCardProps {
   lesson: ILessonAdmin;
   onToggleStatus?: (lessonId: string, currentStatus: string) => void;
   onDelete?: (lessonId: string) => void;
+  basePath?: string;
 }
 
-export default function LessonCard({ lesson, onToggleStatus, onDelete: _onDelete }: LessonCardProps) {
+export default function LessonCard({ lesson, onToggleStatus, onDelete: _onDelete, basePath = '/admin/lessons' }: LessonCardProps) {
   const navigate = useNavigate();
   const getStatusBadge = () => {
     if (lesson.status === 'active' || lesson.status === 'published') {
@@ -39,7 +40,7 @@ export default function LessonCard({ lesson, onToggleStatus, onDelete: _onDelete
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all group cursor-pointer"
-      onClick={() => navigate(`/admin/lessons/${lesson._id}`)}
+      onClick={() => navigate(`${basePath}/${lesson._id}`)}
     >
       {/* Image */}
       <div className="h-40 relative">
@@ -134,7 +135,7 @@ export default function LessonCard({ lesson, onToggleStatus, onDelete: _onDelete
             className="flex-1 py-2 px-4 bg-teal-50 text-teal-600 rounded-lg font-medium hover:bg-teal-100 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/admin/lessons/${lesson._id}`);
+              navigate(`${basePath}/${lesson._id}`);
             }}
           >
             عرض التفاصيل

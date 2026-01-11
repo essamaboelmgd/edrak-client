@@ -311,6 +311,17 @@ export default function EditExam() {
                     })}
                   />
                 </FormControl>
+
+                <FormControl display="flex" alignItems="center">
+                  <FormLabel mb={0}>مطلوب لفتح الدرس التالي</FormLabel>
+                   <Switch
+                    isChecked={formData.settings?.requiredBeforeNextLesson}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      settings: { ...formData.settings!, requiredBeforeNextLesson: e.target.checked }
+                    })}
+                  />
+                </FormControl>
               </Stack>
 
               <HStack justify="flex-end" pt={4}>
